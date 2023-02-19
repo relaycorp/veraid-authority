@@ -1,0 +1,13 @@
+FROM node:18.14.0 as build
+WORKDIR /tmp/gw
+COPY package*.json ./
+RUN npm install
+COPY . ./
+RUN npm run build && npm prune --production && rm -r src
+
+FROM node:18.14.0-slim
+WORKDIR /opt/gw
+COPY --from=build /tmp/gw ./
+USER node
+ENTRYPOINT ["node", "--unhandled-rejections=strict", "--experimental-vm-modules"]
+EXPOSE 8080

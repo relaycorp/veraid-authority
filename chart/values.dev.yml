@@ -1,0 +1,43 @@
+# Configuration for local development computers and CI
+#
+# Backing services are configured with no persistence so that the data can be reset by deleting
+# the respective pods.
+
+fullnameOverride: veraid-authority
+
+tags:
+  gwDev: true
+
+logging:
+  level: debug
+
+ingress:
+  enableTls: false
+
+internetAddress: gateway.tld
+
+pdcQueue:
+  replicas: 2
+
+mongo:
+  uri: mongodb://mongodb
+  db: gw
+  user: root
+  password: letmein
+
+nats:
+  serverUrl: nats://nats:4222
+  clusterId: stan
+
+objectStore:
+  backend: minio
+  endpoint: minio:9000
+  bucket: veraid-authority
+  accessKeyId: test-key
+  secretKey: test-secret
+  tlsEnabled: false
+
+keystore:
+  adapter: vault
+  serverUrl: http://dev-backing-services-vault:8200
+  token: root

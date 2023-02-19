@@ -1,0 +1,50 @@
+apiVersion: skaffold/v2beta11
+kind: Config
+build:
+  artifacts:
+  - image: veraid-authority
+  tagPolicy:
+    sha256: {}
+  local: {}
+deploy:
+  helm:
+    releases:
+    - name: dev-backing-services
+      chartPath: chart/dev-backing-services
+      valuesFiles:
+      - chart/dev-backing-services/values.yml
+      wait: true
+      skipBuildDependencies: true
+    - name: veraid-authority
+      chartPath: chart
+      valuesFiles:
+      - chart/values.dev.yml
+      artifactOverrides:
+        image.repository: veraid-authority
+      wait: true
+      skipBuildDependencies: true
+portForward:
+- resourceType: service
+  resourceName: dev-backing-services-vault
+  port: 8200
+  localPort: 8200
+- resourceType: service
+  resourceName: minio
+  port: 9000
+  localPort: 9000
+- resourceType: service
+  resourceName: veraid-authority-poweb
+  port: 8082
+  localPort: 8080
+- resourceType: service
+  resourceName: veraid-authority-pohttp
+  port: 80
+  localPort: 8081
+- resourceType: service
+  resourceName: veraid-authority-cogrpc
+  port: 8081
+  localPort: 8082
+- resourceType: service
+  resourceName: pong-pohttp
+  port: 80
+  localPort: 8083
