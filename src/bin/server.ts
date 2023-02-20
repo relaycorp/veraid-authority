@@ -1,4 +1,4 @@
-import { runFastify } from '../services/fastify';
-import { makeServer } from '../services/poweb/server';
+import { runFastify } from '../services/fastify.js';
+import { makeServer } from '../services/server.js';
 
-makeServer().then(runFastify);
+await runFastify(await makeServer());

@@ -1,6 +1,9 @@
-import { getMockContext, mockSpy } from '../testUtils/jest';
-import { makeMockLogging, MockLogging, partialPinoLog } from '../testUtils/logging';
-import { configureExitHandling } from './exitHandling';
+import { jest } from '@jest/globals';
+
+import { getMockContext, mockSpy } from '../testUtils/jest.js';
+import { makeMockLogging, type MockLogging, partialPinoLog } from '../testUtils/logging.js';
+
+import { configureExitHandling } from './exitHandling.js';
 
 const ERROR = new Error('Oh noes');
 
@@ -34,11 +37,11 @@ describe('configureExitHandling', () => {
     test('Process should exit with code 1', () => {
       const call = getMockContext(mockProcessOn).calls[0];
       const handler = call[1];
-      expect(mockProcessExit).not.toBeCalled();
+      expect(mockProcessExit).not.toHaveBeenCalled();
 
       handler(ERROR);
 
-      expect(mockProcessExit).toBeCalledWith(1);
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
     });
   });
 });

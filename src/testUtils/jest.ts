@@ -6,14 +6,13 @@ export async function getPromiseRejection<E extends Error>(
     await promise;
   } catch (error) {
     if (!(error instanceof expectedErrorClass)) {
-      throw new Error(`"${error}" does not extend ${expectedErrorClass.name}`);
+      throw new TypeError(`"${error}" does not extend ${expectedErrorClass.name}`);
     }
     return error;
   }
   throw new Error('Expected project to reject');
 }
 
-// tslint:disable-next-line:readonly-array
 export function mockSpy<T, Y extends any[]>(
   spy: jest.MockInstance<T, Y>,
   mockImplementation?: (...args: readonly any[]) => any,

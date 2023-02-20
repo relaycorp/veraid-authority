@@ -1,16 +1,16 @@
-import { getPinoOptions, LoggingTarget } from '@relaycorp/pino-cloud';
-import { get as getEnvVar } from 'env-var';
-import pino, { Level, Logger } from 'pino';
+import { getPinoOptions, type LoggingTarget } from '@relaycorp/pino-cloud';
+import env from 'env-var';
+import pino, { type Level, type Logger } from 'pino';
 
 const DEFAULT_APP_NAME = 'relaynet-internet-gateway';
 
 export function makeLogger(): Logger {
-  const logTarget = getEnvVar('LOG_TARGET').asString();
-  const gatewayVersion = getEnvVar('GATEWAY_VERSION').required().asString();
-  const logEnvName = getEnvVar('LOG_ENV_NAME').default(DEFAULT_APP_NAME).asString();
-  const appContext = { name: logEnvName, version: gatewayVersion };
+  const logTarget = env.get('LOG_TARGET').asString();
+  const gatewayVersion = env.get('AUTHORITY_VERSION').required().asString();
+  const logEnvironmentName = env.get('LOG_ENV_NAME').default(DEFAULT_APP_NAME).asString();
+  const appContext = { name: logEnvironmentName, version: gatewayVersion };
   const cloudPinoOptions = getPinoOptions(logTarget as LoggingTarget, appContext);
 
-  const logLevel = getEnvVar('LOG_LEVEL').default('info').asString().toLowerCase() as Level;
+  const logLevel = env.get('LOG_LEVEL').default('info').asString().toLowerCase() as Level;
   return pino({ ...cloudPinoOptions, level: logLevel });
 }

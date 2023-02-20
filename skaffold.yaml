@@ -25,26 +25,6 @@ deploy:
       skipBuildDependencies: true
 portForward:
 - resourceType: service
-  resourceName: dev-backing-services-vault
-  port: 8200
-  localPort: 8200
-- resourceType: service
-  resourceName: minio
-  port: 9000
-  localPort: 9000
-- resourceType: service
-  resourceName: veraid-authority-poweb
-  port: 8082
-  localPort: 8080
-- resourceType: service
-  resourceName: veraid-authority-pohttp
-  port: 80
-  localPort: 8081
-- resourceType: service
-  resourceName: veraid-authority-cogrpc
-  port: 8081
-  localPort: 8082
-- resourceType: service
   resourceName: pong-pohttp
   port: 80
   localPort: 8083

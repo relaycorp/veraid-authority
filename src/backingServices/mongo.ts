@@ -1,11 +1,11 @@
-import { get as getEnvVar } from 'env-var';
-import { Connection, createConnection } from 'mongoose';
+import env from 'env-var';
+import { type Connection, createConnection } from 'mongoose';
 
-export async function createMongooseConnectionFromEnv(): Promise<Connection> {
-  const mongoUri = getEnvVar('MONGO_URI').required().asString();
-  const dbName = getEnvVar('MONGO_DB').required().asString();
-  const user = getEnvVar('MONGO_USER').required().asString();
-  const pass = getEnvVar('MONGO_PASSWORD').required().asString();
-  const options = { dbName, pass, user };
+export async function createConnectionFromEnvironment(): Promise<Connection> {
+  const mongoUri = env.get('MONGO_URI').required().asString();
+  const databaseName = env.get('MONGO_DB').required().asString();
+  const user = env.get('MONGO_USER').required().asString();
+  const pass = env.get('MONGO_PASSWORD').required().asString();
+  const options = { dbName: databaseName, pass, user };
   return createConnection(mongoUri, options).asPromise();
 }

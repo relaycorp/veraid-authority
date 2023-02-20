@@ -1,9 +1,10 @@
+import { jest } from '@jest/globals';
 import fastify from 'fastify';
-import { Connection } from 'mongoose';
+import type { Connection } from 'mongoose';
 
-import { mockSpy } from '../testUtils/jest';
+import { mockSpy } from '../testUtils/jest.js';
 
-import fastifyMongoose from './fastifyMongoose';
+import fastifyMongoose from './fastifyMongoose.js';
 
 const MOCK_MONGOOSE_CONNECTION = { close: mockSpy(jest.fn()) } as any as Connection;
 
@@ -26,9 +27,9 @@ test('Connection should be added to fastify instance', async () => {
 test('Connection should be closed when fastify ends', async () => {
   const app = fastify();
   await app.register(fastifyMongoose, { connection: MOCK_MONGOOSE_CONNECTION });
-  expect(MOCK_MONGOOSE_CONNECTION.close).not.toBeCalled();
+  expect(MOCK_MONGOOSE_CONNECTION.close).not.toHaveBeenCalled();
 
   await app.close();
 
-  expect(MOCK_MONGOOSE_CONNECTION.close).toBeCalled();
+  expect(MOCK_MONGOOSE_CONNECTION.close).toHaveBeenCalled();
 });

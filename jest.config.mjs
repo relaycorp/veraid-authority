@@ -1,6 +1,4 @@
-const { defaults: tsjPreset } = require('ts-jest/presets');
-
-module.exports = {
+export default {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -75,11 +73,14 @@ module.exports = {
   //   "node_modules"
   // ],
 
-  // An array of file extensions your modules use
+  extensionsToTreatAsEsm: ['.ts'],
+
   moduleFileExtensions: ["js", "ts"],
 
   // A map from regular expressions to module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -91,7 +92,7 @@ module.exports = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  preset: "@shelf/jest-mongodb",
+  preset: "ts-jest/presets/default-esm",
 
   // Run tests from one or more projects
   // projects: null,
@@ -132,7 +133,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // Work around https://github.com/shelfio/jest-mongodb/issues/109
-  // testEnvironment: "node",
+  testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -168,7 +169,12 @@ module.exports = {
   // timers: "real",
 
   // A map from regular expressions to paths to transformers
-  transform: tsjPreset.transform,
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      { useESM: true },
+    ],
+  },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [

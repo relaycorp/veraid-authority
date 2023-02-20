@@ -1,29 +1,30 @@
-import { fastify, FastifyInstance, FastifyPluginCallback } from 'fastify';
+import { jest } from '@jest/globals';
+import { fastify, type FastifyInstance, type FastifyPluginCallback } from 'fastify';
 import pino from 'pino';
 
-import { MAX_RAMF_MESSAGE_SIZE } from '../constants';
-import { setUpTestDBConnection } from '../testUtils/db';
-import { configureMockEnvVars } from '../testUtils/envVars';
-import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest';
-import * as exitHandling from '../utilities/exitHandling';
-import * as logging from '../utilities/logging';
-import { configureFastify, runFastify } from './fastify';
-import fastifyMongoose from './fastifyMongoose';
+import { setUpTestDBConnection } from '../testUtils/db.js';
+import { configureMockEnvVars as configureMockEnvironmentVariables } from '../testUtils/envVars.js';
+import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
+import * as exitHandling from '../utilities/exitHandling.js';
+import * as logging from '../utilities/logging.js';
+
+import { configureFastify, runFastify } from './fastify.js';
+import fastifyMongoose from './fastifyMongoose.js';
 
 const mockFastify: FastifyInstance = {
   listen: mockSpy(jest.fn()),
   ready: mockSpy(jest.fn()),
   register: mockSpy(jest.fn()),
 } as any;
-jest.mock('fastify', () => {
-  return { fastify: jest.fn().mockImplementation(() => mockFastify) };
-});
+jest.unstable_mockModule('fastify', () => ({
+  fastify: jest.fn().mockImplementation(() => mockFastify),
+}));
 
 afterAll(() => {
   jest.restoreAllMocks();
 });
 
-const mockEnvVars = configureMockEnvVars();
+const mockEnvironmentVariables = configureMockEnvironmentVariables();
 
 const mockMakeLogger = mockSpy(jest.spyOn(logging, 'makeLogger'));
 
@@ -37,60 +38,56 @@ describe('configureFastify', () => {
   test('Logger should be enabled by default', () => {
     configureFastify([dummyRoutes]);
 
-    expect(mockMakeLogger).toBeCalledWith();
+    expect(mockMakeLogger).toHaveBeenCalledWith();
     const logger = getMockContext(mockMakeLogger).results[0].value;
-    expect(fastify).toBeCalledWith(expect.objectContaining({ logger }));
+    expect(fastify).toHaveBeenCalledWith(expect.objectContaining({ logger }));
 
-    expect(mockExitHandler).toBeCalledWith(logger);
+    expect(mockExitHandler).toHaveBeenCalledWith(logger);
   });
 
   test('Custom logger should be honoured', () => {
     const customLogger = pino();
     configureFastify([dummyRoutes], undefined, customLogger);
 
-    expect(fastify).toBeCalledWith(
+    expect(fastify).toHaveBeenCalledWith(
       expect.objectContaining({
         logger: customLogger,
       }),
     );
-    expect(mockExitHandler).toBeCalledWith(customLogger);
+    expect(mockExitHandler).toHaveBeenCalledWith(customLogger);
   });
 
   test('X-Request-Id should be the default request id header', () => {
     configureFastify([dummyRoutes]);
 
-    const fastifyCallArgs = getMockContext(fastify).calls[0];
-    expect(fastifyCallArgs[0]).toHaveProperty('requestIdHeader', 'x-request-id');
+    const fastifyCallArguments = getMockContext(fastify).calls[0];
+    expect(fastifyCallArguments[0]).toHaveProperty('requestIdHeader', 'x-request-id');
   });
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', () => {
     const requestIdHeader = 'X-Id';
-    mockEnvVars({ REQUEST_ID_HEADER: requestIdHeader });
+    mockEnvironmentVariables({ REQUEST_ID_HEADER: requestIdHeader });
 
     configureFastify([dummyRoutes]);
 
-    const fastifyCallArgs = getMockContext(fastify).calls[0];
-    expect(fastifyCallArgs[0]).toHaveProperty('requestIdHeader', requestIdHeader.toLowerCase());
-  });
-
-  test('Maximum request body should allow for the largest RAMF message', () => {
-    configureFastify([dummyRoutes]);
-
-    const fastifyCallArgs = getMockContext(fastify).calls[0];
-    expect(fastifyCallArgs[0]).toHaveProperty('bodyLimit', MAX_RAMF_MESSAGE_SIZE);
+    const fastifyCallArguments = getMockContext(fastify).calls[0];
+    expect(fastifyCallArguments[0]).toHaveProperty(
+      'requestIdHeader',
+      requestIdHeader.toLowerCase(),
+    );
   });
 
   test('Proxy request headers should be trusted', () => {
     configureFastify([dummyRoutes]);
 
-    const fastifyCallArgs = getMockContext(fastify).calls[0];
-    expect(fastifyCallArgs[0]).toHaveProperty('trustProxy', true);
+    const fastifyCallArguments = getMockContext(fastify).calls[0];
+    expect(fastifyCallArguments[0]).toHaveProperty('trustProxy', true);
   });
 
   test('Routes should be loaded', async () => {
     await configureFastify([dummyRoutes]);
 
-    expect(mockFastify.register).toBeCalledWith(dummyRoutes, undefined);
+    expect(mockFastify.register).toHaveBeenCalledWith(dummyRoutes, undefined);
   });
 
   test('Routes should be "awaited" for', async () => {
@@ -109,19 +106,21 @@ describe('configureFastify', () => {
 
     await configureFastify([dummyRoutes], options);
 
-    expect(mockFastify.register).toBeCalledWith(dummyRoutes, options);
+    expect(mockFastify.register).toHaveBeenCalledWith(dummyRoutes, options);
   });
 
   test('The fastify-mongoose plugin should be configured', async () => {
     await configureFastify([dummyRoutes]);
 
-    expect(mockFastify.register).toBeCalledWith(fastifyMongoose, { connection: getConnection() });
+    expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongoose, {
+      connection: getConnection(),
+    });
   });
 
   test('It should wait for the Fastify server to be ready', async () => {
     await configureFastify([dummyRoutes]);
 
-    expect(mockFastify.ready).toBeCalledTimes(1);
+    expect(mockFastify.ready).toHaveBeenCalledTimes(1);
   });
 
   test('Server instance should be returned', async () => {
@@ -135,22 +134,22 @@ describe('runFastify', () => {
   test('Server returned by makeServer() should be used', async () => {
     await runFastify(mockFastify);
 
-    expect(mockFastify.listen).toBeCalledTimes(1);
+    expect(mockFastify.listen).toHaveBeenCalledTimes(1);
   });
 
   test('Server should listen on port 8080', async () => {
     await runFastify(mockFastify);
 
-    const listenCallArgs = getMockContext(mockFastify.listen).calls[0];
-    expect(listenCallArgs[0]).toHaveProperty('port', 8080);
+    const listenCallArguments = getMockContext(mockFastify.listen).calls[0];
+    expect(listenCallArguments[0]).toHaveProperty('port', 8080);
   });
 
   test('Server should listen on 0.0.0.0', async () => {
     await runFastify(mockFastify);
 
-    expect(mockFastify.listen).toBeCalledTimes(1);
-    const listenCallArgs = getMockContext(mockFastify.listen).calls[0];
-    expect(listenCallArgs[0]).toHaveProperty('host', '0.0.0.0');
+    expect(mockFastify.listen).toHaveBeenCalledTimes(1);
+    const listenCallArguments = getMockContext(mockFastify.listen).calls[0];
+    expect(listenCallArguments[0]).toHaveProperty('host', '0.0.0.0');
   });
 
   test('listen() call should be "awaited" for', async () => {

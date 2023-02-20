@@ -1,6 +1,6 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { Connection } from 'mongoose';
+import type { Connection } from 'mongoose';
 
 export interface FastifyMongooseOptions {
   readonly connection: Connection;

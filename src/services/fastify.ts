@@ -1,18 +1,18 @@
-import { get as getEnvVar } from 'env-var';
+import env from 'env-var';
 import {
   fastify,
-  FastifyInstance,
-  FastifyPluginCallback,
-  FastifyPluginOptions,
-  HTTPMethods,
+  type FastifyInstance,
+  type FastifyPluginCallback,
+  type FastifyPluginOptions,
+  type HTTPMethods,
 } from 'fastify';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 
-import { createMongooseConnectionFromEnv } from '../backingServices/mongo';
-import { MAX_RAMF_MESSAGE_SIZE } from '../constants';
-import { configureExitHandling } from '../utilities/exitHandling';
-import { makeLogger } from '../utilities/logging';
-import fastifyMongoose from './fastifyMongoose';
+import { createConnectionFromEnvironment } from '../backingServices/mongo.js';
+import { configureExitHandling } from '../utilities/exitHandling.js';
+import { makeLogger } from '../utilities/logging.js';
+
+import fastifyMongoose from './fastifyMongoose.js';
 
 const DEFAULT_REQUEST_ID_HEADER = 'X-Request-Id';
 const SERVER_PORT = 8080;
@@ -30,19 +30,20 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
 
 export function registerDisallowedMethods(
   allowedMethods: readonly HTTPMethods[],
-  endpointURL: string,
+  endpointUrl: string,
   fastifyInstance: FastifyInstance,
 ): void {
   const allowedMethodsString = allowedMethods.join(', ');
 
-  const methods = HTTP_METHODS.filter((m) => !allowedMethods.includes(m));
+  const methods = HTTP_METHODS.filter((method) => !allowedMethods.includes(method));
 
   fastifyInstance.route({
     method: methods,
-    url: endpointURL,
-    async handler(req, reply): Promise<void> {
-      const statusCode = req.method === 'OPTIONS' ? 204 : 405;
-      reply.code(statusCode).header('Allow', allowedMethodsString).send();
+    url: endpointUrl,
+
+    async handler(request, reply): Promise<void> {
+      const statusCode = request.method === 'OPTIONS' ? 204 : 405;
+      await reply.code(statusCode).header('Allow', allowedMethodsString).send();
     },
   });
 }
@@ -52,8 +53,8 @@ export function registerDisallowedMethods(
  *
  * This function doesn't call .listen() so we can use .inject() for testing purposes.
  */
-export async function configureFastify<RouteOptions extends FastifyPluginOptions = {}>(
-  routes: ReadonlyArray<FastifyPluginCallback<RouteOptions>>,
+export async function configureFastify<RouteOptions extends FastifyPluginOptions = object>(
+  routes: readonly FastifyPluginCallback<RouteOptions>[],
   routeOptions?: RouteOptions,
   customLogger?: Logger,
 ): Promise<FastifyInstance> {
@@ -61,16 +62,17 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
   configureExitHandling(logger);
 
   const server = fastify({
-    bodyLimit: MAX_RAMF_MESSAGE_SIZE,
     logger,
-    requestIdHeader: getEnvVar('REQUEST_ID_HEADER')
+
+    requestIdHeader: env.get('REQUEST_ID_HEADER')
       .default(DEFAULT_REQUEST_ID_HEADER)
       .asString()
       .toLowerCase(),
+
     trustProxy: true,
   });
 
-  const mongooseConnection = await createMongooseConnectionFromEnv();
+  const mongooseConnection = await createConnectionFromEnvironment();
   await server.register(fastifyMongoose, { connection: mongooseConnection });
 
   await Promise.all(routes.map((route) => server.register(route, routeOptions)));

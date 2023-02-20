@@ -1,7 +1,6 @@
 import pino, { symbols as PinoSymbols } from 'pino';
 import split2 from 'split2';
 
-// tslint:disable-next-line:readonly-array
 export type MockLogSet = object[];
 
 export interface MockLogging {
@@ -10,7 +9,6 @@ export interface MockLogging {
 }
 
 export function makeMockLogging(): MockLogging {
-  // tslint:disable-next-line:readonly-array
   const logs: object[] = [];
   const stream = split2((data) => {
     logs.push(JSON.parse(data));
