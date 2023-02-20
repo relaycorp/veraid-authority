@@ -2,7 +2,7 @@ import { getPinoOptions, type LoggingTarget } from '@relaycorp/pino-cloud';
 import env from 'env-var';
 import pino, { type Level, type Logger } from 'pino';
 
-const DEFAULT_APP_NAME = 'relaynet-internet-gateway';
+const DEFAULT_APP_NAME = 'veraid-authority';
 
 export function makeLogger(): Logger {
   const logTarget = env.get('LOG_TARGET').asString();
