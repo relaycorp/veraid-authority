@@ -13,7 +13,9 @@ beforeEach(() => {
 });
 
 const mockProcessOn = mockSpy(jest.spyOn(process, 'on'));
-const mockProcessExit = mockSpy(jest.spyOn(process, 'exit'));
+const mockProcessExit = mockSpy(jest.spyOn(process, 'exit'), () => {
+  // Do nothing
+});
 
 describe('configureExitHandling', () => {
   beforeEach(() => {
