@@ -1,12 +1,9 @@
 import { jest } from '@jest/globals';
-import { getPinoOptions } from '@relaycorp/pino-cloud';
 import env from 'env-var';
 import pino from 'pino';
 
 import { configureMockEnvVars as configureMockEnvironmentVariables } from '../testUtils/envVars.js';
 import { getMockInstance } from '../testUtils/jest.js';
-
-import { makeLogger } from './logging.js';
 
 const REQUIRED_ENV_VARS = {
   AUTHORITY_VERSION: '1.0.1',
@@ -16,6 +13,8 @@ const mockEnvironmentVariables = configureMockEnvironmentVariables(REQUIRED_ENV_
 jest.unstable_mockModule('@relaycorp/pino-cloud', () => ({
   getPinoOptions: jest.fn().mockReturnValue({}),
 }));
+const { getPinoOptions } = await import('@relaycorp/pino-cloud');
+const { makeLogger } = await import('./logging.js');
 
 describe('makeLogger', () => {
   test('Log level should be info if LOG_LEVEL env var is absent', () => {
