@@ -1,0 +1,19 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: veraid-authority-server
+spec:
+  template:
+    spec:
+      containers:
+        - image: dev.local/veraid-authority
+          args:
+            - /opt/gw/build/main/bin/server.js
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+          env:
+            - name: AUTHORITY_VERSION
+              value: "{{ .Chart.Version }}"
