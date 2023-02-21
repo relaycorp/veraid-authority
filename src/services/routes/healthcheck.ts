@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { registerDisallowedMethods } from '../fastify.js';
 
-export default function registerRoutes(fastify: FastifyInstance): void {
+export default async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   registerDisallowedMethods(['HEAD', 'GET'], '/', fastify);
 
   fastify.route({
@@ -10,10 +10,7 @@ export default function registerRoutes(fastify: FastifyInstance): void {
     url: '/',
 
     async handler(_request, reply): Promise<void> {
-      reply
-        .code(200)
-        .header('Content-Type', 'text/plain')
-        .send('Success! The PoWeb service works.');
+      await reply.code(200).header('Content-Type', 'text/plain').send('Success! It works.');
     },
   });
 }
