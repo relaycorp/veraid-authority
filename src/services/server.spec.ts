@@ -1,27 +1,22 @@
+import { jest } from '@jest/globals';
+import { FastifyInstance } from 'fastify';
 import pino from 'pino';
 
-import { mockSpy } from '../testUtils/jest.js';
-
-import * as fastifyUtils from './fastify.js';
-import { makeServer } from './server.js';
-
-jest.mock('../utilities/exitHandling.js');
-
-const mockFastifyInstance = {};
-const mockConfigureFastify = mockSpy(
-  jest.spyOn(fastifyUtils, 'configureFastify'),
-  () => mockFastifyInstance,
-);
+const mockFastifyInstance = {} as unknown as FastifyInstance;
+jest.unstable_mockModule('./fastify.js', () => ({
+  registerDisallowedMethods: jest.fn(),
+  configureFastify: jest
+    .fn<() => Promise<FastifyInstance>>()
+    .mockResolvedValue(mockFastifyInstance),
+}));
+const { configureFastify } = await import('./fastify.js');
+const { makeServer } = await import('./server.js');
 
 describe('makeServer', () => {
   test('No logger should be passed by default', async () => {
     await makeServer();
 
-    expect(mockConfigureFastify).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      undefined,
-    );
+    expect(configureFastify).toHaveBeenCalledWith(expect.anything(), undefined, undefined);
   });
 
   test('Any explicit logger should be honored', async () => {
@@ -29,7 +24,7 @@ describe('makeServer', () => {
 
     await makeServer(logger);
 
-    expect(mockConfigureFastify).toHaveBeenCalledWith(expect.anything(), expect.anything(), logger);
+    expect(configureFastify).toHaveBeenCalledWith(expect.anything(), undefined, logger);
   });
 
   test('Fastify instance should be returned', async () => {
