@@ -1,0 +1,15 @@
+{
+  "extends": "@relaycorp/shared-config",
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["ES2021", "dom"],
+    "module": "esnext",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "build/main",
+    "rootDir": "src",
+    "types": ["node", "jest"],
+    "typeRoots": ["node_modules/@types", "src/types"]
+  },
+  "include": ["src/**/*.ts"]
+}

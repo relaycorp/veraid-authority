@@ -1,0 +1,30 @@
+apiVersion: skaffold/v2beta11
+kind: Config
+build:
+  artifacts:
+  - image: veraid-authority
+  tagPolicy:
+    sha256: {}
+  local: {}
+deploy:
+  helm:
+    releases:
+    - name: dev-backing-services
+      chartPath: chart/dev-backing-services
+      valuesFiles:
+      - chart/dev-backing-services/values.yml
+      wait: true
+      skipBuildDependencies: true
+    - name: veraid-authority
+      chartPath: chart
+      valuesFiles:
+      - chart/values.dev.yml
+      artifactOverrides:
+        image.repository: veraid-authority
+      wait: true
+      skipBuildDependencies: true
+portForward:
+- resourceType: service
+  resourceName: pong-pohttp
+  port: 80
+  localPort: 8083
