@@ -8,11 +8,8 @@ import {
 } from 'fastify';
 import type { Logger } from 'pino';
 
-import { createConnectionFromEnvironment } from '../backingServices/mongo.js';
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
-
-import fastifyMongoose from './fastifyMongoose.js';
 
 const DEFAULT_REQUEST_ID_HEADER = 'X-Request-Id';
 const SERVER_PORT = 8080;
@@ -71,9 +68,6 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
 
     trustProxy: true,
   });
-
-  const mongooseConnection = await createConnectionFromEnvironment();
-  await server.register(fastifyMongoose, { connection: mongooseConnection });
 
   await Promise.all(routes.map((route) => server.register(route, routeOptions)));
 

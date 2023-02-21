@@ -69,12 +69,12 @@ describe('makeLogger', () => {
     );
   });
 
-  test('App name should be "relaynet-internet-gateway" if LOG_ENV_NAME if absent', () => {
+  test('App name should be "veraid-authority" if LOG_ENV_NAME if absent', () => {
     makeLogger();
 
     expect(getPinoOptions).toHaveBeenCalledWith(
       undefined,
-      expect.objectContaining({ name: 'relaynet-internet-gateway' }),
+      expect.objectContaining({ name: 'veraid-authority' }),
     );
   });
 

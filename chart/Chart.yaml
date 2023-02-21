@@ -1,5 +1,5 @@
 apiVersion: v2
-name: relaynet-internet-gateway
+name: veraid-authority
 description: Relaynet-Internet Gateway
 maintainers:
   - name: Relaycorp, Inc.
@@ -9,7 +9,7 @@ type: application
 version: 0.1.0
 appVersion: 1.9.0
 
-home: https://docs.relaycorp.tech/relaynet-internet-gateway/
+home: https://docs.relaycorp.tech/veraid-authority/
 
 sources:
-  - https://github.com/relaycorp/relaynet-internet-gateway
+  - https://github.com/relaycorp/veraid-authority

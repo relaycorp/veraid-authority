@@ -2,14 +2,12 @@ import { jest } from '@jest/globals';
 import { fastify, type FastifyInstance, type FastifyPluginCallback } from 'fastify';
 import pino from 'pino';
 
-import { setUpTestDBConnection } from '../testUtils/db.js';
 import { configureMockEnvVars as configureMockEnvironmentVariables } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
 import * as exitHandling from '../utilities/exitHandling.js';
 import * as logging from '../utilities/logging.js';
 
 import { configureFastify, runFastify } from './fastify.js';
-import fastifyMongoose from './fastifyMongoose.js';
 
 const mockFastify: FastifyInstance = {
   listen: mockSpy(jest.fn()),
@@ -31,8 +29,6 @@ const mockMakeLogger = mockSpy(jest.spyOn(logging, 'makeLogger'));
 const mockExitHandler = mockSpy(jest.spyOn(exitHandling, 'configureExitHandling'));
 
 const dummyRoutes: FastifyPluginCallback = () => null;
-
-const getConnection = setUpTestDBConnection();
 
 describe('configureFastify', () => {
   test('Logger should be enabled by default', () => {
@@ -107,14 +103,6 @@ describe('configureFastify', () => {
     await configureFastify([dummyRoutes], options);
 
     expect(mockFastify.register).toHaveBeenCalledWith(dummyRoutes, options);
-  });
-
-  test('The fastify-mongoose plugin should be configured', async () => {
-    await configureFastify([dummyRoutes]);
-
-    expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongoose, {
-      connection: getConnection(),
-    });
   });
 
   test('It should wait for the Fastify server to be ready', async () => {
