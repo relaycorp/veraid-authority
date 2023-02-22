@@ -5,10 +5,13 @@ import pino from 'pino';
 import { configureMockEnvVars } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
 
+const mockListen = mockSpy(jest.fn<() => Promise<string>>());
+const mockRegister = mockSpy(jest.fn());
+const mockReady = mockSpy(jest.fn<() => Promise<undefined>>());
 const mockFastify: FastifyInstance = {
-  listen: mockSpy(jest.fn()),
-  ready: mockSpy(jest.fn()),
-  register: mockSpy(jest.fn()),
+  listen: mockListen,
+  ready: mockReady,
+  register: mockRegister,
 } as any;
 jest.unstable_mockModule('fastify', () => ({
   fastify: jest.fn().mockImplementation(() => mockFastify),
@@ -68,7 +71,7 @@ describe('configureFastify', () => {
 
     await configureFastify([dummyRoutes]);
 
-    const [[fastifyCallArguments]] = getMockContext(fastify).calls;
+    const [[fastifyCallArguments]] = getMockInstance(fastify).mock.calls;
     expect(fastifyCallArguments).toHaveProperty('requestIdHeader', requestIdHeader.toLowerCase());
   });
 
@@ -87,13 +90,13 @@ describe('configureFastify', () => {
 
   test('Routes should be "awaited" for', async () => {
     const error = new Error('Denied');
-    getMockInstance(mockFastify.register).mockImplementation((plugin) => {
+    mockRegister.mockImplementation((plugin) => {
       if (plugin === dummyRoutes) {
         throw error;
       }
     });
 
-    await expect(configureFastify([dummyRoutes])).rejects.toEqual(error);
+    await expect(configureFastify([dummyRoutes])).rejects.toStrictEqual(error);
   });
 
   test('Any route options should be passed when registering the route', async () => {
@@ -107,7 +110,7 @@ describe('configureFastify', () => {
   test('It should wait for the Fastify server to be ready', async () => {
     await configureFastify([dummyRoutes]);
 
-    expect(mockFastify.ready).toHaveBeenCalledTimes(1);
+    expect(mockReady).toHaveBeenCalledTimes(1);
   });
 
   test('Server instance should be returned', async () => {
@@ -121,27 +124,29 @@ describe('runFastify', () => {
   test('Server returned by makeServer() should be used', async () => {
     await runFastify(mockFastify);
 
-    expect(mockFastify.listen).toHaveBeenCalledTimes(1);
+    expect(mockListen).toHaveBeenCalledTimes(1);
   });
 
   test('Server should listen on port 8080', async () => {
     await runFastify(mockFastify);
 
-    const [[listenCallArguments]] = getMockContext(mockFastify.listen).calls;
+    const [[listenCallArguments]] = getMockContext(mockListen).calls;
     expect(listenCallArguments).toHaveProperty('port', 8080);
   });
 
   test('Server should listen on 0.0.0.0', async () => {
     await runFastify(mockFastify);
 
-    expect(mockFastify.listen).toHaveBeenCalledTimes(1);
-    const [[listenCallArguments]] = getMockContext(mockFastify.listen).calls;
+    expect(mockListen).toHaveBeenCalledTimes(1);
+    const [[listenCallArguments]] = getMockContext(mockListen).calls;
     expect(listenCallArguments).toHaveProperty('host', '0.0.0.0');
   });
 
   test('listen() call should be "awaited" for', async () => {
     const error = new Error('Denied');
-    getMockInstance(mockFastify.listen).mockRejectedValueOnce(error);
+    mockListen.mockImplementation(() => {
+      throw error;
+    });
 
     await expect(runFastify(mockFastify)).rejects.toStrictEqual(error);
   });

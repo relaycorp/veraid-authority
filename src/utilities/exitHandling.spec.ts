@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import { getMockContext, mockSpy } from '../testUtils/jest.js';
+import { mockSpy } from '../testUtils/jest.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from '../testUtils/logging.js';
 
 import { configureExitHandling } from './exitHandling.js';
@@ -24,9 +24,8 @@ describe('configureExitHandling', () => {
 
   describe('uncaughtException', () => {
     test('Error should be logged as fatal', () => {
-      const [[, handler]] = getMockContext(mockProcessOn).calls;
+      const [[, handler]] = mockProcessOn.mock.calls;
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       handler(ERROR);
 
       expect(mockLogging.logs).toContainEqual(
@@ -37,10 +36,9 @@ describe('configureExitHandling', () => {
     });
 
     test('Process should exit with code 1', () => {
-      const [[, handler]] = getMockContext(mockProcessOn).calls;
+      const [[, handler]] = mockProcessOn.mock.calls;
       expect(process.exitCode).toBeUndefined();
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       handler(ERROR);
 
       expect(process.exitCode).toBe(1);
