@@ -35,6 +35,8 @@ jobs:
             --namespace knative-serving \
             --type merge \
             --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+          kubectl rollout status deployment net-kourier-controller -n knative-serving --timeout=90s
+          kubectl rollout status deployment 3scale-kourier-gateway -n kourier-system --timeout=90s
 
           kubectl --namespace kourier-system get service kourier
 
