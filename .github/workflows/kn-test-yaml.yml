@@ -56,4 +56,5 @@ jobs:
           set -x
 
           kind get clusters
-          kubectl get all
+          kubectl describe deploy 3scale-kourier-gateway -n kourier-system
+          kubectl logs deploy/3scale-kourier-gateway -n kourier-system
