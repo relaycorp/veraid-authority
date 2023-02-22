@@ -42,4 +42,4 @@ jobs:
           set -x
 
           kind get clusters
-          kubectl get all
+          kubectl get all --all-namespaces
