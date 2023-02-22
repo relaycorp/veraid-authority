@@ -61,7 +61,8 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
   const server = fastify({
     logger,
 
-    requestIdHeader: env.get('REQUEST_ID_HEADER')
+    requestIdHeader: env
+      .get('REQUEST_ID_HEADER')
       .default(DEFAULT_REQUEST_ID_HEADER)
       .asString()
       .toLowerCase(),
