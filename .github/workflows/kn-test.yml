@@ -42,4 +42,4 @@ jobs:
           set -x
 
           kind get clusters
-          kubectl get pods
+          kubectl get all
