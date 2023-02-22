@@ -17,4 +17,4 @@ jobs:
         echo "Installed kn $KN_VERSION"
       env:
         KN_VERSION: "1.9.0"
-        KN_INSTALL_PATH: /tmp
+        KN_INSTALL_PATH: /tmp/kn
