@@ -1,10 +1,11 @@
 import { jest } from '@jest/globals';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import pino from 'pino';
 
 const mockFastifyInstance = {} as unknown as FastifyInstance;
 jest.unstable_mockModule('./fastify.js', () => ({
   registerDisallowedMethods: jest.fn(),
+
   configureFastify: jest
     .fn<() => Promise<FastifyInstance>>()
     .mockResolvedValue(mockFastifyInstance),
