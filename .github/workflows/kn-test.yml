@@ -1,0 +1,20 @@
+name: CI and automated releases
+on:
+  pull_request:
+jobs:
+  install:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Setup kn
+      run: |-
+        set -o nounset
+        set -o errexit
+        set -o pipefail
+
+        echo "Downloading kn $KN_VERSION to $KN_INSTALL_PATH..."
+        sudo wget --quiet -O $KN_INSTALL_PATH "https://github.com/knative/client/releases/download/knative-v$KN_VERSION/kn-linux-amd64"
+        sudo chmod +x $KN_INSTALL_PATH
+        echo "Installed kn $KN_VERSION"
+      with:
+        KN_VERSION: "1.9.0"
+        KN_INSTALL_PATH: /tmp
