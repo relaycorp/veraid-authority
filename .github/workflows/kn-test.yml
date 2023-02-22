@@ -26,7 +26,8 @@ jobs:
           sudo wget --quiet -O "${BIN_PATH}/kn-quickstart" "https://github.com/knative-sandbox/kn-plugin-quickstart/releases/download/knative-v$KN_VERSION/kn-quickstart-linux-amd64"
           sudo chmod +x "${BIN_PATH}/kn-quickstart"
 
-          kn quickstart --help
+          kn quickstart kind
+          kind get clusters
         env:
           KN_VERSION: "1.9.0"
           BIN_PATH: /home/runner/.local/bin
