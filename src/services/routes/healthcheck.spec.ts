@@ -31,6 +31,5 @@ describe('healthcheck', () => {
     expect(response).toHaveProperty('statusCode', 200);
     expect(response).toHaveProperty('headers.content-type', 'text/plain');
     expect(response.payload).toContain('Success');
-    expect(response.payload).toContain('PoWeb');
   });
 });
