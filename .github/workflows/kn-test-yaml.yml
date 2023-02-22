@@ -1,4 +1,4 @@
-name: CI and automated releases
+name: KN Yaml install
 on:
   pull_request:
 jobs:

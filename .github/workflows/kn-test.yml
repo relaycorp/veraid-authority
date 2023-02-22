@@ -1,4 +1,4 @@
-name: CI and automated releases
+name: kn quickstart
 on:
   pull_request:
 jobs:
@@ -43,3 +43,4 @@ jobs:
 
           kind get clusters
           kubectl get all --all-namespaces
+          kubectl describe deploy deployment.apps/3scale-kourier-gateway -n kourier-system
