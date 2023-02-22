@@ -5,18 +5,26 @@ jobs:
   install:
     runs-on: ubuntu-22.04
     steps:
-    - name: Setup kn
-      run: |-
-        set -o nounset
-        set -o errexit
-        set -o pipefail
+      - name: Create Kind cluster
+        uses: container-tools/kind-action@v2
+        with:
+          cluster_name: default
+          kubectl_version: "v1.25.3"
+      - name: Setup kn
+        run: |-
+          set -o nounset
+          set -o errexit
+          set -o pipefail
 
-        echo "Downloading kn $KN_VERSION to $KN_INSTALL_PATH..."
-        sudo wget --quiet -O $KN_INSTALL_PATH "https://github.com/knative/client/releases/download/knative-v$KN_VERSION/kn-linux-amd64"
-        sudo chmod +x $KN_INSTALL_PATH
-        echo "Installed kn $KN_VERSION"
+          set -x
 
-        echo $PATH
-      env:
-        KN_VERSION: "1.9.0"
-        KN_INSTALL_PATH: /tmp/kn
+          sudo wget --quiet -O "${BIN_PATH}/kn" "https://github.com/knative/client/releases/download/knative-v$KN_VERSION/kn-linux-amd64"
+          sudo chmod +x "${BIN_PATH}/kn"
+
+          sudo wget --quiet -O "${BIN_PATH}/kn-quickstart" "https://github.com/knative-sandbox/kn-plugin-quickstart/releases/download/knative-v$KN_VERSION/kn-quickstart-linux-amd64"
+          sudo chmod +x "${BIN_PATH}/kn-quickstart"
+
+          kn quickstart --help
+        env:
+          KN_VERSION: "1.9.0"
+          BIN_PATH: /home/runner/.local/bin
