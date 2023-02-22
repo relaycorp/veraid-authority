@@ -16,7 +16,6 @@
     "clean": "del-cli build test coverage"
   },
   "dependencies": {
-    "@relaycorp/eslint-config": "^1.1.63",
     "@relaycorp/pino-cloud": "^1.0.28",
     "env-var": "^7.3.0",
     "fastify": "^4.13.0",
@@ -26,6 +25,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",
+    "@relaycorp/eslint-config": "^1.1.64",
     "@relaycorp/shared-config": "^1.9.1",
     "@shelf/jest-mongodb": "^4.1.6",
     "@types/jest": "^29.4.0",
