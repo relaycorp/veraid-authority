@@ -21,6 +21,12 @@ jobs:
           echo "Installing knative serving..."
           kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-crds.yaml"
           kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-core.yaml"
+          kubectl rollout status deployment activator -n knative-serving --timeout=90s
+          kubectl rollout status deployment autoscaler -n knative-serving --timeout=90s
+          kubectl rollout status deployment controller -n knative-serving --timeout=90s
+          kubectl rollout status deployment domain-mapping -n knative-serving --timeout=90s
+          kubectl rollout status deployment domainmapping-webhook -n knative-serving --timeout=90s
+          kubectl rollout status deployment webhook -n knative-serving --timeout=90s
 
           echo "Installing kourier..."
           kubectl apply -f "https://github.com/knative/net-kourier/releases/download/knative-v${KN_VERSION}/kourier.yaml"
@@ -30,9 +36,12 @@ jobs:
             --type merge \
             --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
 
+#          kubectl rollout status deployment webhook -n knative-serving --timeout=90s
+
           kubectl --namespace kourier-system get service kourier
 
-          kubectl get all -n knative-serving
+#          kubectl get all -n knative-serving
+          kubectl get all --all-namespaces
 
           kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-default-domain.yaml"
 
