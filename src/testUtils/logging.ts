@@ -1,7 +1,7 @@
-import pino, { symbols as PinoSymbols } from 'pino';
+import pino, { type LogDescriptor, symbols as PinoSymbols } from 'pino';
 import split2 from 'split2';
 
-export type MockLogSet = object[];
+type MockLogSet = object[];
 
 export interface MockLogging {
   readonly logger: pino.Logger;
@@ -9,7 +9,7 @@ export interface MockLogging {
 }
 
 export function makeMockLogging(): MockLogging {
-  const logs: object[] = [];
+  const logs: any[] = [];
   const stream = split2((data) => {
     logs.push(JSON.parse(data));
   });
@@ -17,17 +17,22 @@ export function makeMockLogging(): MockLogging {
   return { logger, logs };
 }
 
-export function partialPinoLogger(bindings: { readonly [key: string]: any }): object {
+// eslint-disable-next-line import/no-unused-modules
+export function partialPinoLogger(bindings: { readonly [key: string]: any }): any {
   return expect.objectContaining({
     [PinoSymbols.formattersSym]: { bindings },
   });
 }
 
-export function partialPinoLog(level: pino.Level, message: string, extraAttributes?: any): object {
+export function partialPinoLog(
+  level: pino.Level,
+  message: string,
+  extraAttributes: LogDescriptor = {},
+): any {
   const levelNumber = pino.levels.values[level];
-  return expect.objectContaining({
+  return expect.objectContaining<LogDescriptor>({
     level: levelNumber,
     msg: message,
-    ...(extraAttributes && extraAttributes),
+    ...extraAttributes,
   });
 }
