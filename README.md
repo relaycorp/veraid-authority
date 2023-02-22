@@ -2,6 +2,27 @@
 
 VeraId Certificate Authority (CA) server.
 
+## Development
+
+This app requires the following system dependencies:
+
+- Node.js 18.
+- Kubernetes 1.22+ (we recommend [Minikube](https://minikube.sigs.k8s.io/docs/start/) with Docker).
+- [Knative](https://knative.dev/docs/install/quickstart-install/#install-the-knative-cli) v1.9+.
+- [Skaffold](https://skaffold.dev/docs/install/) v2.1+.
+
+To start the app, simply run:
+
+```
+skaffold dev
+```
+
+You can find the URL to the HTTP server by running:
+
+```
+kn service describe veraid-authority -o url
+```
+
 ## Architecture
 
 This multi-tenant server will allow one or more organisations to manage their VeraId setup, and it'll also allow organisation members to claim and renew their VeraId Ids.
