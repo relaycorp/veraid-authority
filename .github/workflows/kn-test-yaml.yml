@@ -36,11 +36,8 @@ jobs:
             --type merge \
             --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
 
-#          kubectl rollout status deployment webhook -n knative-serving --timeout=90s
-
           kubectl --namespace kourier-system get service kourier
 
-#          kubectl get all -n knative-serving
           kubectl get all --all-namespaces
 
           kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-default-domain.yaml"
