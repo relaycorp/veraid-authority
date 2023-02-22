@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import env from 'env-var';
-import pino from 'pino';
+import { symbols as pinoSymbols } from 'pino';
 
 import { configureMockEnvVars as configureMockEnvironmentVariables } from '../testUtils/envVars.js';
 import { getMockInstance } from '../testUtils/jest.js';
@@ -54,7 +54,7 @@ describe('makeLogger', () => {
     getMockInstance(getPinoOptions).mockReturnValue({ messageKey });
     const logger = makeLogger();
 
-    expect(logger).toHaveProperty([pino.symbols.messageKeySym], messageKey);
+    expect(logger).toHaveProperty([pinoSymbols.messageKeySym], messageKey);
   });
 
   test('App name should be set to LOG_ENV_NAME if present', () => {
