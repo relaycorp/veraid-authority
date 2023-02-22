@@ -15,6 +15,6 @@ jobs:
         sudo wget --quiet -O $KN_INSTALL_PATH "https://github.com/knative/client/releases/download/knative-v$KN_VERSION/kn-linux-amd64"
         sudo chmod +x $KN_INSTALL_PATH
         echo "Installed kn $KN_VERSION"
-      with:
+      env:
         KN_VERSION: "1.9.0"
         KN_INSTALL_PATH: /tmp
