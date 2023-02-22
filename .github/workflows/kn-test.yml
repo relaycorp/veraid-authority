@@ -26,8 +26,8 @@ jobs:
           sudo wget --quiet -O "${BIN_PATH}/kn-quickstart" "https://github.com/knative-sandbox/kn-plugin-quickstart/releases/download/knative-v$KN_VERSION/kn-quickstart-linux-amd64"
           sudo chmod +x "${BIN_PATH}/kn-quickstart"
 
-          kn quickstart minikube --kubernetes-version "${KUBERNETES_VERSION}" --name default
-          minikube profile list
+          kn quickstart kind --kubernetes-version "${KUBERNETES_VERSION}" --name default
+          kind get clusters
         env:
           KN_VERSION: "1.9.0"
           KUBERNETES_VERSION: "1.25.3"
