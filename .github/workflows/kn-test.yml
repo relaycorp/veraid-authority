@@ -18,6 +18,8 @@ jobs:
 
           set -x
 
+          mkdir -p /home/runner/.local/bin
+
           sudo wget --quiet -O "${BIN_PATH}/kn" "https://github.com/knative/client/releases/download/knative-v$KN_VERSION/kn-linux-amd64"
           sudo chmod +x "${BIN_PATH}/kn"
 
