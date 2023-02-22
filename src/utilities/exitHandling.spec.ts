@@ -13,20 +13,20 @@ beforeEach(() => {
 });
 
 const mockProcessOn = mockSpy(jest.spyOn(process, 'on'));
-const mockProcessExit = mockSpy(jest.spyOn(process, 'exit'), () => {
-  // Do nothing
-});
 
 describe('configureExitHandling', () => {
   beforeEach(() => {
     configureExitHandling(mockLogging.logger);
   });
+  afterEach(() => {
+    process.exitCode = undefined;
+  });
 
   describe('uncaughtException', () => {
     test('Error should be logged as fatal', () => {
-      const call = getMockContext(mockProcessOn).calls[0];
-      const handler = call[1];
+      const [[, handler]] = getMockContext(mockProcessOn).calls;
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       handler(ERROR);
 
       expect(mockLogging.logs).toContainEqual(
@@ -37,13 +37,13 @@ describe('configureExitHandling', () => {
     });
 
     test('Process should exit with code 1', () => {
-      const call = getMockContext(mockProcessOn).calls[0];
-      const handler = call[1];
-      expect(mockProcessExit).not.toHaveBeenCalled();
+      const [[, handler]] = getMockContext(mockProcessOn).calls;
+      expect(process.exitCode).toBeUndefined();
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       handler(ERROR);
 
-      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(process.exitCode).toBe(1);
     });
   });
 });
