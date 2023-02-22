@@ -1,13 +1,9 @@
 import { jest } from '@jest/globals';
-import { fastify, type FastifyInstance, type FastifyPluginCallback } from 'fastify';
+import { type FastifyInstance, type FastifyPluginCallback } from 'fastify';
 import pino from 'pino';
 
-import { configureMockEnvVars as configureMockEnvironmentVariables } from '../testUtils/envVars.js';
+import { configureMockEnvVars } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
-import * as exitHandling from '../utilities/exitHandling.js';
-import * as logging from '../utilities/logging.js';
-
-import { configureFastify, runFastify } from './fastify.js';
 
 const mockFastify: FastifyInstance = {
   listen: mockSpy(jest.fn()),
@@ -18,17 +14,27 @@ jest.unstable_mockModule('fastify', () => ({
   fastify: jest.fn().mockImplementation(() => mockFastify),
 }));
 
+const mockMakeLogger = jest.fn().mockReturnValue({});
+jest.unstable_mockModule(
+  '../utilities/logging.js',
+  () => ({ makeLogger: mockMakeLogger })
+);
+
+const mockExitHandler = jest.fn().mockReturnValue({});
+jest.unstable_mockModule(
+  '../utilities/exitHandling.js',
+  () => ({ configureExitHandling: mockExitHandler })
+);
+
+const dummyRoutes: FastifyPluginCallback = () => null;
+const mockEnvironmentVariables = configureMockEnvVars();
+
+const { configureFastify, runFastify } = await import('./fastify.js');
+const { fastify } = await import('fastify');
+
 afterAll(() => {
   jest.restoreAllMocks();
 });
-
-const mockEnvironmentVariables = configureMockEnvironmentVariables();
-
-const mockMakeLogger = mockSpy(jest.spyOn(logging, 'makeLogger'));
-
-const mockExitHandler = mockSpy(jest.spyOn(exitHandling, 'configureExitHandling'));
-
-const dummyRoutes: FastifyPluginCallback = () => null;
 
 describe('configureFastify', () => {
   test('Logger should be enabled by default', () => {
