@@ -9,6 +9,6 @@ build:
     push: false
 manifests:
   rawYaml:
-    - k8s/service.yml
+    - k8s/*.yml
 deploy:
   kubectl: {}
