@@ -1,0 +1,5 @@
+export const HTTP_STATUS_CODES = {
+  OK: 200,
+  NO_CONTENT: 204,
+  METHOD_NOT_ALLOWED: 405,
+};

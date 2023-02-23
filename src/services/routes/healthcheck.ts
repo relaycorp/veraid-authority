@@ -1,8 +1,13 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, RouteOptions } from 'fastify';
 
 import { registerDisallowedMethods } from '../fastify.js';
+import { HTTP_STATUS_CODES } from '../http.js';
 
-export default async function registerRoutes(fastify: FastifyInstance): Promise<void> {
+export default function registerRoutes(
+  fastify: FastifyInstance,
+  _opts: RouteOptions,
+  done: () => void,
+): void {
   registerDisallowedMethods(['HEAD', 'GET'], '/', fastify);
 
   fastify.route({
@@ -10,7 +15,12 @@ export default async function registerRoutes(fastify: FastifyInstance): Promise<
     url: '/',
 
     async handler(_request, reply): Promise<void> {
-      await reply.code(200).header('Content-Type', 'text/plain').send('Success! It works.');
+      await reply
+        .code(HTTP_STATUS_CODES.OK)
+        .header('Content-Type', 'text/plain')
+        .send('Success! It works.');
     },
   });
+
+  done();
 }

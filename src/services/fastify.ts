@@ -11,6 +11,8 @@ import type { Logger } from 'pino';
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
 
+import { HTTP_STATUS_CODES } from './http.js';
+
 const DEFAULT_REQUEST_ID_HEADER = 'X-Request-Id';
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -39,7 +41,10 @@ export function registerDisallowedMethods(
     url: endpointUrl,
 
     async handler(request, reply): Promise<void> {
-      const statusCode = request.method === 'OPTIONS' ? 204 : 405;
+      const statusCode =
+        request.method === 'OPTIONS'
+          ? HTTP_STATUS_CODES.NO_CONTENT
+          : HTTP_STATUS_CODES.METHOD_NOT_ALLOWED;
       await reply.code(statusCode).header('Allow', allowedMethodsString).send();
     },
   });

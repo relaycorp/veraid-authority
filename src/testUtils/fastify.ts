@@ -1,11 +1,7 @@
 import type { FastifyInstance, HTTPMethods } from 'fastify';
 
 import { HTTP_METHODS } from '../services/fastify.js';
-
-const HTTP_STATUS_CODES = {
-  noContent: 204,
-  methodNotAllowed: 405,
-};
+import { HTTP_STATUS_CODES } from '../services/http.js';
 
 export function testDisallowedMethods(
   allowedMethods: readonly HTTPMethods[],
@@ -23,7 +19,7 @@ export function testDisallowedMethods(
 
     const response = await fastify.inject({ method: method as any, url: endpointUrl });
 
-    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.methodNotAllowed);
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.METHOD_NOT_ALLOWED);
     expect(response).toHaveProperty('headers.allow', allowedMethodsString);
   });
 
@@ -32,7 +28,7 @@ export function testDisallowedMethods(
 
     const response = await fastify.inject({ method: 'OPTIONS', url: endpointUrl });
 
-    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.noContent);
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     expect(response).toHaveProperty('headers.allow', allowedMethodsString);
   });
 }
