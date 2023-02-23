@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import { getMockContext, mockSpy } from '../testUtils/jest.js';
+import { mockSpy } from '../testUtils/jest.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from '../testUtils/logging.js';
 
 import { configureExitHandling } from './exitHandling.js';
@@ -13,19 +13,18 @@ beforeEach(() => {
 });
 
 const mockProcessOn = mockSpy(jest.spyOn(process, 'on'));
-const mockProcessExit = mockSpy(jest.spyOn(process, 'exit'), () => {
-  // Do nothing
-});
 
 describe('configureExitHandling', () => {
   beforeEach(() => {
     configureExitHandling(mockLogging.logger);
   });
+  afterEach(() => {
+    process.exitCode = undefined;
+  });
 
   describe('uncaughtException', () => {
     test('Error should be logged as fatal', () => {
-      const call = getMockContext(mockProcessOn).calls[0];
-      const handler = call[1];
+      const [[, handler]] = mockProcessOn.mock.calls;
 
       handler(ERROR);
 
@@ -37,13 +36,12 @@ describe('configureExitHandling', () => {
     });
 
     test('Process should exit with code 1', () => {
-      const call = getMockContext(mockProcessOn).calls[0];
-      const handler = call[1];
-      expect(mockProcessExit).not.toHaveBeenCalled();
+      const [[, handler]] = mockProcessOn.mock.calls;
+      expect(process.exitCode).toBeUndefined();
 
       handler(ERROR);
 
-      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(process.exitCode).toBe(1);
     });
   });
 });
