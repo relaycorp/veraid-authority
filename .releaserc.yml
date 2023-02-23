@@ -5,11 +5,9 @@ plugins:
   - - "@semantic-release/npm"
     - npmPublish: false
   - - "@semantic-release/exec"
-    - prepareCmd: docker tag veraid-authority:latest ghcr.io/relaycorp/relaynet-internet-gateway:${nextRelease.version}
-      publishCmd: docker push ghcr.io/relaycorp/relaynet-internet-gateway:${nextRelease.version}
+    - prepareCmd: docker tag veraid-authority:latest ghcr.io/relaycorp/veraid-authority:${nextRelease.version}
+      publishCmd: docker push ghcr.io/relaycorp/veraid-authority:${nextRelease.version}
   - - "@semantic-release/exec"
-    - prepareCmd: helm package chart/ --dependency-update --app-version=${nextRelease.version} --version=${nextRelease.version} --destination=build/
-      publishCmd: .github/scripts/push-helm-chart.sh
   - - "@semantic-release/github"
     - assets:
-        - path: build/relaynet-internet-gateway-*.tgz
+        - path: k8s/*.yml

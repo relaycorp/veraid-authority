@@ -1,0 +1,14 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: veraid-authority
+build:
+  artifacts:
+    - image: dev.local/veraid-authority
+  local:
+    push: false
+manifests:
+  rawYaml:
+    - k8s/*.yml
+deploy:
+  kubectl: {}

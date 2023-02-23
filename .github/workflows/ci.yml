@@ -5,18 +5,13 @@ on:
     branches: [main]
 jobs:
   ci:
-    uses: relaycorp/shared-workflows/.github/workflows/nodejs-server-ci.yml@main
+    uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-ci.yml@main
     with:
       docker_image_local_name: veraid-authority
-      nodejs_version: 18
-      kubernetes_version: "1.22.15"
 
   release:
     needs: ci
-    uses: relaycorp/shared-workflows/.github/workflows/nodejs-server-release.yml@main
-    with:
-      main_branch: main
-      nodejs_version: 18
+    if: false   # TODO: https://github.com/relaycorp/veraid-authority/issues/22
+    uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-release.yml@main
     secrets:
-      helm_repo_access_token: ${{ secrets.HELM_REPO_ACCESS_TOKEN }}
       ghcr_password: ${{ secrets.GH_CONTAINER_REGISTRY_PASSWORD }}
