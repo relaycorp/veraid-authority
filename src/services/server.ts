@@ -3,9 +3,9 @@ import type { Logger } from 'pino';
 import 'reflect-metadata';
 
 import { configureFastify } from './fastify.js';
-import healthcheck from './routes/healthcheck.js';
+import healthcheckRoute from './routes/healthcheck.route.js';
 
-const ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheck];
+const ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoute];
 
 /**
  * Initialize a Fastify server instance.
