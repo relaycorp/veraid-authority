@@ -1,7 +1,10 @@
-import { Column, Entity } from 'typeorm';
+import { Entity, type ObjectID, ObjectIdColumn, Column } from 'typeorm'
 
 @Entity()
-export default class OrganizationEntity {
-  @Column({ type: 'varchar' })
-  name!: string;
+export class OrganizationEntity {
+  @ObjectIdColumn()
+  id!: ObjectID
+
+  @Column()
+  name!: string
 }
