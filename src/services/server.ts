@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyPluginCallback, RouteOptions } from 'fastify';
 import type { Logger } from 'pino';
+import 'reflect-metadata';
 
 import { configureFastify } from './fastify.js';
 import healthcheck from './routes/healthcheck.js';

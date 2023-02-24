@@ -9,25 +9,13 @@ import initializeDataSource from './dataSource.js';
 const { configureMockEnvVars } = await import('../testUtils/envVars.js');
 
 describe('initializeDataSource', () => {
-  configureMockEnvVars({ DATA_URL: env.get('MONGO_URL').asString() });
+  const mongoUrl = env.get('MONGO_URL').asString();
+  configureMockEnvVars({ DATA_URL: mongoUrl });
 
   afterEach(async () => {
     const dataSource: DataSource = Container.get('db');
     await dataSource.destroy();
-  });
-
-  test('Data source should be initialized', async () => {
-    await initializeDataSource();
-    const dataSource: DataSource = Container.get('db');
-    expect(dataSource.isInitialized).toBeTrue();
-    expect(dataSource.options).toMatchObject<Partial<DataSourceOptions>>({
-      url: env.get('MONGO_URL').asString(),
-      entities: [OrganizationEntity],
-      useNewUrlParser: true,
-      synchronize: true,
-      logging: false,
-      type: 'mongodb',
-    });
+    await Container.set('db', undefined);
   });
 
   test('Data source key should be registered', async () => {
@@ -36,5 +24,19 @@ describe('initializeDataSource', () => {
     await initializeDataSource();
 
     expect(Container.has('db')).toBeTrue();
+  });
+
+  test('Data source should be initialized', async () => {
+    await initializeDataSource();
+    const dataSource: DataSource = Container.get('db');
+    expect(dataSource.isInitialized).toBeTrue();
+    expect(dataSource.options).toMatchObject<Partial<DataSourceOptions>>({
+      url: mongoUrl,
+      entities: [OrganizationEntity],
+      useNewUrlParser: true,
+      synchronize: true,
+      logging: false,
+      type: 'mongodb',
+    });
   });
 });
