@@ -2,7 +2,7 @@ import type { DataSource, DataSourceOptions } from 'typeorm';
 import { Container } from 'typedi';
 import env from 'env-var';
 
-import { OrganizationEntity } from '../entities/organization.entity.js';
+import { OrganizationEntity } from '../organization/organization.entity.js';
 
 import initializeDataSource from './dataSource.js';
 

@@ -2,7 +2,7 @@ import { DataSource, type DataSourceOptions } from 'typeorm';
 import { Container } from 'typedi';
 import env from 'env-var';
 
-import { OrganizationEntity } from '../entities/organization.entity.js';
+import { OrganizationEntity } from '../organization/organization.entity.js';
 
 export default async function initializeDataSource(): Promise<void> {
   const dataSourceOptions: DataSourceOptions = {
