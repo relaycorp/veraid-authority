@@ -34,7 +34,7 @@ jobs:
             --type merge \
             --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
 
-          kubectl patch deployment 3scale-kourier-gateway --type json -p='[{"op": "remove", "path": "/spec/template/spec/containers/*/resources"}]' -n kourier-system
+          kubectl patch deployment 3scale-kourier-gateway --type json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources"}]' -n kourier-system
 
           kubectl rollout status deployment net-kourier-controller -n knative-serving --timeout=90s
           kubectl rollout status deployment 3scale-kourier-gateway -n kourier-system --timeout=20s
