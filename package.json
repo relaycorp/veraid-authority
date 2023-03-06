@@ -18,7 +18,7 @@
   "dependencies": {
     "@relaycorp/pino-cloud": "^1.0.28",
     "env-var": "^7.3.0",
-    "fastify": "^4.13.0",
+    "fastify": "^4.14.0",
     "fastify-plugin": "^4.5.0",
     "mongoose": "^6.9.1",
     "pino": "^8.11.0"
