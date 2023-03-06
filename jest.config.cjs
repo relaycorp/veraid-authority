@@ -1,3 +1,5 @@
+'use strict';
+
 const { defaultsESM: tsjPreset } = require('ts-jest/presets');
 
 module.exports = {
