@@ -1,0 +1,54 @@
+name: KN Yaml install
+on:
+  pull_request:
+jobs:
+  install:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Create Kind cluster
+        uses: helm/kind-action@v1.5.0
+        with:
+          cluster_name: default
+          kubectl_version: "v1.25.3"
+      - name: Setup kn
+        run: |-
+          set -o nounset
+          set -o errexit
+          set -o pipefail
+          set -x
+
+          echo "Installing knative serving..."
+          kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-crds.yaml"
+          kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-core.yaml"
+          kubectl rollout status deployment activator -n knative-serving --timeout=90s
+          kubectl rollout status deployment autoscaler -n knative-serving --timeout=90s
+          kubectl rollout status deployment controller -n knative-serving --timeout=90s
+          kubectl rollout status deployment domain-mapping -n knative-serving --timeout=90s
+          kubectl rollout status deployment domainmapping-webhook -n knative-serving --timeout=90s
+          kubectl rollout status deployment webhook -n knative-serving --timeout=90s
+
+          echo "Installing kourier..."
+          kubectl apply -f "https://github.com/knative/net-kourier/releases/download/knative-v${KN_VERSION}/kourier.yaml"
+          kubectl patch configmap/config-network \
+            --namespace knative-serving \
+            --type merge \
+            --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+          kubectl rollout status deployment net-kourier-controller -n knative-serving --timeout=90s
+          kubectl rollout status deployment 3scale-kourier-gateway -n kourier-system --timeout=20s
+
+          kubectl --namespace kourier-system get service kourier
+          kubectl get all --all-namespaces
+          kubectl apply -f "https://github.com/knative/serving/releases/download/knative-v${KN_VERSION}/serving-default-domain.yaml"
+        env:
+          KN_VERSION: "1.9.0"
+      - name: Output diagnostic information upon failure
+        if: failure()
+        run: |-
+          set -o nounset
+          set -o errexit
+          set -o pipefail
+          set -x
+          kind get clusters
+          kubectl get deploy 3scale-kourier-gateway -n kourier-system -o yaml
+          kubectl describe pods -n kourier-system
+          kubectl logs deploy/3scale-kourier-gateway -n kourier-system
