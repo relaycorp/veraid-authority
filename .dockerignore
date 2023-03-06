@@ -4,7 +4,6 @@
 src/functionalTests
 src/testUtils
 src/**/*.spec.ts
-src/**/_test_utils.ts
 
 !tsconfig.json
 !package.json
