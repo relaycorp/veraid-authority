@@ -5,6 +5,7 @@ on:
     branches: [main]
 jobs:
   ci:
+    runs-on: buildjet-4vcpu-ubuntu-2204
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-ci.yml@main
     with:
       docker_image_local_name: dev.local/veraid-authority
