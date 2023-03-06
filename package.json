@@ -12,7 +12,7 @@
     "static-checks:lint": "eslint -c .eslintrc.cjs src",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-    "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.mjs --runInBand --detectOpenHandles",
+    "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.cjs --runInBand --detectOpenHandles",
     "clean": "del-cli build test coverage"
   },
   "dependencies": {
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",
-    "@relaycorp/eslint-config": "^1.1.67",
+    "@relaycorp/eslint-config": "^1.1.72",
     "@relaycorp/shared-config": "^1.9.1",
     "@shelf/jest-mongodb": "^4.1.6",
     "@types/jest": "^29.4.0",
