@@ -12,20 +12,20 @@
     "static-checks:lint": "eslint -c .eslintrc.cjs src",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-    "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.mjs --runInBand --detectOpenHandles",
+    "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.cjs --runInBand --detectOpenHandles",
     "clean": "del-cli build test coverage"
   },
   "dependencies": {
     "@relaycorp/pino-cloud": "^1.0.28",
     "env-var": "^7.3.0",
-    "fastify": "^4.13.0",
+    "fastify": "^4.14.0",
     "fastify-plugin": "^4.5.0",
     "mongoose": "^6.9.1",
-    "pino": "^8.9.0"
+    "pino": "^8.11.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",
-    "@relaycorp/eslint-config": "^1.1.67",
+    "@relaycorp/eslint-config": "^1.1.72",
     "@relaycorp/shared-config": "^1.9.1",
     "@shelf/jest-mongodb": "^4.1.6",
     "@types/jest": "^29.4.0",
