@@ -19,6 +19,9 @@ if ! command -v kubectl; then
   exit 1
 fi
 
+print_header "Images"
+docker images
+
 print_header "Services"
 kubectl get services
 
