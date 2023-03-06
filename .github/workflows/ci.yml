@@ -7,7 +7,7 @@ jobs:
   ci:
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-ci.yml@main
     with:
-      docker_image_local_name: veraid-authority
+      docker_image_local_name: dev.local/veraid-authority
 
   release:
     needs: ci
