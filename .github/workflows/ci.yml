@@ -11,7 +11,6 @@ jobs:
 
   release:
     needs: ci
-    if: false   # TODO: https://github.com/relaycorp/veraid-authority/issues/22
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-release.yml@main
     secrets:
       ghcr_password: ${{ secrets.GH_CONTAINER_REGISTRY_PASSWORD }}
