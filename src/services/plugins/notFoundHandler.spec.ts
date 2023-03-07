@@ -1,12 +1,12 @@
 import type { HTTPMethods } from 'fastify';
 
 import { makeServer } from '../server.js';
-import { configureMockEnvVars } from '../../testUtils/envVars.js';
+import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import { HTTP_METHODS } from '../fastify.js';
 
 describe('notFoundHandler', () => {
-  configureMockEnvVars({ AUTHORITY_VERSION: '1.2.3' });
+  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
   const allowedMethods: HTTPMethods[] = ['HEAD', 'GET'];
 
