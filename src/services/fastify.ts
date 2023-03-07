@@ -76,7 +76,7 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
     trustProxy: true,
   });
 
-  const mongoUri = env.get('MONGO_URI').required().asString();
+  const mongoUri = env.get('MONGODB_URI').required().asString();
   await server.register(fastifyMongodb, { forceClose: true, url: mongoUri });
 
   await Promise.all(routes.map((route) => server.register(route, routeOptions)));

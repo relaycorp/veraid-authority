@@ -5,7 +5,7 @@ import pino from 'pino';
 
 import { configureMockEnvVars } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
-import { MONGO_URI } from '../testUtils/db.js';
+import { MONGODB_URI } from '../testUtils/db.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
@@ -28,7 +28,7 @@ jest.unstable_mockModule('../utilities/exitHandling.js', () => ({
 }));
 
 const dummyRoutes: FastifyPluginCallback = () => null;
-const mockEnvironmentVariables = configureMockEnvVars({ MONGO_URI });
+const mockEnvironmentVariables = configureMockEnvVars({ MONGODB_URI });
 
 const { configureFastify, runFastify } = await import('./fastify.js');
 const { fastify } = await import('fastify');
@@ -69,7 +69,7 @@ describe('configureFastify', () => {
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', async () => {
     const requestIdHeader = 'X-Id';
-    mockEnvironmentVariables({ REQUEST_ID_HEADER: requestIdHeader, MONGO_URI });
+    mockEnvironmentVariables({ REQUEST_ID_HEADER: requestIdHeader, MONGODB_URI });
 
     await configureFastify([dummyRoutes]);
 
@@ -114,7 +114,7 @@ describe('configureFastify', () => {
 
     expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongodb, {
       forceClose: true,
-      url: MONGO_URI,
+      url: MONGODB_URI,
     });
   });
 
