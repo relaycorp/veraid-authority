@@ -3,7 +3,7 @@ import type { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import fastifyMongodb from '@fastify/mongodb';
 import pino from 'pino';
 
-import { configureMockEnvVars } from '../testUtils/envVars.js';
+import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
 import { MONGODB_URI } from '../testUtils/db.js';
 
@@ -28,7 +28,7 @@ jest.unstable_mockModule('../utilities/exitHandling.js', () => ({
 }));
 
 const dummyRoutes: FastifyPluginCallback = () => null;
-const mockEnvironmentVariables = configureMockEnvVars({ MONGODB_URI });
+const mockEnvironmentVariables = configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
 const { configureFastify, runFastify } = await import('./fastify.js');
 const { fastify } = await import('fastify');
