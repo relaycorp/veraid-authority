@@ -16,3 +16,15 @@ spec:
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
+            - name: MONGODB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: credentials
+                  key: mongodb_username
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: credentials
+                  key: mongodb_password
+            - name: MONGODB_URI
+              value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb

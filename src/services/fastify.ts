@@ -1,3 +1,4 @@
+import fastifyMongodb from '@fastify/mongodb';
 import env from 'env-var';
 import {
   fastify,
@@ -49,6 +50,9 @@ export async function configureFastify<PluginOptions extends FastifyPluginOption
 
     trustProxy: true,
   });
+
+  const mongoUri = env.get('MONGODB_URI').required().asString();
+  await server.register(fastifyMongodb, { forceClose: true, url: mongoUri });
 
   await Promise.all(plugins.map((plugin) => server.register(plugin, pluginOptions)));
 
