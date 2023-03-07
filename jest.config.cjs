@@ -137,7 +137,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // Work around https://github.com/shelfio/jest-mongodb/issues/109
-  testEnvironment: "node",
+  // testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},

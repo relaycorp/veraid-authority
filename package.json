@@ -16,6 +16,7 @@
     "clean": "del-cli build test coverage"
   },
   "dependencies": {
+    "@fastify/mongodb": "^6.2.0",
     "@relaycorp/pino-cloud": "^1.0.28",
     "env-var": "^7.3.0",
     "fastify": "^4.14.0",
@@ -29,7 +30,6 @@
     "@relaycorp/shared-config": "^1.9.1",
     "@shelf/jest-mongodb": "^4.1.6",
     "@types/jest": "^29.4.0",
-    "@types/mongoose": "^5.10.5",
     "@types/node": "^18.14.6",
     "@types/split2": "^3.2.1",
     "del-cli": "^5.0.0",

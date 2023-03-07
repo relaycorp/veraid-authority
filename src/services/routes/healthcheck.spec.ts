@@ -1,9 +1,9 @@
 import { testDisallowedMethods } from '../../testUtils/fastify.js';
 import { makeServer } from '../server.js';
-import { configureMockEnvVars } from '../../testUtils/envVars.js';
+import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 
 describe('healthcheck', () => {
-  configureMockEnvVars({ AUTHORITY_VERSION: '1.2.3' });
+  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
   testDisallowedMethods(['HEAD', 'GET'], '/', makeServer);
 
