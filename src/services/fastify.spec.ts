@@ -7,11 +7,13 @@ import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
+const mockSetNotFoundHandler = mockSpy(jest.fn<() => Promise<undefined>>());
 const mockReady = mockSpy(jest.fn<() => Promise<undefined>>());
 const mockFastify: FastifyInstance = {
   listen: mockListen,
   ready: mockReady,
   register: mockRegister,
+  setNotFoundHandler: mockSetNotFoundHandler,
 } as any;
 jest.unstable_mockModule('fastify', () => ({
   fastify: jest.fn().mockImplementation(() => mockFastify),

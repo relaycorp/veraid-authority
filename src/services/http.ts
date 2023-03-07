@@ -1,5 +1,6 @@
 export const HTTP_STATUS_CODES = {
   OK: 200,
   NO_CONTENT: 204,
+  NOT_FOUND: 404,
   METHOD_NOT_ALLOWED: 405,
-};
+} as const;

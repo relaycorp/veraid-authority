@@ -1,11 +1,8 @@
-import { testDisallowedMethods } from '../../testUtils/fastify.js';
 import { makeServer } from '../server.js';
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
 
 describe('healthcheck', () => {
   configureMockEnvVars({ AUTHORITY_VERSION: '1.2.3' });
-
-  testDisallowedMethods(['HEAD', 'GET'], '/', makeServer);
 
   test('A plain simple HEAD request should provide some diagnostic information', async () => {
     const serverInstance = await makeServer();

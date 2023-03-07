@@ -11,8 +11,6 @@ import type { Logger } from 'pino';
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
 
-import { HTTP_STATUS_CODES } from './http.js';
-
 const DEFAULT_REQUEST_ID_HEADER = 'X-Request-Id';
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -32,9 +30,9 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
  *
  * This function doesn't call .listen() so we can use .inject() for testing purposes.
  */
-export async function configureFastify<RouteOptions extends FastifyPluginOptions = object>(
-  routes: readonly FastifyPluginCallback<RouteOptions>[],
-  routeOptions?: RouteOptions,
+export async function configureFastify<PluginOptions extends FastifyPluginOptions = object>(
+  plugins: readonly FastifyPluginCallback<PluginOptions>[],
+  pluginOptions?: PluginOptions,
   customLogger?: Logger,
 ): Promise<FastifyInstance> {
   const logger = customLogger ?? makeLogger();
@@ -52,10 +50,7 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
     trustProxy: true,
   });
 
-  server.setNotFoundHandler(async (_request, reply): Promise<void> => {
-    await reply.code(HTTP_STATUS_CODES.METHOD_NOT_ALLOWED).send();
-  });
-  await Promise.all(routes.map((route) => server.register(route, routeOptions)));
+  await Promise.all(plugins.map((plugin) => server.register(plugin, pluginOptions)));
 
   await server.ready();
 
