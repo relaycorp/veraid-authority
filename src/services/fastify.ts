@@ -5,13 +5,8 @@ import {
   type FastifyPluginCallback,
   type FastifyPluginOptions,
   type HTTPMethods,
-  type FastifyBaseLogger,
-  type RawReplyDefaultExpression,
-  type RawRequestDefaultExpression,
-  type RawServerDefault,
 } from 'fastify';
 import type { Logger } from 'pino';
-import type { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
@@ -31,14 +26,6 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
   'PUT',
   'OPTIONS',
 ];
-
-export type FastifyTypedInstance = FastifyInstance<
-  RawServerDefault,
-  RawRequestDefaultExpression,
-  RawReplyDefaultExpression,
-  FastifyBaseLogger,
-  JsonSchemaToTsProvider
->;
 
 /**
  * Initialize a Fastify server instance.
