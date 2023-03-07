@@ -1,9 +1,11 @@
 import { jest } from '@jest/globals';
 import type { FastifyInstance, FastifyPluginCallback } from 'fastify';
+import fastifyMongodb from '@fastify/mongodb';
 import pino from 'pino';
 
 import { configureMockEnvVars } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
+import { MONGO_URI } from '../testUtils/db.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
@@ -26,7 +28,7 @@ jest.unstable_mockModule('../utilities/exitHandling.js', () => ({
 }));
 
 const dummyRoutes: FastifyPluginCallback = () => null;
-const mockEnvironmentVariables = configureMockEnvVars();
+const mockEnvironmentVariables = configureMockEnvVars({ MONGO_URI });
 
 const { configureFastify, runFastify } = await import('./fastify.js');
 const { fastify } = await import('fastify');
@@ -105,6 +107,15 @@ describe('configureFastify', () => {
     await configureFastify([dummyRoutes], options);
 
     expect(mockFastify.register).toHaveBeenCalledWith(dummyRoutes, options);
+  });
+
+  test('The fastify-mongoose plugin should be configured', async () => {
+    await configureFastify([dummyRoutes]);
+
+    expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongodb, {
+      forceClose: true,
+      url: MONGO_URI,
+    });
   });
 
   test('It should wait for the Fastify server to be ready', async () => {
