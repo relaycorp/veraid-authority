@@ -1,15 +1,13 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 
-import { registerDisallowedMethods } from '../fastify.js';
 import { HTTP_STATUS_CODES } from '../http.js';
+import type { PluginDone } from '../types/PluginDone.js';
 
 export default function registerRoutes(
   fastify: FastifyInstance,
   _opts: RouteOptions,
-  done: () => void,
+  done: PluginDone,
 ): void {
-  registerDisallowedMethods(['HEAD', 'GET'], '/', fastify);
-
   fastify.route({
     method: ['HEAD', 'GET'],
     url: '/',

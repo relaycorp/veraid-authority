@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@fastify/mongodb": "^6.2.0",
+    "@fastify/routes": "^5.1.0",
     "@relaycorp/pino-cloud": "^1.0.28",
     "env-var": "^7.3.0",
     "fastify": "^4.14.0",
