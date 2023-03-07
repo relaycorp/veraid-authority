@@ -12,5 +12,3 @@ jobs:
   release:
     needs: ci
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-release.yml@main
-    secrets:
-      ghcr_password: ${{ secrets.GH_CONTAINER_REGISTRY_PASSWORD }}
