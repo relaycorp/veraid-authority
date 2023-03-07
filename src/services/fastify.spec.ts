@@ -69,7 +69,7 @@ describe('configureFastify', () => {
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', async () => {
     const requestIdHeader = 'X-Id';
-    mockEnvironmentVariables({ REQUEST_ID_HEADER: requestIdHeader });
+    mockEnvironmentVariables({ REQUEST_ID_HEADER: requestIdHeader, MONGO_URI });
 
     await configureFastify([dummyRoutes]);
 
