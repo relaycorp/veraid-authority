@@ -5,8 +5,13 @@ import {
   type FastifyPluginCallback,
   type FastifyPluginOptions,
   type HTTPMethods,
+  type FastifyBaseLogger,
+  type RawReplyDefaultExpression,
+  type RawRequestDefaultExpression,
+  type RawServerDefault,
 } from 'fastify';
 import type { Logger } from 'pino';
+import type { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
@@ -27,28 +32,13 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
   'OPTIONS',
 ];
 
-export function registerDisallowedMethods(
-  allowedMethods: readonly HTTPMethods[],
-  endpointUrl: string,
-  fastifyInstance: FastifyInstance,
-): void {
-  const allowedMethodsString = allowedMethods.join(', ');
-
-  const methods = HTTP_METHODS.filter((method) => !allowedMethods.includes(method));
-
-  fastifyInstance.route({
-    method: methods,
-    url: endpointUrl,
-
-    async handler(request, reply): Promise<void> {
-      const statusCode =
-        request.method === 'OPTIONS'
-          ? HTTP_STATUS_CODES.NO_CONTENT
-          : HTTP_STATUS_CODES.METHOD_NOT_ALLOWED;
-      await reply.code(statusCode).header('Allow', allowedMethodsString).send();
-    },
-  });
-}
+export type FastifyTypedInstance = FastifyInstance<
+  RawServerDefault,
+  RawRequestDefaultExpression,
+  RawReplyDefaultExpression,
+  FastifyBaseLogger,
+  JsonSchemaToTsProvider
+>;
 
 /**
  * Initialize a Fastify server instance.
@@ -75,6 +65,9 @@ export async function configureFastify<RouteOptions extends FastifyPluginOptions
     trustProxy: true,
   });
 
+  server.setNotFoundHandler(async (_request, reply): Promise<void> => {
+    await reply.code(HTTP_STATUS_CODES.METHOD_NOT_ALLOWED).send();
+  });
   await Promise.all(routes.map((route) => server.register(route, routeOptions)));
 
   await server.ready();
