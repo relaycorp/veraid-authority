@@ -1,7 +1,7 @@
 import { makeServer } from '../server.js';
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 
-describe('healthcheck', () => {
+describe('healthcheck routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
   test('A plain simple HEAD request should provide some diagnostic information', async () => {
