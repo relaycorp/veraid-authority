@@ -6,6 +6,7 @@ import { configureFastify } from './fastify.js';
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
+import fastifyMongoose from './plugins/fastifyMongoose.js';
 
 const ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 
@@ -15,5 +16,9 @@ const ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRou
  * This function doesn't call .listen() so we can use .inject() for testing purposes.
  */
 export async function makeServer(logger?: Logger): Promise<FastifyInstance> {
-  return configureFastify([fastifyRoutes, notFoundHandler, ...ROUTES], undefined, logger);
+  return configureFastify(
+    [fastifyMongoose, fastifyRoutes, notFoundHandler, ...ROUTES],
+    undefined,
+    logger,
+  );
 }
