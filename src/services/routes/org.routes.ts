@@ -21,7 +21,7 @@ export default function registerRoutes(
     async handler(_request, reply): Promise<void> {
       await reply
         .code(HTTP_STATUS_CODES.OK)
-        .header('Content-Type', 'text/plain')
+        .header('Content-Type', 'application/json')
         .send('Success! It works.');
     },
   });

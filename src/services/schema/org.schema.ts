@@ -1,3 +1,5 @@
+import type { FromSchema } from 'json-schema-to-ts';
+
 export const ORG_SCHEMA = {
   type: 'object',
 
@@ -9,8 +11,10 @@ export const ORG_SCHEMA = {
       enum: ['INVITE_ONLY', 'OPEN'],
     },
 
-    awalaInternetEndpoint: { type: 'string' },
+    awalaEndpoint: { type: 'string' },
   },
 
   required: ['name', 'memberAccessType'],
 } as const;
+
+export type OrgSchema = FromSchema<typeof ORG_SCHEMA>;
