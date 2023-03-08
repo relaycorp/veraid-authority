@@ -5,6 +5,8 @@ import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/
 import { AWALA_ENDPOINT, ORG_NAME } from '../../testUtils/stubs.js';
 import type { OrgSchema } from '../schema/org.schema.js';
 
+import { ProblemType } from './org.routes.js';
+
 describe('org routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
@@ -13,6 +15,22 @@ describe('org routes', () => {
       method: 'POST',
       url: '/orgs',
     };
+
+    test('Valid parameters with non ASCII name should return success', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchema = {
+        name: 'はじめよう.みんな',
+        memberAccessType: 'INVITE_ONLY',
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', 200);
+      expect(response.headers['content-type']).toStartWith('application/json');
+    });
 
     test('Valid parameters with INVITE_ONLY access type should return success', async () => {
       const serverInstance = await makeServer();
@@ -63,7 +81,24 @@ describe('org routes', () => {
       expect(response.headers['content-type']).toStartWith('application/json');
     });
 
-    test('Parameters with invalid access type should be refused', async () => {
+    test('Valid parameters with non ASCII Awala endpoint should return success', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchema = {
+        name: ORG_NAME,
+        memberAccessType: 'INVITE_ONLY',
+        awalaEndpoint: 'はじめよう.みんな',
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', 200);
+      expect(response.headers['content-type']).toStartWith('application/json');
+    });
+
+    test('Invalid access type should be refused', async () => {
       const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
@@ -78,7 +113,7 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', 400);
     });
 
-    test('Parameters with no access type should be refused', async () => {
+    test('Missing access type should be refused', async () => {
       const serverInstance = await makeServer();
       const payload: Partial<OrgSchema> = {
         name: ORG_NAME,
@@ -92,7 +127,7 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', 400);
     });
 
-    test('Parameters with no name should be refused', async () => {
+    test('Missing name should be refused', async () => {
       const serverInstance = await makeServer();
       const payload: Partial<OrgSchema> = {
         memberAccessType: 'OPEN',
@@ -106,7 +141,7 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', 400);
     });
 
-    test('Parameters with malformed name should be refused', async () => {
+    test('Malformed name should be refused', async () => {
       const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: '192.168.0.0',
@@ -119,9 +154,10 @@ describe('org routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', 400);
+      expect(response.json()).toHaveProperty('type', ProblemType.MALFORMED_ORG_NAME);
     });
 
-    test('Parameters with malformed Awala endpoint should be refused', async () => {
+    test('Malformed Awala endpoint should be refused', async () => {
       const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
@@ -135,6 +171,7 @@ describe('org routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', 400);
+      expect(response.json()).toHaveProperty('type', ProblemType.MALFORMED_AWALA_ENDPOINT);
     });
   });
 });
