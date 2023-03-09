@@ -60,7 +60,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `DELETE /orgs/{orgName}`: Delete org.
   - Auth: Org admin.
 - `POST /orgs/{orgName}/members`: Create member.
-  - Auth: Admin or org admin.
+  - Auth: Org admin.
   - Input:
     - Name (used in VeraId member certificates; `null` if member is a bot).
     - Email (optional; needed if they'll access this API, not needed if they'll use Awala).
