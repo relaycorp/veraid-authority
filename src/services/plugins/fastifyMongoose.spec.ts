@@ -1,34 +1,35 @@
+import { jest } from '@jest/globals';
 import fastify from 'fastify';
 import type { Connection } from 'mongoose';
 
-import { mockSpy } from '../../testUtils/jest.ts';
+import { mockSpy } from '../../testUtils/jest.js';
 
-import fastifyMongoose from './fastifyMongoose.ts';
+const mockMongooseClose = mockSpy(jest.fn());
+const mockMongoose = { close: mockMongooseClose } as unknown as Connection;
+jest.unstable_mockModule('../../utilities/mongo.js', () => ({
+  createMongooseConnectionFromEnv: jest
+    .fn<() => Promise<Connection>>()
+    .mockResolvedValue(mockMongoose),
+}));
+const fastifyMongoose = await import('./fastifyMongoose.js');
 
-const MOCK_MONGOOSE_CONNECTION = { close: mockSpy(jest.fn()) } as any as Connection;
+describe('fastifyMongoose', () => {
+  test('Connection should be added to fastify instance', async () => {
+    const app = fastify();
+    await app.register(fastifyMongoose.default);
 
-test('Plugin registration should fail if connection is missing', async () => {
-  const app = fastify();
+    expect(app).toHaveProperty('mongoose');
 
-  await expect(app.register(fastifyMongoose)).rejects.toThrowWithMessage(
-    Error,
-    'Mongoose connection is missing from fastify-mongoose plugin registration',
-  );
-});
+    expect(app.mongoose).toStrictEqual(mockMongoose);
+  });
 
-test('Connection should be added to fastify instance', async () => {
-  const app = fastify();
-  await app.register(fastifyMongoose, { connection: MOCK_MONGOOSE_CONNECTION });
+  test('Connection should be closed when fastify ends', async () => {
+    const app = fastify();
+    await app.register(fastifyMongoose.default);
+    expect(mockMongooseClose).not.toHaveBeenCalled();
 
-  expect(app).toHaveProperty('mongoose', MOCK_MONGOOSE_CONNECTION);
-});
+    await app.close();
 
-test('Connection should be closed when fastify ends', async () => {
-  const app = fastify();
-  await app.register(fastifyMongoose, { connection: MOCK_MONGOOSE_CONNECTION });
-  expect(MOCK_MONGOOSE_CONNECTION.close).not.toHaveBeenCalled();
-
-  await app.close();
-
-  expect(MOCK_MONGOOSE_CONNECTION.close).toHaveBeenCalled();
+    expect(mockMongooseClose).toHaveBeenCalledWith();
+  });
 });

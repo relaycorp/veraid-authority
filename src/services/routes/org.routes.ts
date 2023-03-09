@@ -4,7 +4,6 @@ import isValidDomain from 'is-valid-domain';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import { ORG_SCHEMA } from '../schema/org.schema.js';
-import { createOrg } from '../../org.js';
 import type { FastifyTypedInstance } from '../fastify.js';
 
 export enum ProblemType {
@@ -42,10 +41,6 @@ export default function registerRoutes(
         });
         return;
       }
-
-      await createOrg(request.body, {
-        dbConnection: fastify.mongoose,
-      });
 
       await reply
         .code(HTTP_STATUS_CODES.OK)
