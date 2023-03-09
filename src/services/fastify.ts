@@ -1,4 +1,4 @@
-import fastifyMongodb from '@fastify/mongodb';
+import type { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 import env from 'env-var';
 import {
   fastify,
@@ -12,7 +12,6 @@ import {
   type HTTPMethods,
 } from 'fastify';
 import type { Logger } from 'pino';
-import type { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 
 import { configureExitHandling } from '../utilities/exitHandling.js';
 import { makeLogger } from '../utilities/logging.js';
@@ -63,9 +62,6 @@ export async function configureFastify<PluginOptions extends FastifyPluginOption
 
     trustProxy: true,
   });
-
-  const mongoUri = env.get('MONGODB_URI').required().asString();
-  await server.register(fastifyMongodb, { forceClose: true, url: mongoUri });
 
   await Promise.all(plugins.map((plugin) => server.register(plugin, pluginOptions)));
 

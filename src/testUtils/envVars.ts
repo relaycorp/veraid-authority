@@ -14,12 +14,10 @@ export const REQUIRED_SERVER_ENV_VARS = {
 
 export function configureMockEnvVars(envVars: EnvVarSet = {}): (envVars: EnvVarSet) => void {
   const mockEnvVarGet = jest.spyOn(envVar, 'get');
-
   function setEnvironmentVariables(newEnvVars: EnvVarSet): void {
     mockEnvVarGet.mockReset();
     mockEnvVarGet.mockImplementation((envVarName) => {
       const environment = envVar.from(newEnvVars);
-
       return environment.get(envVarName);
     });
   }

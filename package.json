@@ -16,7 +16,6 @@
     "clean": "del-cli build test coverage"
   },
   "dependencies": {
-    "@fastify/mongodb": "^6.2.0",
     "@fastify/routes": "^5.1.0",
     "@fastify/type-provider-json-schema-to-ts": "^2.2.2",
     "@relaycorp/pino-cloud": "^1.0.28",
