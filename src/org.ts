@@ -1,35 +1,79 @@
 import { getModelForClass } from '@typegoose/typegoose';
-import type { Connection } from 'mongoose';
-import type { Logger } from 'pino';
+import isValidDomain from 'is-valid-domain';
+import type { HydratedDocument } from 'mongoose';
 
-import { OrgModelSchema } from './models/Org.model.js';
+import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema } from './services/schema/org.schema.js';
 import type { Result } from './utilities/result.js';
+import type { ServiceOptions } from './ServiceOptions.js';
+import { CreationProblemType } from './CreationProblemType.js';
 
-interface ServiceOptions {
-  readonly dbConnection: Connection;
-  readonly logger: Logger;
-}
+const MONGODB_DUPLICATE_INDEX_CODE = 11_000;
+
+const MEMBER_ACCESS_TYPE_MAPPING: { [key in OrgSchema['memberAccessType']]: MemberAccessType } = {
+  INVITE_ONLY: MemberAccessType.INVITE_ONLY,
+  OPEN: MemberAccessType.OPEN,
+};
 
 interface OrgCreationResult {
   id: string;
 }
 
+function isValidUtf8Domain(orgName: string) {
+  return isValidDomain(orgName, { allowUnicode: true });
+}
+
+function validateOrgData(
+  orgData: OrgSchema,
+  options: ServiceOptions,
+): CreationProblemType | undefined {
+  const isNameValid = isValidUtf8Domain(orgData.name);
+  if (!isNameValid) {
+    options.logger.info({ name: orgData.name }, 'Refused malformed org name');
+    return CreationProblemType.MALFORMED_ORG_NAME;
+  }
+
+  if (orgData.awalaEndpoint !== undefined && !isValidUtf8Domain(orgData.awalaEndpoint)) {
+    options.logger.info(
+      { awalaEndpoint: orgData.awalaEndpoint },
+      'Refused malformed Awala endpoint',
+    );
+    return CreationProblemType.MALFORMED_AWALA_ENDPOINT;
+  }
+
+  return undefined;
+}
+
 export async function createOrg(
-  _orgData: OrgSchema,
-  _options: ServiceOptions,
-): Promise<Result<OrgCreationResult>> {
+  orgData: OrgSchema,
+  options: ServiceOptions,
+): Promise<Result<OrgCreationResult, CreationProblemType>> {
+  const validationFailure = validateOrgData(orgData, options);
+  if (validationFailure !== undefined) {
+    return { didSucceed: false, reason: validationFailure };
+  }
+
   const orgModel = getModelForClass(OrgModelSchema, {
-    existingConnection: _options.dbConnection,
+    existingConnection: options.dbConnection,
   });
+  const memberAccessType = MEMBER_ACCESS_TYPE_MAPPING[orgData.memberAccessType]!;
+  let org: HydratedDocument<OrgModelSchema>;
+  try {
+    org = await orgModel.create({ ...orgData, memberAccessType });
+  } catch (err) {
+    if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
+      options.logger.info({ name: orgData.name }, 'Refused duplicated org name');
+      return {
+        didSucceed: false,
+        reason: CreationProblemType.EXISTING_ORG_NAME,
+      };
+    }
+    throw err as Error;
+  }
 
-  const org = await orgModel.create(_orgData);
-
+  options.logger.info({ name: orgData.name }, 'Org created');
   return {
     didSucceed: true,
-
-    result: {
-      id: org.id,
-    },
+    result: { id: org.id },
   };
 }

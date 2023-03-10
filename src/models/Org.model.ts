@@ -1,8 +1,8 @@
 import { prop } from '@typegoose/typegoose';
 
 export enum MemberAccessType {
-  'INVITE_ONLY' = 'INVITE_ONLY',
-  'OPEN' = 'OPEN',
+  INVITE_ONLY = 'invite_only',
+  OPEN = 'open',
 }
 
 export class OrgModelSchema {

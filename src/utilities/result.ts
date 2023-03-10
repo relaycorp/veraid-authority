@@ -2,9 +2,9 @@ interface BaseResult {
   readonly didSucceed: boolean;
 }
 
-interface FailureResult extends BaseResult {
+export interface FailureResult<Reason> extends BaseResult {
   readonly didSucceed: false;
-  readonly reason: string;
+  readonly reason: Reason;
 }
 
 export interface SuccessfulResult<Result> extends BaseResult {
@@ -12,4 +12,4 @@ export interface SuccessfulResult<Result> extends BaseResult {
   readonly result: Result;
 }
 
-export type Result<Type> = FailureResult | SuccessfulResult<Type>;
+export type Result<Type, FailureReason> = FailureResult<FailureReason> | SuccessfulResult<Type>;
