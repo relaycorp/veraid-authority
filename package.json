@@ -31,7 +31,7 @@
     "@jest/globals": "^29.5.0",
     "@relaycorp/eslint-config": "^1.1.72",
     "@relaycorp/shared-config": "^1.9.1",
-    "@shelf/jest-mongodb": "^4.1.6",
+    "@shelf/jest-mongodb": "^4.1.7",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.6",
     "@types/split2": "^3.2.1",
