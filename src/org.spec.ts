@@ -7,9 +7,9 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { AWALA_ENDPOINT, ORG_NAME } from './testUtils/stubs.js';
-import type { ServiceOptions } from './ServiceOptions.js';
 import { getPromiseRejection } from './testUtils/jest.js';
 import { CreationProblemType } from './CreationProblemType.js';
+import type { ServiceOptions } from './orgTypes.js';
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
@@ -88,7 +88,7 @@ describe('org', () => {
         memberAccessType: 'INVITE_ONLY',
       };
 
-      const result = await createOrg(orgData, {
+      const methodResult = await createOrg(orgData, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
@@ -96,8 +96,11 @@ describe('org', () => {
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
       });
-      requireSuccessfulResult(result);
-      const dbResult = await orgModel.findById(result.result.id);
+      requireSuccessfulResult(methodResult);
+
+      const dbResult = await orgModel.findOne({
+        name: methodResult.result.name,
+      });
       expect(dbResult?.memberAccessType).toBe(MemberAccessType.INVITE_ONLY);
     });
 
@@ -108,7 +111,7 @@ describe('org', () => {
         memberAccessType: 'OPEN',
       };
 
-      const result = await createOrg(orgData, {
+      const methodResult = await createOrg(orgData, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
@@ -116,8 +119,10 @@ describe('org', () => {
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
       });
-      requireSuccessfulResult(result);
-      const dbResult = await orgModel.findById(result.result.id);
+      requireSuccessfulResult(methodResult);
+      const dbResult = await orgModel.findOne({
+        name: methodResult.result.name,
+      });
       expect(dbResult?.memberAccessType).toBe(MemberAccessType.OPEN);
     });
 
@@ -129,7 +134,7 @@ describe('org', () => {
         awalaEndpoint: AWALA_ENDPOINT,
       };
 
-      const result = await createOrg(orgData, {
+      const methodResult = await createOrg(orgData, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
@@ -137,8 +142,10 @@ describe('org', () => {
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
       });
-      requireSuccessfulResult(result);
-      const dbResult = await orgModel.findById(result.result.id);
+      requireSuccessfulResult(methodResult);
+      const dbResult = await orgModel.findOne({
+        name: methodResult.result.name,
+      });
       expect(dbResult?.awalaEndpoint).toBe(AWALA_ENDPOINT);
     });
 
@@ -199,8 +206,10 @@ describe('org', () => {
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
       });
-      const dbResult = await orgModel.findById(methodResult.result.id);
-      expect(methodResult.result.id).toStrictEqual(dbResult?._id.toString());
+      const dbResult = await orgModel.findOne({
+        name: methodResult.result.name,
+      });
+      expect(methodResult.result.name).toStrictEqual(dbResult?.name);
     });
 
     test('Clash with existing name should be refused', async () => {

@@ -6,7 +6,7 @@ export enum MemberAccessType {
 }
 
 export class OrgModelSchema {
-  @prop({ required: true, unique: true })
+  @prop({ required: true, unique: true, index: true })
   public name!: string;
 
   @prop({ required: true, enum: MemberAccessType })

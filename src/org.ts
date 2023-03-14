@@ -5,7 +5,7 @@ import type { HydratedDocument } from 'mongoose';
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema } from './services/schema/org.schema.js';
 import type { Result } from './utilities/result.js';
-import type { ServiceOptions } from './ServiceOptions.js';
+import type { OrgCreationResult, ServiceOptions } from './orgTypes.js';
 import { CreationProblemType } from './CreationProblemType.js';
 
 const MONGODB_DUPLICATE_INDEX_CODE = 11_000;
@@ -14,10 +14,6 @@ const MEMBER_ACCESS_TYPE_MAPPING: { [key in OrgSchema['memberAccessType']]: Memb
   INVITE_ONLY: MemberAccessType.INVITE_ONLY,
   OPEN: MemberAccessType.OPEN,
 };
-
-interface OrgCreationResult {
-  id: string;
-}
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
@@ -74,6 +70,6 @@ export async function createOrg(
   options.logger.info({ name: orgData.name }, 'Org created');
   return {
     didSucceed: true,
-    result: { id: org.id },
+    result: { name: org.name },
   };
 }

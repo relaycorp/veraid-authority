@@ -1,7 +1,8 @@
-export function mockSpy<Return, Parameters extends any[], Context>(
-  spy: jest.MockInstance<Return, Parameters, Context>,
-  mockImplementation?: (...args: Parameters) => any,
-): jest.MockInstance<Return, Parameters, Context> {
+export function mockSpy<
+  Return,
+  Parameters extends any[],
+  MockType extends jest.MockInstance<Return, Parameters>,
+>(spy: MockType, mockImplementation?: (...args: Parameters) => Return): MockType {
   beforeEach(() => {
     spy.mockReset();
     if (mockImplementation) {
