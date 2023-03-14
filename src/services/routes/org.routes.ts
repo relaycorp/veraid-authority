@@ -15,20 +15,12 @@ const ORG_ROUTES_ERROR_MAPPING: {
   [CreationProblemType.MALFORMED_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
-interface OrgUrl {
-  method: 'GET' | 'PATCH';
-  path: string;
-}
-
 interface OrgUrls {
-  self: OrgUrl;
+  self: string;
 }
 
 const formUrls = (name: string): OrgUrls => ({
-  self: {
-    method: 'GET',
-    path: `/orgs/${name}`,
-  },
+  self: `/orgs/${name}`,
 });
 
 export default function registerRoutes(
@@ -45,7 +37,6 @@ export default function registerRoutes(
     },
 
     async handler(request, reply): Promise<void> {
-      // request.
       const result = await createOrg(request.body, {
         logger: this.log,
         dbConnection: this.mongoose,

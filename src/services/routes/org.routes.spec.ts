@@ -49,10 +49,7 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', 200);
       expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual({
-        self: {
-          method: 'GET',
-          path: '/orgs/test',
-        },
+        self: '/orgs/test',
       });
     });
 
