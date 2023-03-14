@@ -28,7 +28,7 @@ describe('org routes', () => {
       url: '/orgs',
     };
 
-    test('Valid parameters should return urls', async () => {
+    test('Valid parameters should return URLs', async () => {
       const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,

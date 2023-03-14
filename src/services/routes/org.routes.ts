@@ -7,7 +7,7 @@ import type { FastifyTypedInstance } from '../fastify.js';
 import { createOrg } from '../../org.js';
 import { CreationProblemType } from '../../CreationProblemType.js';
 
-const ORG_ROUTES_ERROR_MAPPING: {
+const RESPONSE_CODE_BY_PROBLEM: {
   [key in CreationProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
   [CreationProblemType.EXISTING_ORG_NAME]: HTTP_STATUS_CODES.CONFLICT,
@@ -19,7 +19,7 @@ interface OrgUrls {
   self: string;
 }
 
-const formUrls = (name: string): OrgUrls => ({
+const makeUrls = (name: string): OrgUrls => ({
   self: `/orgs/${name}`,
 });
 
@@ -42,19 +42,13 @@ export default function registerRoutes(
         dbConnection: this.mongoose,
       });
       if (result.didSucceed) {
-        await reply
-          .code(HTTP_STATUS_CODES.OK)
-          .header('Content-Type', 'application/json')
-          .send(formUrls(result.result.name));
+        await reply.code(HTTP_STATUS_CODES.OK).send(makeUrls(result.result.name));
         return;
       }
 
-      await reply
-        .code(ORG_ROUTES_ERROR_MAPPING[result.reason])
-        .header('Content-Type', 'application/json')
-        .send({
-          type: result.reason,
-        });
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
+        type: result.reason,
+      });
     },
   });
 
