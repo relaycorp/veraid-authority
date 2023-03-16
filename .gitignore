@@ -5,6 +5,8 @@ src/**.js
 .idea/
 .vscode/
 coverage
+**/.DS_Store
+
 
 docs/.bundle
 docs/.jekyll-cache

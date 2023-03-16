@@ -1,7 +1,7 @@
 import { prop } from '@typegoose/typegoose';
 
 export enum MemberAccessType {
-  INVITE_ONLY = 'invite_only',
+  INVITE_ONLY = 'inviteOnly',
   OPEN = 'open',
 }
 
