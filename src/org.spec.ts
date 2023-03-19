@@ -19,11 +19,15 @@ describe('org', () => {
     mockLogging = makeMockLogging();
   });
 
+
+
   describe('createOrg', () => {
+
     test('Minimum required data should be stored', async () => {
       const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
+
         memberAccessType: 'INVITE_ONLY',
       };
 
