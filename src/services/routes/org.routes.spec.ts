@@ -42,6 +42,7 @@ describe('org routes', () => {
         },
       })
 
+
       const response = await serverInstance.inject({
         ...injectionOptions,
         payload,
