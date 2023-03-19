@@ -50,7 +50,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run fix"
+      "pre-commit": "echo 1 && npm run fix"
     }
   },
   "prettier": "@relaycorp/shared-config/.prettierrc.json",
