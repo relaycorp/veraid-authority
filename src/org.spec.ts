@@ -1,5 +1,6 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
-import { getModelForClass } from '@typegoose/typegoose';
+import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
+import type { Connection } from 'mongoose';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import { createOrg, getOrg, updateOrg } from './org.js';
@@ -25,13 +26,18 @@ describe('org', () => {
   const getConnection = setUpTestDbConnection();
 
   let mockLogging: MockLogging;
+  let connection: Connection;
+  let orgModel: ReturnModelType<typeof OrgModelSchema>;
   beforeEach(() => {
     mockLogging = makeMockLogging();
+    connection = getConnection();
+    orgModel = getModelForClass(OrgModelSchema, {
+      existingConnection: connection,
+    });
   });
 
   describe('createOrg', () => {
     test('Minimum required data should be stored', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -42,9 +48,6 @@ describe('org', () => {
         logger: mockLogging.logger,
       });
 
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       const dbResult = await orgModel.exists({
         name: ORG_NAME,
         memberAccessType: MemberAccessType.INVITE_ONLY,
@@ -56,7 +59,6 @@ describe('org', () => {
     });
 
     test('Non ASCII name should be allowed', async () => {
-      const connection = getConnection();
       const nonAsciiName = 'はじめよう.みんな';
       const orgData: OrgSchema = {
         name: nonAsciiName,
@@ -72,7 +74,6 @@ describe('org', () => {
     });
 
     test('Malformed name should be refused', async () => {
-      const connection = getConnection();
       const malformedName = '192.168.0.0';
       const orgData: OrgSchema = {
         name: malformedName,
@@ -92,7 +93,6 @@ describe('org', () => {
     });
 
     test('INVITE_ONLY access type should be allowed', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -103,11 +103,7 @@ describe('org', () => {
         logger: mockLogging.logger,
       });
 
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       requireSuccessfulResult(methodResult);
-
       const dbResult = await orgModel.findOne({
         name: methodResult.result.name,
       });
@@ -115,7 +111,6 @@ describe('org', () => {
     });
 
     test('OPEN access type should be allowed', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'OPEN',
@@ -126,9 +121,6 @@ describe('org', () => {
         logger: mockLogging.logger,
       });
 
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       requireSuccessfulResult(methodResult);
       const dbResult = await orgModel.findOne({
         name: methodResult.result.name,
@@ -137,7 +129,6 @@ describe('org', () => {
     });
 
     test('Any Awala endpoint should be stored', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'OPEN',
@@ -149,9 +140,6 @@ describe('org', () => {
         logger: mockLogging.logger,
       });
 
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       requireSuccessfulResult(methodResult);
       const dbResult = await orgModel.findOne({
         name: methodResult.result.name,
@@ -160,7 +148,6 @@ describe('org', () => {
     });
 
     test('Non ASCII Awala endpoint should be allowed', async () => {
-      const connection = getConnection();
       const nonAsciiAwalaEndpoint = 'はじめよう.みんな';
       const orgData: OrgSchema = {
         name: ORG_NAME,
@@ -177,7 +164,6 @@ describe('org', () => {
     });
 
     test('Malformed Awala endpoint should be refused', async () => {
-      const connection = getConnection();
       const malformedAwalaEndpoint = '192.168.0.0';
       const orgData: OrgSchema = {
         name: ORG_NAME,
@@ -200,7 +186,6 @@ describe('org', () => {
     });
 
     test('Returned id should match that of the database', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -213,9 +198,7 @@ describe('org', () => {
       });
 
       requireSuccessfulResult(methodResult);
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
+
       const dbResult = await orgModel.findOne({
         name: methodResult.result.name,
       });
@@ -223,7 +206,6 @@ describe('org', () => {
     });
 
     test('Clash with existing name should be refused', async () => {
-      const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -246,7 +228,6 @@ describe('org', () => {
     });
 
     test('Record creation errors should be propagated', async () => {
-      const connection = getConnection();
       await connection.close();
       const orgData: OrgSchema = {
         name: ORG_NAME,
@@ -268,10 +249,6 @@ describe('org', () => {
 
   describe('updateOrg', () => {
     test('Valid data should be updated', async () => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       await orgModel.create({
         name: ORG_NAME,
         memberAccessType: MemberAccessType.OPEN,
@@ -304,10 +281,6 @@ describe('org', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('Matching %s name should be allowed', async (_type, name: string) => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       await orgModel.create({
         name,
         memberAccessType: MemberAccessType.INVITE_ONLY,
@@ -328,8 +301,6 @@ describe('org', () => {
     });
 
     test('Non existing name should be ignored', async () => {
-      const connection = getConnection();
-
       const result = await updateOrg(
         ORG_NAME,
         {},
@@ -343,8 +314,6 @@ describe('org', () => {
     });
 
     test('Malformed name should be refused', async () => {
-      const connection = getConnection();
-
       const result = await updateOrg(
         'INVALID_Name',
         {
@@ -361,8 +330,6 @@ describe('org', () => {
     });
 
     test('Non matching name should be refused', async () => {
-      const connection = getConnection();
-
       const result = await updateOrg(
         ORG_NAME,
         {
@@ -381,10 +348,6 @@ describe('org', () => {
     test.each(orgSchemaMemberAccessTypes)(
       '%s access type should be allowed',
       async (memberAccessType: OrgSchemaMemberAccessType) => {
-        const connection = getConnection();
-        const orgModel = getModelForClass(OrgModelSchema, {
-          existingConnection: connection,
-        });
         await orgModel.create({
           name: ORG_NAME,
           memberAccessType: MEMBER_ACCESS_TYPE_MAPPING[memberAccessType],
@@ -409,10 +372,6 @@ describe('org', () => {
       ['ASCII', AWALA_ENDPOINT],
       ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
     ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       await orgModel.create({
         name: ORG_NAME,
         memberAccessType: MemberAccessType.OPEN,
@@ -434,8 +393,6 @@ describe('org', () => {
     });
 
     test('Malformed Awala endpoint should be refused', async () => {
-      const connection = getConnection();
-
       const result = await updateOrg(
         ORG_NAME,
         {
@@ -454,7 +411,6 @@ describe('org', () => {
     });
 
     test('Record update errors should be propagated', async () => {
-      const connection = getConnection();
       await connection.close();
       const orgData: OrgSchema = {
         name: ORG_NAME,
@@ -476,10 +432,6 @@ describe('org', () => {
 
   describe('getOrg', () => {
     test('Existing name should return the corresponding data', async () => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
       await orgModel.create({
         name: ORG_NAME,
         memberAccessType: MemberAccessType.OPEN,
@@ -500,8 +452,6 @@ describe('org', () => {
     });
 
     test('Invalid name should return non existing error', async () => {
-      const connection = getConnection();
-
       const methodResponse = await getOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
@@ -512,7 +462,6 @@ describe('org', () => {
     });
 
     test('Record Find errors should be propagated', async () => {
-      const connection = getConnection();
       await connection.close();
 
       const error = await getPromiseRejection(
