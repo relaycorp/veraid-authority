@@ -22,7 +22,6 @@ describe('org', () => {
 
 
   describe('createOrg', () => {
-
     test('Minimum required data should be stored', async () => {
       const connection = getConnection();
       const orgData: OrgSchema = {
