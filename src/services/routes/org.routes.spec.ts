@@ -40,7 +40,7 @@ describe('org routes', () => {
         result: {
           name: 'test',
         },
-      });
+      })
 
       const response = await serverInstance.inject({
         ...injectionOptions,
