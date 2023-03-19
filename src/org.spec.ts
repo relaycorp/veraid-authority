@@ -1,15 +1,25 @@
+/* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass } from '@typegoose/typegoose';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import { createOrg, getOrg, updateOrg } from './org.js';
-import type { OrgSchema } from './services/schema/org.schema.js';
+import {
+  type OrgSchema,
+  type OrgSchemaMemberAccessType,
+  orgSchemaMemberAccessTypes,
+} from './services/schema/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { AWALA_ENDPOINT, ORG_NAME } from './testUtils/stubs.js';
+import {
+  AWALA_ENDPOINT,
+  NON_ASCII_AWALA_ENDPOINT,
+  NON_ASCII_ORG_NAME,
+  ORG_NAME,
+} from './testUtils/stubs.js';
 import { getPromiseRejection } from './testUtils/jest.js';
 import { OrgProblemType } from './OrgProblemType.js';
-import type { ServiceOptions } from './orgTypes.js';
+import { MEMBER_ACCESS_TYPE_MAPPING, type ServiceOptions } from './orgTypes.js';
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
@@ -257,7 +267,7 @@ describe('org', () => {
   });
 
   describe('updateOrg', () => {
-    test('Valid data should be allowed and updated', async () => {
+    test('Valid data should be updated', async () => {
       const connection = getConnection();
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
@@ -290,20 +300,23 @@ describe('org', () => {
       expect(dbResult).not.toBeNull();
     });
 
-    test('matching ASCII name should be allowed', async () => {
+    test.each([
+      ['ASCII', ORG_NAME],
+      ['Non ASCII', NON_ASCII_ORG_NAME],
+    ])('Matching %s name should be allowed', async (_type, name: string) => {
       const connection = getConnection();
       const orgModel = getModelForClass(OrgModelSchema, {
         existingConnection: connection,
       });
       await orgModel.create({
-        name: ORG_NAME,
+        name,
         memberAccessType: MemberAccessType.INVITE_ONLY,
       });
 
       const response = await updateOrg(
-        ORG_NAME,
+        name,
         {
-          name: ORG_NAME,
+          name,
         },
         {
           dbConnection: connection,
@@ -314,32 +327,7 @@ describe('org', () => {
       expect(response.didSucceed).toBeTrue();
     });
 
-    test('matching Non ASCII name should be allowed', async () => {
-      const connection = getConnection();
-      const nonAsciiAwalaEndpoint = 'はじめよう.みんな';
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: nonAsciiAwalaEndpoint,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
-      });
-
-      const response = await updateOrg(
-        nonAsciiAwalaEndpoint,
-        {
-          name: nonAsciiAwalaEndpoint,
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('Non existing name should not be refused', async () => {
+    test('Non existing name should be ignored', async () => {
       const connection = getConnection();
 
       const result = await updateOrg(
@@ -352,138 +340,6 @@ describe('org', () => {
       );
 
       expect(result.didSucceed).toBeTrue();
-    });
-
-    test('INVITE_ONLY access type should be allowed', async () => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
-      });
-
-      const response = await updateOrg(
-        ORG_NAME,
-        {
-          memberAccessType: 'INVITE_ONLY',
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('OPEN access type should be allowed', async () => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-      });
-
-      const response = await updateOrg(
-        ORG_NAME,
-        {
-          memberAccessType: 'OPEN',
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('ASCII Awala endpoint should be allowed', async () => {
-      const connection = getConnection();
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-        awalaEndpoint: `a.${AWALA_ENDPOINT}`,
-      });
-
-      const response = await updateOrg(
-        ORG_NAME,
-        {
-          awalaEndpoint: AWALA_ENDPOINT,
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('non ASCII Awala endpoint should be allowed', async () => {
-      const connection = getConnection();
-      const nonAsciiAwalaEndpoint = 'はじめよう.みんな';
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-        awalaEndpoint: nonAsciiAwalaEndpoint,
-      });
-
-      const response = await updateOrg(
-        ORG_NAME,
-        {
-          awalaEndpoint: nonAsciiAwalaEndpoint,
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('Non ASCII Awala endpoint should be allowed and be updated', async () => {
-      const connection = getConnection();
-      const nonAsciiAwalaEndpoint = 'はじめよう.みんな';
-      const orgModel = getModelForClass(OrgModelSchema, {
-        existingConnection: connection,
-      });
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-        awalaEndpoint: AWALA_ENDPOINT,
-      });
-
-      await updateOrg(
-        ORG_NAME,
-        {
-          name: ORG_NAME,
-          memberAccessType: 'INVITE_ONLY',
-          awalaEndpoint: nonAsciiAwalaEndpoint,
-        },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
-
-      const dbResult = await orgModel.exists({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
-        awalaEndpoint: nonAsciiAwalaEndpoint,
-      });
-      expect(dbResult).not.toBeNull();
     });
 
     test('Malformed name should be refused', async () => {
@@ -520,6 +376,61 @@ describe('org', () => {
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.INVALID_ORG_NAME);
+    });
+
+    test.each(orgSchemaMemberAccessTypes)(
+      '%s access type should be allowed',
+      async (memberAccessType: OrgSchemaMemberAccessType) => {
+        const connection = getConnection();
+        const orgModel = getModelForClass(OrgModelSchema, {
+          existingConnection: connection,
+        });
+        await orgModel.create({
+          name: ORG_NAME,
+          memberAccessType: MEMBER_ACCESS_TYPE_MAPPING[memberAccessType],
+        });
+
+        const response = await updateOrg(
+          ORG_NAME,
+          {
+            memberAccessType,
+          },
+          {
+            dbConnection: connection,
+            logger: mockLogging.logger,
+          },
+        );
+
+        expect(response.didSucceed).toBeTrue();
+      },
+    );
+
+    test.each([
+      ['ASCII', AWALA_ENDPOINT],
+      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
+    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
+      const connection = getConnection();
+      const orgModel = getModelForClass(OrgModelSchema, {
+        existingConnection: connection,
+      });
+      await orgModel.create({
+        name: ORG_NAME,
+        memberAccessType: MemberAccessType.OPEN,
+        awalaEndpoint: AWALA_ENDPOINT,
+      });
+
+      const response = await updateOrg(
+        ORG_NAME,
+        {
+          awalaEndpoint,
+        },
+        {
+          dbConnection: connection,
+          logger: mockLogging.logger,
+        },
+      );
+
+      expect(response.didSucceed).toBeTrue();
     });
 
     test('Malformed Awala endpoint should be refused', async () => {
@@ -561,59 +472,59 @@ describe('org', () => {
 
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
+  });
 
-    describe('getOrg', () => {
-      test('valid name should return the corresponding data', async () => {
-        const connection = getConnection();
-        const orgModel = getModelForClass(OrgModelSchema, {
-          existingConnection: connection,
-        });
-        await orgModel.create({
-          name: ORG_NAME,
-          memberAccessType: MemberAccessType.OPEN,
-          awalaEndpoint: AWALA_ENDPOINT,
-        });
-
-        const methodResponse = await getOrg(ORG_NAME, {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        });
-
-        requireSuccessfulResult(methodResponse);
-        expect(methodResponse.result).toMatchObject({
-          name: ORG_NAME,
-          memberAccessType: 'OPEN',
-          awalaEndpoint: AWALA_ENDPOINT,
-        });
+  describe('getOrg', () => {
+    test('Existing name should return the corresponding data', async () => {
+      const connection = getConnection();
+      const orgModel = getModelForClass(OrgModelSchema, {
+        existingConnection: connection,
+      });
+      await orgModel.create({
+        name: ORG_NAME,
+        memberAccessType: MemberAccessType.OPEN,
+        awalaEndpoint: AWALA_ENDPOINT,
       });
 
-      test('invalid name should return NOT_FOUND error', async () => {
-        const connection = getConnection();
-
-        const methodResponse = await getOrg(ORG_NAME, {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        });
-
-        requireFailureResult(methodResponse);
-        expect(methodResponse.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
+      const methodResponse = await getOrg(ORG_NAME, {
+        dbConnection: connection,
+        logger: mockLogging.logger,
       });
 
-      test('find errors should be propagated', async () => {
-        const connection = getConnection();
-        await connection.close();
-
-        const error = await getPromiseRejection(
-          async () =>
-            getOrg(ORG_NAME, {
-              dbConnection: connection,
-              logger: mockLogging.logger,
-            }),
-          Error,
-        );
-
-        expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+      requireSuccessfulResult(methodResponse);
+      expect(methodResponse.result).toMatchObject({
+        name: ORG_NAME,
+        memberAccessType: 'OPEN',
+        awalaEndpoint: AWALA_ENDPOINT,
       });
+    });
+
+    test('Invalid name should return non existing error', async () => {
+      const connection = getConnection();
+
+      const methodResponse = await getOrg(ORG_NAME, {
+        dbConnection: connection,
+        logger: mockLogging.logger,
+      });
+
+      requireFailureResult(methodResponse);
+      expect(methodResponse.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
+    });
+
+    test('Record Find errors should be propagated', async () => {
+      const connection = getConnection();
+      await connection.close();
+
+      const error = await getPromiseRejection(
+        async () =>
+          getOrg(ORG_NAME, {
+            dbConnection: connection,
+            logger: mockLogging.logger,
+          }),
+        Error,
+      );
+
+      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
   });
 });

@@ -2,27 +2,18 @@ import { getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
 import type { HydratedDocument } from 'mongoose';
 
-import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
+import { OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema, OrgSchemaPatch } from './services/schema/org.schema.js';
 import type { Result } from './utilities/result.js';
-import type { OrgCreationResult, ServiceOptions } from './orgTypes.js';
+import {
+  type OrgCreationResult,
+  type ServiceOptions,
+  MEMBER_ACCESS_TYPE_MAPPING,
+  REVERSE_MEMBER_ACCESS_MAPPING,
+} from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 
 const MONGODB_DUPLICATE_INDEX_CODE = 11_000;
-
-const MEMBER_ACCESS_TYPE_MAPPING: { [key in OrgSchema['memberAccessType']]: MemberAccessType } = {
-  INVITE_ONLY: MemberAccessType.INVITE_ONLY,
-  OPEN: MemberAccessType.OPEN,
-} as const;
-
-type ReversedMemberAccessType = {
-  [key in MemberAccessType]: OrgSchema['memberAccessType'];
-};
-
-const REVERSE_MEMBER_ACCESS_MAPPING: ReversedMemberAccessType = {
-  inviteOnly: 'INVITE_ONLY',
-  open: 'OPEN',
-};
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
@@ -107,16 +98,13 @@ export async function updateOrg(
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
-  try {
-    await orgModel.updateOne(
-      {
-        name,
-      },
-      { ...orgData, memberAccessType },
-    );
-  } catch (err) {
-    throw err as Error;
-  }
+
+  await orgModel.updateOne(
+    {
+      name,
+    },
+    { ...orgData, memberAccessType },
+  );
 
   options.logger.info({ name: orgData.name }, 'Org updated');
   return {
@@ -131,15 +119,10 @@ export async function getOrg(
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
-  let org;
+  const org = await orgModel.findOne({
+    name,
+  });
 
-  try {
-    org = await orgModel.findOne({
-      name,
-    });
-  } catch (err) {
-    throw err as Error;
-  }
   if (org === null) {
     return {
       didSucceed: false,

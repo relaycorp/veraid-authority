@@ -33,9 +33,12 @@ interface OrgUrls {
   self: string;
 }
 
-const makeUrls = (name: string): OrgUrls => ({
-  self: `/orgs/${name}`,
-});
+function makeUrls(name: string): OrgUrls {
+  return {
+    self: `/orgs/${name}`,
+  };
+}
+
 export default function registerRoutes(
   fastify: FastifyTypedInstance,
   _opts: RouteOptions,
@@ -91,7 +94,7 @@ export default function registerRoutes(
 
       const result = await updateOrg(orgName, request.body, serviceOptions);
       if (result.didSucceed) {
-        await reply.code(HTTP_STATUS_CODES.OK).send();
+        await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
         return;
       }
 
