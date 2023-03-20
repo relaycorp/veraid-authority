@@ -185,6 +185,7 @@ describe('org routes', () => {
         payload,
       });
 
+
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', CreationProblemType.MALFORMED_AWALA_ENDPOINT);
     });
