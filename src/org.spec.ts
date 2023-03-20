@@ -315,9 +315,9 @@ describe('org', () => {
 
     test('Malformed name should be refused', async () => {
       const result = await updateOrg(
-        'INVALID_Name',
+        'INVALID_NAME',
         {
-          name: 'INVALID_Name',
+          name: 'INVALID_NAME',
         },
         {
           dbConnection: connection,

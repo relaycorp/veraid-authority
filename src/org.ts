@@ -133,7 +133,6 @@ export async function getOrg(
   return {
     didSucceed: true,
 
-    // TODO : implement a mapper that transforms an OrgSchema to the OrgSchemaType object
     result: {
       name: org.name,
       memberAccessType: REVERSE_MEMBER_ACCESS_MAPPING[org.memberAccessType],
