@@ -8,6 +8,9 @@ jobs:
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-ci.yml@main
     with:
       docker_image_local_name: dev.local/veraid-authority
+      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
   release:
     needs: ci
