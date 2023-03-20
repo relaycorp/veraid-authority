@@ -19,8 +19,6 @@ describe('org', () => {
     mockLogging = makeMockLogging();
   });
 
-
-
   describe('createOrg', () => {
     test('Minimum required data should be stored', async () => {
       const connection = getConnection();
