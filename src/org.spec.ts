@@ -24,7 +24,6 @@ describe('org', () => {
       const connection = getConnection();
       const orgData: OrgSchema = {
         name: ORG_NAME,
-
         memberAccessType: 'INVITE_ONLY',
       };
 
