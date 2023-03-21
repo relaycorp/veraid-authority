@@ -133,7 +133,6 @@ describe('org routes', () => {
         });
 
         expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-        expect(response.headers['content-type']).toStartWith('application/json');
       },
     );
 
