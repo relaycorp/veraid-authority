@@ -114,7 +114,7 @@ describe('org routes', () => {
     });
 
     test.each(orgSchemaMemberAccessTypes)(
-      'Valid parameters with %s access type should return success',
+      '%s access type should return success',
       async (memberAccessType: OrgSchemaMemberAccessType) => {
       const payload: OrgSchema = {
         name: ORG_NAME,
