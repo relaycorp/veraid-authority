@@ -15,6 +15,7 @@ import type { Result } from '../../utilities/result.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
+import type { FastifyTypedInstance } from '../fastify.js';
 
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
@@ -24,11 +25,15 @@ jest.unstable_mockModule('../../org.js', () => ({
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,
 }));
-
-const { makeServer } = await import('../server.js');
+const { setUpTestServer } = await import('../../testUtils/server.js');
 
 describe('org routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
+  const getTestServer = setUpTestServer();
+  let serverInstance: FastifyTypedInstance;
+  beforeEach(() => {
+    serverInstance = getTestServer();
+  });
 
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
@@ -37,7 +42,6 @@ describe('org routes', () => {
     };
 
     test('Valid parameters should return URLs', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -62,7 +66,6 @@ describe('org routes', () => {
     });
 
     test('Valid parameters with INVITE_ONLY access type should return success', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -85,7 +88,6 @@ describe('org routes', () => {
     });
 
     test('Valid parameters with OPEN access type should return success', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'OPEN',
@@ -108,7 +110,6 @@ describe('org routes', () => {
     });
 
     test('Invalid access type should be refused', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVALID' as any,
@@ -123,7 +124,6 @@ describe('org routes', () => {
     });
 
     test('Missing access type should be refused', async () => {
-      const serverInstance = await makeServer();
       const payload: Partial<OrgSchema> = {
         name: ORG_NAME,
       };
@@ -137,7 +137,6 @@ describe('org routes', () => {
     });
 
     test('Duplicated name error should resolve into conflict status', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -157,7 +156,6 @@ describe('org routes', () => {
     });
 
     test('Malformed name error should resolve into bad request status', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: 'MALFORMED_NAME',
         memberAccessType: 'INVITE_ONLY',
@@ -177,7 +175,6 @@ describe('org routes', () => {
     });
 
     test('Malformed awala endpoint error should resolve into bad request status', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
@@ -213,7 +210,6 @@ describe('org routes', () => {
     } as const;
 
     test('Empty parameters should be accepted', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       mockUpdateOrg.mockResolvedValueOnce({
@@ -229,7 +225,6 @@ describe('org routes', () => {
     });
 
     test('Name matching the url parameter should be accepted', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchemaPatch = {
         name: ORG_NAME,
       };
@@ -247,7 +242,6 @@ describe('org routes', () => {
     });
 
     test('Non-matching name should be refused', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchemaPatch = {
         name: 'invalid.com',
       };
@@ -267,7 +261,6 @@ describe('org routes', () => {
     });
 
     test('Non existing name should resolve into not found status', async () => {
-      const serverInstance = await makeServer();
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
@@ -287,7 +280,6 @@ describe('org routes', () => {
     test.each(orgSchemaMemberAccessTypes)(
       '%s access type should be accepted',
       async (memberAccessType: OrgSchemaMemberAccessType) => {
-        const serverInstance = await makeServer();
         const payload: OrgSchemaPatch = {
           memberAccessType,
         };
@@ -309,7 +301,6 @@ describe('org routes', () => {
       ['ASCII', AWALA_ENDPOINT],
       ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
     ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const serverInstance = await makeServer();
       const payload: OrgSchemaPatch = {
         awalaEndpoint,
       };
