@@ -1,26 +1,26 @@
 import type { HTTPMethods } from 'fastify';
 
-import { makeServer } from '../server.js';
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import { HTTP_METHODS } from '../fastify.js';
+import { FastifyTypedInstance, HTTP_METHODS } from '../fastify.js';
+import { setUpTestServer } from '../../testUtils/server.js';
 
 describe('notFoundHandler', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
+  const getTestServer = setUpTestServer();
+  let serverInstance: FastifyTypedInstance;
+  beforeAll(() => {
+    serverInstance = getTestServer();
+  });
 
   const allowedMethods: HTTPMethods[] = ['HEAD', 'GET'];
-
   const allowedMethodsString = allowedMethods.join(', ');
-
   const disallowedMethods = HTTP_METHODS.filter(
     (method) => !allowedMethods.includes(method) && method !== 'OPTIONS',
   );
-
   const endpointUrl = '/';
 
   test('An existing method should be routed to the handler', async () => {
-    const serverInstance = await makeServer();
-
     const response = await serverInstance.inject({ method: 'GET', url: endpointUrl });
 
     expect(response).toHaveProperty('statusCode', 200);
@@ -28,8 +28,6 @@ describe('notFoundHandler', () => {
   });
 
   test.each(disallowedMethods)('%s requests should be refused', async (method) => {
-    const serverInstance = await makeServer();
-
     const response = await serverInstance.inject({ method: method as any, url: endpointUrl });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.METHOD_NOT_ALLOWED);
@@ -37,8 +35,6 @@ describe('notFoundHandler', () => {
   });
 
   test('OPTIONS requests should list the allowed methods', async () => {
-    const serverInstance = await makeServer();
-
     const response = await serverInstance.inject({ method: 'OPTIONS', url: endpointUrl });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
@@ -46,8 +42,6 @@ describe('notFoundHandler', () => {
   });
 
   test('Non existing path should result in 404 error', async () => {
-    const serverInstance = await makeServer();
-
     const response = await serverInstance.inject({
       method: 'OPTIONS',
       url: '/NonExistingPath',
