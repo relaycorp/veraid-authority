@@ -11,9 +11,9 @@ import {
 } from '../../testUtils/stubs.js';
 import {
   type OrgSchema,
+  type OrgSchemaPatch,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
-  type OrgSchemaPatch,
 } from '../schema/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result } from '../../utilities/result.js';
