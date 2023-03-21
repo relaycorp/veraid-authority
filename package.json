@@ -13,6 +13,9 @@
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.cjs --runInBand --detectOpenHandles",
+    "test:staged": "node --experimental-vm-modules node_modules/jest/bin/jest.js --bail --findRelatedTests",
+    "fix:prettier:staged": "prettier --write",
+    "fix:eslint:staged": "eslint -c .eslintrc.cjs --fix",
     "clean": "del-cli build test coverage",
     "prepare": "husky install"
   },
@@ -41,6 +44,7 @@
     "husky": "^8.0.0",
     "jest": "^29.5.0",
     "jest-extended": "^3.0.2",
+    "lint-staged": "^13.2.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.5",
     "split2": "^4.1.0",
@@ -48,6 +52,13 @@
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.5"
+  },
+  "lint-staged": {
+    "src/**/*.{ts}": [
+      "npm run fix:eslint:staged",
+      "npm run fix:prettier:staged",
+      "npm run test:staged"
+    ]
   },
   "prettier": "@relaycorp/shared-config/.prettierrc.json",
   "engines": {
