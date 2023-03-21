@@ -1,5 +1,5 @@
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { FastifyTypedInstance } from '../fastify.js';
+import type { FastifyTypedInstance } from '../fastify.js';
 import { setUpTestServer } from '../../testUtils/server.js';
 
 describe('healthcheck routes', () => {
