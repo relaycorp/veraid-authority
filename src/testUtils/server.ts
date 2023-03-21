@@ -3,11 +3,11 @@ import { makeServer } from '../services/server.js';
 
 export function setUpTestServer(): () => FastifyTypedInstance {
   let server: FastifyTypedInstance;
-  beforeAll(async () => {
+  beforeEach(async () => {
     server = await makeServer();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await server.close();
   });
 

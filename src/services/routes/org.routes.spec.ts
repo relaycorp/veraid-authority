@@ -37,7 +37,7 @@ describe('org routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
   const getTestServer = setUpTestServer();
   let serverInstance: FastifyTypedInstance;
-  beforeAll(() => {
+  beforeEach(() => {
     serverInstance = getTestServer();
   });
 

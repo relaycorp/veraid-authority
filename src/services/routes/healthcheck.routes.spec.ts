@@ -7,7 +7,7 @@ describe('healthcheck routes', () => {
 
   const getTestServer = setUpTestServer();
   let serverInstance: FastifyTypedInstance;
-  beforeAll(() => {
+  beforeEach(() => {
     serverInstance = getTestServer();
   });
 
