@@ -112,6 +112,7 @@ describe('org', () => {
     });
 
     test('OPEN access type should be allowed', async () => {
+      // TODO: something
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'OPEN',
