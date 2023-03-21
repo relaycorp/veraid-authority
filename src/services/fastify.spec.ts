@@ -43,7 +43,7 @@ describe('configureFastify', () => {
     const logger = getMockContext(mockMakeLogger).results[0].value;
     expect(fastify).toHaveBeenCalledWith(expect.objectContaining({ logger }));
 
-    expect(mockExitHandler).toHaveBeenCalledWith({});
+    expect(mockExitHandler).toHaveBeenCalledWith(logger);
   });
 
   test('Custom logger should be honoured', async () => {
