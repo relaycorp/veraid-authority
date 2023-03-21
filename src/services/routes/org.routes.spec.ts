@@ -332,19 +332,19 @@ describe('org routes', () => {
   });
 
   describe('get/:orgName', () => {
-
     const injectionOptions: InjectOptions = {
       method: 'GET',
     };
 
-    test.each([['ASCII', ORG_NAME],
+    test.each([
+      ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('%s name should return an org', async (_type, name: string) => {
       const getOrgSuccessResponse = {
         didSucceed: true,
 
         result: {
-          name: name,
+          name,
           memberAccessType: 'INVITE_ONLY',
         },
       } as const;
@@ -368,7 +368,7 @@ describe('org routes', () => {
     test('Non existing name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND
+        reason: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -387,7 +387,7 @@ describe('org routes', () => {
     test('Malformed name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND
+        reason: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -402,5 +402,5 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
     });
-  })
+  });
 });

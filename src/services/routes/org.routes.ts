@@ -107,9 +107,11 @@ export default function registerRoutes(
   fastify.route({
     method: ['GET'],
     url: '/orgs/:orgName',
+
     schema: {
       params: ORG_ROUTE_PARAMS,
     },
+
     async handler(request, reply): Promise<void> {
       const { orgName } = request.params;
       const serviceOptions = {
