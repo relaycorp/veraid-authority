@@ -1,3 +1,5 @@
+/* eslint-disable require-atomic-updates */
+
 import type { FastifyTypedInstance } from '../services/fastify.js';
 import { makeServer } from '../services/server.js';
 
@@ -8,19 +10,12 @@ export function setUpTestServer(): () => FastifyTypedInstance {
   });
 
   beforeEach(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition,@typescript-eslint/strict-boolean-expressions
-    if (server) {
-      await server.close();
-    }
-    // eslint-disable-next-line require-atomic-updates
+    await server.close();
     server = await makeServer();
   });
 
   afterEach(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition,@typescript-eslint/strict-boolean-expressions
-    if (server) {
-      await server.close();
-    }
+    await server.close();
   });
 
   return () => server;

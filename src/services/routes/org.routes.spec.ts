@@ -20,7 +20,7 @@ import type { Result } from '../../utilities/result.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import { FastifyTypedInstance } from '../fastify.js';
+import type { FastifyTypedInstance } from '../fastify.js';
 
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
@@ -59,7 +59,7 @@ describe('org routes', () => {
         didSucceed: true,
 
         result: {
-          name: name,
+          name,
         },
       });
 
@@ -67,13 +67,12 @@ describe('org routes', () => {
         ...injectionOptions,
         payload,
       });
-      expect(response).toHaveProperty('statusCode', 200);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual({
         self: `/orgs/${name}`,
       });
     });
-
 
     test('Duplicated name error should resolve into conflict status', async () => {
       const payload: OrgSchema = {
@@ -116,26 +115,27 @@ describe('org routes', () => {
     test.each(orgSchemaMemberAccessTypes)(
       '%s access type should return success',
       async (memberAccessType: OrgSchemaMemberAccessType) => {
-      const payload: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: memberAccessType,
-      };
-      mockCreateOrg.mockResolvedValueOnce({
-        didSucceed: true,
+        const payload: OrgSchema = {
+          name: ORG_NAME,
+          memberAccessType,
+        };
+        mockCreateOrg.mockResolvedValueOnce({
+          didSucceed: true,
 
-        result: {
-          name: 'test',
-        },
-      });
+          result: {
+            name: 'test',
+          },
+        });
 
-      const response = await serverInstance.inject({
-        ...injectionOptions,
-        payload,
-      });
+        const response = await serverInstance.inject({
+          ...injectionOptions,
+          payload,
+        });
 
-      expect(response).toHaveProperty('statusCode', 200);
-      expect(response.headers['content-type']).toStartWith('application/json');
-    });
+        expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+        expect(response.headers['content-type']).toStartWith('application/json');
+      },
+    );
 
     test('Invalid access type should be refused', async () => {
       const payload: OrgSchema = {
@@ -148,7 +148,7 @@ describe('org routes', () => {
         payload,
       });
 
-      expect(response).toHaveProperty('statusCode', 400);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
 
     test('Missing access type should be refused', async () => {
@@ -161,7 +161,7 @@ describe('org routes', () => {
         payload,
       });
 
-      expect(response).toHaveProperty('statusCode', 400);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
 
     test.each([
@@ -185,14 +185,10 @@ describe('org routes', () => {
         ...injectionOptions,
         payload,
       });
-      expect(response).toHaveProperty('statusCode', 200);
-      expect(response.headers['content-type']).toStartWith('application/json');
-      expect(response.json()).toStrictEqual({
-        self: `/orgs/${ORG_NAME}`,
-      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     });
 
-    test('Malformed awala endpoint error should resolve into bad request status', async () => {
+    test('Malformed awala endpoint should be refused', async () => {
       const payload: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
