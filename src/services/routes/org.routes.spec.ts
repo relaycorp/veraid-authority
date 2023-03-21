@@ -1,20 +1,28 @@
+/* eslint-disable unicorn/text-encoding-identifier-case */
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { ORG_NAME } from '../../testUtils/stubs.js';
-import type { OrgSchema } from '../schema/org.schema.js';
+import { AWALA_ENDPOINT, NON_ASCII_AWALA_ENDPOINT, ORG_NAME } from '../../testUtils/stubs.js';
+import {
+  type OrgSchema,
+  type OrgSchemaPatch,
+  type OrgSchemaMemberAccessType,
+  orgSchemaMemberAccessTypes,
+} from '../schema/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result } from '../../utilities/result.js';
-import { CreationProblemType } from '../../CreationProblemType.js';
+import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 
-const mockCreateOrg = mockSpy(
-  jest.fn<() => Promise<Result<OrgCreationResult, CreationProblemType>>>(),
-);
+const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
+const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
+const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
 jest.unstable_mockModule('../../org.js', () => ({
   createOrg: mockCreateOrg,
+  updateOrg: mockUpdateOrg,
+  getOrg: mockGetOrg,
 }));
 
 const { makeServer } = await import('../server.js');
@@ -136,7 +144,7 @@ describe('org routes', () => {
       };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: CreationProblemType.EXISTING_ORG_NAME,
+        reason: OrgProblemType.EXISTING_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -145,7 +153,7 @@ describe('org routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.CONFLICT);
-      expect(response.json()).toHaveProperty('type', CreationProblemType.EXISTING_ORG_NAME);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.EXISTING_ORG_NAME);
     });
 
     test('Malformed name error should resolve into bad request status', async () => {
@@ -156,7 +164,7 @@ describe('org routes', () => {
       };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: CreationProblemType.MALFORMED_ORG_NAME,
+        reason: OrgProblemType.MALFORMED_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -165,7 +173,7 @@ describe('org routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', CreationProblemType.MALFORMED_ORG_NAME);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.MALFORMED_ORG_NAME);
     });
 
     test('Malformed awala endpoint error should resolve into bad request status', async () => {
@@ -177,7 +185,7 @@ describe('org routes', () => {
       };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: CreationProblemType.MALFORMED_AWALA_ENDPOINT,
+        reason: OrgProblemType.MALFORMED_AWALA_ENDPOINT,
       });
 
       const response = await serverInstance.inject({
@@ -186,7 +194,136 @@ describe('org routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', CreationProblemType.MALFORMED_AWALA_ENDPOINT);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.MALFORMED_AWALA_ENDPOINT);
+    });
+  });
+
+  describe('update', () => {
+    const injectionOptions: InjectOptions = {
+      method: 'PATCH',
+      url: `/orgs/${ORG_NAME}`,
+    };
+    const getOrgSuccessResponse = {
+      didSucceed: true,
+
+      result: {
+        name: ORG_NAME,
+        memberAccessType: 'INVITE_ONLY',
+      },
+    } as const;
+
+    test('Empty parameters should be accepted', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchemaPatch = {};
+      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+      mockUpdateOrg.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test('Name matching the url parameter should be accepted', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchemaPatch = {
+        name: ORG_NAME,
+      };
+      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+      mockUpdateOrg.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test('Non-matching name should be refused', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchemaPatch = {
+        name: 'invalid.com',
+      };
+      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+      mockUpdateOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.INVALID_ORG_NAME,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.INVALID_ORG_NAME);
+    });
+
+    test('Non existing name should resolve into not found status', async () => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchemaPatch = {};
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.ORG_NOT_FOUND,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(mockUpdateOrg).not.toHaveBeenCalled();
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
+    });
+
+    test.each(orgSchemaMemberAccessTypes)(
+      '%s access type should be accepted',
+      async (memberAccessType: OrgSchemaMemberAccessType) => {
+        const serverInstance = await makeServer();
+        const payload: OrgSchemaPatch = {
+          memberAccessType,
+        };
+        mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+        mockUpdateOrg.mockResolvedValueOnce({
+          didSucceed: true,
+        });
+
+        const response = await serverInstance.inject({
+          ...injectionOptions,
+          payload,
+        });
+
+        expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+      },
+    );
+
+    test.each([
+      ['ASCII', AWALA_ENDPOINT],
+      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
+    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
+      const serverInstance = await makeServer();
+      const payload: OrgSchemaPatch = {
+        awalaEndpoint,
+      };
+      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+      mockUpdateOrg.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     });
   });
 });
