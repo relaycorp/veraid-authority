@@ -2,7 +2,7 @@ import type { HTTPMethods } from 'fastify';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import { FastifyTypedInstance, HTTP_METHODS } from '../fastify.js';
+import { type FastifyTypedInstance, HTTP_METHODS } from '../fastify.js';
 import { setUpTestServer } from '../../testUtils/server.js';
 
 describe('notFoundHandler', () => {
@@ -23,7 +23,7 @@ describe('notFoundHandler', () => {
   test('An existing method should be routed to the handler', async () => {
     const response = await serverInstance.inject({ method: 'GET', url: endpointUrl });
 
-    expect(response).toHaveProperty('statusCode', 200);
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     expect(response).toHaveProperty('headers.content-type', 'text/plain');
   });
 
