@@ -11,9 +11,9 @@ import {
 } from '../../testUtils/stubs.js';
 import {
   type OrgSchema,
-  type OrgSchemaPatch,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
+  type OrgSchemaPatch,
 } from '../schema/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result } from '../../utilities/result.js';
@@ -348,7 +348,7 @@ describe('org routes', () => {
           memberAccessType: 'INVITE_ONLY',
         },
       } as const;
-      const serverInstance = await makeServer();
+
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
 
       const response = await serverInstance.inject({
@@ -363,6 +363,44 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual(getOrgSuccessResponse.result);
+    });
+
+    test('Non existing name should resolve into not found status', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.ORG_NOT_FOUND
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
+    });
+
+    test('Malformed name should resolve into not found status', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.ORG_NOT_FOUND
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
     });
   })
 });
