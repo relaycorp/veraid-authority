@@ -35,7 +35,7 @@ afterAll(() => {
   jest.restoreAllMocks();
 });
 
-describe('configureFastify', () => {
+describe('configureFastify1', () => {
   test('Logger should be enabled by default', async () => {
     await configureFastify([dummyRoutes]);
 
