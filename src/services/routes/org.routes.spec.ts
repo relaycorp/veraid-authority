@@ -3,7 +3,12 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { AWALA_ENDPOINT, NON_ASCII_AWALA_ENDPOINT, ORG_NAME } from '../../testUtils/stubs.js';
+import {
+  AWALA_ENDPOINT,
+  NON_ASCII_AWALA_ENDPOINT,
+  NON_ASCII_ORG_NAME,
+  ORG_NAME,
+} from '../../testUtils/stubs.js';
 import {
   type OrgSchema,
   type OrgSchemaPatch,
@@ -326,4 +331,39 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     });
   });
+
+  describe('get/:orgName', () => {
+
+    const injectionOptions: InjectOptions = {
+      method: 'GET',
+    };
+
+    test.each([['ASCII', ORG_NAME],
+      ['Non ASCII', NON_ASCII_ORG_NAME],
+    ])('%s name should return an org', async (_type, name: string) => {
+      const getOrgSuccessResponse = {
+        didSucceed: true,
+
+        result: {
+          name: name,
+          memberAccessType: 'INVITE_ONLY',
+        },
+      } as const;
+      const serverInstance = await makeServer();
+      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${name}`,
+      });
+
+      expect(mockGetOrg).toHaveBeenCalledWith(name, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+      expect(response.headers['content-type']).toStartWith('application/json');
+      expect(response.json()).toStrictEqual(getOrgSuccessResponse.result);
+    });
+  })
 });
