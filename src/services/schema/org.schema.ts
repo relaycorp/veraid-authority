@@ -16,5 +16,12 @@ export const ORG_SCHEMA = {
 
   required: ['name', 'memberAccessType'],
 } as const;
+export const ORG_SCHEMA_PATCH = {
+  ...ORG_SCHEMA,
+  required: [],
+} as const;
 
+export const orgSchemaMemberAccessTypes = ORG_SCHEMA.properties.memberAccessType.enum;
+export type OrgSchemaMemberAccessType = (typeof orgSchemaMemberAccessTypes)[number];
 export type OrgSchema = FromSchema<typeof ORG_SCHEMA>;
+export type OrgSchemaPatch = FromSchema<typeof ORG_SCHEMA_PATCH>;

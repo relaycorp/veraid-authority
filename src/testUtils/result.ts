@@ -7,7 +7,7 @@ export function requireSuccessfulResult<Type>(
 }
 
 export function requireFailureResult<FailureReason>(
-  result: Result<unknown, FailureReason>,
+  result: Result<undefined, FailureReason>,
 ): asserts result is FailureResult<FailureReason> {
   expect(result.didSucceed).toBe(false);
 }
