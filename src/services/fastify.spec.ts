@@ -35,7 +35,7 @@ afterAll(() => {
   jest.restoreAllMocks();
 });
 
-describe('configureFastify1', () => {
+describe('configureFastify', () => {
   test('Logger should be enabled by default', async () => {
     await configureFastify([dummyRoutes]);
 
@@ -43,7 +43,7 @@ describe('configureFastify1', () => {
     const logger = getMockContext(mockMakeLogger).results[0].value;
     expect(fastify).toHaveBeenCalledWith(expect.objectContaining({ logger }));
 
-    expect(mockExitHandler).toHaveBeenCalledWith(logger);
+    expect(mockExitHandler).toHaveBeenCalledWith({});
   });
 
   test('Custom logger should be honoured', async () => {
