@@ -104,5 +104,32 @@ export default function registerRoutes(
     },
   });
 
+  fastify.route({
+    method: ['GET'],
+    url: '/orgs/:orgName',
+
+    schema: {
+      params: ORG_ROUTE_PARAMS,
+    },
+
+    async handler(request, reply): Promise<void> {
+      const { orgName } = request.params;
+      const serviceOptions = {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      };
+
+      const result = await getOrg(orgName, serviceOptions);
+      if (!result.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
+          type: result.reason,
+        });
+        return;
+      }
+
+      await reply.code(HTTP_STATUS_CODES.OK).send(result.result);
+    },
+  });
+
   done();
 }
