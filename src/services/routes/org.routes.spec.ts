@@ -16,7 +16,7 @@ import {
   orgSchemaMemberAccessTypes,
 } from '../schema/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
-import type { Result } from '../../utilities/result.js';
+import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
@@ -340,14 +340,14 @@ describe('org routes', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('%s name should return an org', async (_type, name: string) => {
-      const getOrgSuccessResponse = {
+      const getOrgSuccessResponse: SuccessfulResult<OrgSchema> = {
         didSucceed: true,
 
         result: {
           name,
           memberAccessType: 'INVITE_ONLY',
         },
-      } as const;
+      };
 
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
 
@@ -366,25 +366,6 @@ describe('org routes', () => {
     });
 
     test('Non existing name should resolve into not found status', async () => {
-      mockGetOrg.mockResolvedValueOnce({
-        didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
-      });
-
-      const response = await serverInstance.inject({
-        ...injectionOptions,
-        url: `/orgs/${ORG_NAME}`,
-      });
-
-      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
-      });
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
-    });
-
-    test('Malformed name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
         reason: OrgProblemType.ORG_NOT_FOUND,
