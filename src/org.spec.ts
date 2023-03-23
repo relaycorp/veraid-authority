@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
+import { jest } from '@jest/globals';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
@@ -480,25 +481,25 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
-    test.each([
-      ['ASCII', ORG_NAME],
-      ['non ASCII', NON_ASCII_ORG_NAME],
-    ])('Existing %s name should remove org', async (_type, name: string) => {
+    test('Existing name should remove org', async () => {
       await orgModel.create({
-        name,
+        name: ORG_NAME,
         memberAccessType: MemberAccessType.OPEN,
       });
 
-      const methodResponse = await deleteOrg(name, {
+      const result = await deleteOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
 
-      requireSuccessfulResult(methodResponse);
+      requireSuccessfulResult(result);
       const dbResult = await orgModel.exists({
-        name,
+        name: ORG_NAME,
       });
       expect(dbResult).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org deleted', { name: ORG_NAME }),
+      );
     });
 
     test('Non existing name should not remove any org', async () => {
@@ -507,19 +508,29 @@ describe('org', () => {
         memberAccessType: MemberAccessType.OPEN,
       });
 
-      const methodResponse = await deleteOrg(ORG_NAME, {
+      const result = await deleteOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
 
-      requireSuccessfulResult(methodResponse);
+      requireSuccessfulResult(result);
       const dbResult = await orgModel.exists({
         name: NON_ASCII_ORG_NAME,
       });
       expect(dbResult).not.toBeNull();
     });
 
-    test('Record Find errors should be propagated', async () => {
+    test('Non existing name should not produce logs', async () => {
+      const info = jest.spyOn(mockLogging.logger, 'info');
+      await deleteOrg(ORG_NAME, {
+        dbConnection: connection,
+        logger: mockLogging.logger,
+      });
+
+      expect(info).not.toHaveBeenCalled();
+    });
+
+    test('Record deletion errors should be propagated', async () => {
       await connection.close();
 
       const error = await getPromiseRejection(

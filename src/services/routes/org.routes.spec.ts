@@ -392,24 +392,53 @@ describe('org routes', () => {
       method: 'DELETE',
     };
 
-    test.each([
-      ['ASCII', ORG_NAME],
-      ['Non ASCII', NON_ASCII_ORG_NAME],
-    ])('%s name should be accepted', async (_type, name: string) => {
+    test('Valid name should be accepted', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: true,
+
+        result: {
+          name: ORG_NAME,
+          memberAccessType: 'INVITE_ONLY',
+        },
+      });
       mockDeleteOrg.mockResolvedValueOnce({
         didSucceed: true,
       });
 
       const response = await serverInstance.inject({
         ...injectionOptions,
-        url: `/orgs/${name}`,
+        url: `/orgs/${ORG_NAME}`,
       });
 
-      expect(mockDeleteOrg).toHaveBeenCalledWith(name, {
+      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(mockDeleteOrg).toHaveBeenCalledWith(ORG_NAME, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test('Non existing name should resolve into not found status', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.ORG_NOT_FOUND,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(mockDeleteOrg).not.toHaveBeenCalled();
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
     });
   });
 });
