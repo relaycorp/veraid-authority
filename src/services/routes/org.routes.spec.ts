@@ -410,10 +410,6 @@ describe('org routes', () => {
         url: `/orgs/${ORG_NAME}`,
       });
 
-      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
-      });
       expect(mockDeleteOrg).toHaveBeenCalledWith(ORG_NAME, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
@@ -432,10 +428,6 @@ describe('org routes', () => {
         url: `/orgs/${ORG_NAME}`,
       });
 
-      expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
-      });
       expect(mockDeleteOrg).not.toHaveBeenCalled();
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);

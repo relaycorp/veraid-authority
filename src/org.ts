@@ -148,13 +148,11 @@ export async function deleteOrg(
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const result = await orgModel.deleteOne({
+
+  await orgModel.deleteOne({
     name,
   });
-
-  if (result.deletedCount > 0) {
-    options.logger.info({ name }, 'Org deleted');
-  }
+  options.logger.info({ name }, 'Org deleted');
 
   return {
     didSucceed: true,

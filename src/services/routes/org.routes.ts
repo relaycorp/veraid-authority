@@ -145,6 +145,7 @@ export default function registerRoutes(
         logger: this.log,
         dbConnection: this.mongoose,
       };
+
       const getOrgResult = await getOrg(orgName, serviceOptions);
       if (!getOrgResult.didSucceed) {
         await reply.code(RESPONSE_CODE_BY_PROBLEM[getOrgResult.reason]).send({

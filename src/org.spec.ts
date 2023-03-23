@@ -1,7 +1,6 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
-import { jest } from '@jest/globals';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
@@ -518,17 +517,6 @@ describe('org', () => {
         name: NON_ASCII_ORG_NAME,
       });
       expect(dbResult).not.toBeNull();
-    });
-
-    test('Non existing name should not produce logs', async () => {
-      const info = jest.spyOn(mockLogging.logger, 'info');
-
-      await deleteOrg(ORG_NAME, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
-
-      expect(info).not.toHaveBeenCalled();
     });
 
     test('Record deletion errors should be propagated', async () => {
