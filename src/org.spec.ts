@@ -522,6 +522,7 @@ describe('org', () => {
 
     test('Non existing name should not produce logs', async () => {
       const info = jest.spyOn(mockLogging.logger, 'info');
+
       await deleteOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
