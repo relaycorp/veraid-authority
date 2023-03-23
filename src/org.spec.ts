@@ -3,7 +3,7 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
-import { createOrg, getOrg, updateOrg } from './org.js';
+import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import {
   type OrgSchema,
   type OrgSchemaMemberAccessType,
@@ -469,6 +469,62 @@ describe('org', () => {
       const error = await getPromiseRejection(
         async () =>
           getOrg(ORG_NAME, {
+            dbConnection: connection,
+            logger: mockLogging.logger,
+          }),
+        Error,
+      );
+
+      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+  });
+
+  describe('deleteOrg', () => {
+    test('Existing name should remove org', async () => {
+      await orgModel.create({
+        name: ORG_NAME,
+        memberAccessType: MemberAccessType.OPEN,
+      });
+
+      const result = await deleteOrg(ORG_NAME, {
+        dbConnection: connection,
+        logger: mockLogging.logger,
+      });
+
+      requireSuccessfulResult(result);
+      const dbResult = await orgModel.exists({
+        name: ORG_NAME,
+      });
+      expect(dbResult).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org deleted', { name: ORG_NAME }),
+      );
+    });
+
+    test('Non existing name should not remove any org', async () => {
+      await orgModel.create({
+        name: NON_ASCII_ORG_NAME,
+        memberAccessType: MemberAccessType.OPEN,
+      });
+
+      const result = await deleteOrg(ORG_NAME, {
+        dbConnection: connection,
+        logger: mockLogging.logger,
+      });
+
+      requireSuccessfulResult(result);
+      const dbResult = await orgModel.exists({
+        name: NON_ASCII_ORG_NAME,
+      });
+      expect(dbResult).not.toBeNull();
+    });
+
+    test('Record deletion errors should be propagated', async () => {
+      await connection.close();
+
+      const error = await getPromiseRejection(
+        async () =>
+          deleteOrg(ORG_NAME, {
             dbConnection: connection,
             logger: mockLogging.logger,
           }),

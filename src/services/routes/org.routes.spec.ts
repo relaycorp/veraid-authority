@@ -25,10 +25,12 @@ import type { FastifyTypedInstance } from '../fastify.js';
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
+const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 jest.unstable_mockModule('../../org.js', () => ({
   createOrg: mockCreateOrg,
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,
+  deleteOrg: mockDeleteOrg,
 }));
 
 const { setUpTestServer } = await import('../../testUtils/server.js');
@@ -331,7 +333,7 @@ describe('org routes', () => {
     });
   });
 
-  describe('get/:orgName', () => {
+  describe('get by name', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
     };
@@ -380,6 +382,53 @@ describe('org routes', () => {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
+    });
+  });
+
+  describe('delete', () => {
+    const injectionOptions: InjectOptions = {
+      method: 'DELETE',
+    };
+
+    test('Valid name should be accepted', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: true,
+
+        result: {
+          name: ORG_NAME,
+          memberAccessType: 'INVITE_ONLY',
+        },
+      });
+      mockDeleteOrg.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(mockDeleteOrg).toHaveBeenCalledWith(ORG_NAME, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test('Non existing name should resolve into not found status', async () => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: OrgProblemType.ORG_NOT_FOUND,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(mockDeleteOrg).not.toHaveBeenCalled();
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
     });

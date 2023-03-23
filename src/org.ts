@@ -6,10 +6,10 @@ import { OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema, OrgSchemaPatch } from './services/schema/org.schema.js';
 import type { Result } from './utilities/result.js';
 import {
-  type OrgCreationResult,
-  type ServiceOptions,
   MEMBER_ACCESS_TYPE_MAPPING,
+  type OrgCreationResult,
   REVERSE_MEMBER_ACCESS_MAPPING,
+  type ServiceOptions,
 } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 
@@ -138,5 +138,23 @@ export async function getOrg(
       memberAccessType: REVERSE_MEMBER_ACCESS_MAPPING[org.memberAccessType],
       awalaEndpoint: org.awalaEndpoint,
     },
+  };
+}
+
+export async function deleteOrg(
+  name: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, OrgProblemType>> {
+  const orgModel = getModelForClass(OrgModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  await orgModel.deleteOne({
+    name,
+  });
+  options.logger.info({ name }, 'Org deleted');
+
+  return {
+    didSucceed: true,
   };
 }
