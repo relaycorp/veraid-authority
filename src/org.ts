@@ -140,3 +140,19 @@ export async function getOrg(
     },
   };
 }
+
+export async function deleteOrg(
+  name: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, OrgProblemType>> {
+  const orgModel = getModelForClass(OrgModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  await orgModel.deleteOne({
+    name,
+  });
+
+  return {
+    didSucceed: true,
+  };
+}

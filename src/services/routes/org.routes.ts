@@ -4,7 +4,7 @@ import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import { ORG_SCHEMA, ORG_SCHEMA_PATCH } from '../schema/org.schema.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import { createOrg, getOrg, updateOrg } from '../../org.js';
+import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
@@ -128,6 +128,27 @@ export default function registerRoutes(
       }
 
       await reply.code(HTTP_STATUS_CODES.OK).send(result.result);
+    },
+  });
+
+  fastify.route({
+    method: ['DELETE'],
+    url: '/orgs/:orgName',
+
+    schema: {
+      params: ORG_ROUTE_PARAMS,
+    },
+
+    async handler(request, reply): Promise<void> {
+      const { orgName } = request.params;
+      const serviceOptions = {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      };
+
+      await deleteOrg(orgName, serviceOptions);
+
+      await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },
   });
 

@@ -25,10 +25,12 @@ import type { FastifyTypedInstance } from '../fastify.js';
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
+const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 jest.unstable_mockModule('../../org.js', () => ({
   createOrg: mockCreateOrg,
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,
+  deleteOrg: mockDeleteOrg,
 }));
 
 const { setUpTestServer } = await import('../../testUtils/server.js');
@@ -331,7 +333,7 @@ describe('org routes', () => {
     });
   });
 
-  describe('get/:orgName', () => {
+  describe('get by name', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
     };
@@ -382,6 +384,32 @@ describe('org routes', () => {
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
+    });
+  });
+
+  describe('delete', () => {
+    const injectionOptions: InjectOptions = {
+      method: 'DELETE',
+    };
+
+    test.each([
+      ['ASCII', ORG_NAME],
+      ['Non ASCII', NON_ASCII_ORG_NAME],
+    ])('%s name should be accepted', async (_type, name: string) => {
+      mockDeleteOrg.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${name}`,
+      });
+
+      expect(mockDeleteOrg).toHaveBeenCalledWith(name, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     });
   });
 });
