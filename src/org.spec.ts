@@ -485,7 +485,7 @@ describe('org', () => {
       ['non ASCII', NON_ASCII_ORG_NAME],
     ])('Existing %s name should remove org', async (_type, name: string) => {
       await orgModel.create({
-        name: name,
+        name,
         memberAccessType: MemberAccessType.OPEN,
       });
 
@@ -496,7 +496,7 @@ describe('org', () => {
 
       requireSuccessfulResult(methodResponse);
       const dbResult = await orgModel.exists({
-        name: name,
+        name,
       });
       expect(dbResult).toBeNull();
     });
