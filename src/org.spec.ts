@@ -114,41 +114,26 @@ describe('org', () => {
       );
     });
 
-    test('INVITE_ONLY access type should be allowed', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+    test.each(orgSchemaMemberAccessTypes)(
+      '%s access type should be allowed',
+      async (memberAccessType: OrgSchemaMemberAccessType) => {
+        const orgData: OrgSchema = {
+          name: ORG_NAME,
+          memberAccessType,
+        };
 
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+        const methodResult = await createOrg(orgData, {
+          dbConnection: connection,
+          logger: mockLogging.logger,
+        });
 
-      requireSuccessfulResult(methodResult);
-      const dbResult = await orgModel.findOne({
-        name: methodResult.result.name,
-      });
-      expect(dbResult?.memberAccessType).toBe(MemberAccessType.INVITE_ONLY);
-    });
-
-    test('OPEN access type should be allowed', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'OPEN',
-      };
-
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
-
-      requireSuccessfulResult(methodResult);
-      const dbResult = await orgModel.findOne({
-        name: methodResult.result.name,
-      });
-      expect(dbResult?.memberAccessType).toBe(MemberAccessType.OPEN);
-    });
+        requireSuccessfulResult(methodResult);
+        const dbResult = await orgModel.findOne({
+          name: methodResult.result.name,
+        });
+        expect(dbResult?.memberAccessType).toBe(MEMBER_ACCESS_TYPE_MAPPING[memberAccessType]);
+      },
+    );
 
     test.each([
       ['ASCII', AWALA_ENDPOINT],
@@ -157,7 +142,7 @@ describe('org', () => {
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
-        awalaEndpoint: awalaEndpoint,
+        awalaEndpoint,
       };
 
       const result = await createOrg(orgData, {
@@ -338,7 +323,10 @@ describe('org', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.INVALID_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused non matching name', { p1Name: ORG_NAME, p2Name: originalName}),
+        partialPinoLog('info', 'Refused non matching name', {
+          p1Name: ORG_NAME,
+          p2Name: originalName,
+        }),
       );
     });
 
