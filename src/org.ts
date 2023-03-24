@@ -80,6 +80,7 @@ export async function updateOrg(
   options: ServiceOptions,
 ): Promise<Result<undefined, OrgProblemType>> {
   if (orgData.name !== undefined && name !== orgData.name) {
+    options.logger.info({ p1Name: name, p2Name: orgData.name }, 'Refused non matching name');
     return {
       didSucceed: false,
       reason: OrgProblemType.INVALID_ORG_NAME,
