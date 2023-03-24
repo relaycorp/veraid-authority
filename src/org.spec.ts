@@ -35,7 +35,7 @@ describe('org', () => {
     commonServiceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
-    }
+    };
     orgModel = getModelForClass(OrgModelSchema, {
       existingConnection: connection,
     });
@@ -48,7 +48,7 @@ describe('org', () => {
         memberAccessType: 'INVITE_ONLY',
       };
 
-      await createOrg(orgData,commonServiceOptions);
+      await createOrg(orgData, commonServiceOptions);
 
       const dbResult = await orgModel.exists({
         name: ORG_NAME,
@@ -184,8 +184,7 @@ describe('org', () => {
       };
 
       const error = await getPromiseRejection(
-        async () =>
-          createOrg(orgData, commonServiceOptions),
+        async () => createOrg(orgData, commonServiceOptions),
         Error,
       );
 
@@ -246,11 +245,7 @@ describe('org', () => {
     });
 
     test('Non existing name should be ignored', async () => {
-      const result = await updateOrg(
-        ORG_NAME,
-        {},
-        commonServiceOptions,
-      );
+      const result = await updateOrg(ORG_NAME, {}, commonServiceOptions);
 
       expect(result.didSucceed).toBeTrue();
     });
@@ -363,8 +358,7 @@ describe('org', () => {
       };
 
       const error = await getPromiseRejection(
-        async () =>
-          updateOrg(ORG_NAME, orgData, commonServiceOptions),
+        async () => updateOrg(ORG_NAME, orgData, commonServiceOptions),
         Error,
       );
 
@@ -401,8 +395,7 @@ describe('org', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () =>
-          getOrg(ORG_NAME, commonServiceOptions),
+        async () => getOrg(ORG_NAME, commonServiceOptions),
         Error,
       );
 
@@ -448,8 +441,7 @@ describe('org', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () =>
-          deleteOrg(ORG_NAME, commonServiceOptions),
+        async () => deleteOrg(ORG_NAME, commonServiceOptions),
         Error,
       );
 
