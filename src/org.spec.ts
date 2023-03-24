@@ -275,6 +275,11 @@ describe('org', () => {
       });
 
       expect(dbResult).not.toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org updated', {
+          name: ORG_NAME,
+        }),
+      );
     });
 
     test.each([
@@ -440,13 +445,13 @@ describe('org', () => {
         awalaEndpoint: AWALA_ENDPOINT,
       });
 
-      const methodResponse = await getOrg(ORG_NAME, {
+      const result = await getOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
 
-      requireSuccessfulResult(methodResponse);
-      expect(methodResponse.result).toMatchObject({
+      requireSuccessfulResult(result);
+      expect(result.result).toMatchObject({
         name: ORG_NAME,
         memberAccessType: 'OPEN',
         awalaEndpoint: AWALA_ENDPOINT,
@@ -454,13 +459,13 @@ describe('org', () => {
     });
 
     test('Invalid name should return non existing error', async () => {
-      const methodResponse = await getOrg(ORG_NAME, {
+      const result = await getOrg(ORG_NAME, {
         dbConnection: connection,
         logger: mockLogging.logger,
       });
 
-      requireFailureResult(methodResponse);
-      expect(methodResponse.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
+      requireFailureResult(result);
+      expect(result.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
