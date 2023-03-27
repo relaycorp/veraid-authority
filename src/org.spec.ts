@@ -394,10 +394,7 @@ describe('org', () => {
     test('Record Find errors should be propagated', async () => {
       await connection.close();
 
-      const error = await getPromiseRejection(
-        async () => getOrg(ORG_NAME, serviceOptions),
-        Error,
-      );
+      const error = await getPromiseRejection(async () => getOrg(ORG_NAME, serviceOptions), Error);
 
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
