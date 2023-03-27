@@ -27,10 +27,15 @@ describe('org', () => {
 
   let mockLogging: MockLogging;
   let connection: Connection;
+  let serviceOptions: ServiceOptions;
   let orgModel: ReturnModelType<typeof OrgModelSchema>;
   beforeEach(() => {
     mockLogging = makeMockLogging();
     connection = getConnection();
+    serviceOptions = {
+      dbConnection: connection,
+      logger: mockLogging.logger,
+    };
     orgModel = getModelForClass(OrgModelSchema, {
       existingConnection: connection,
     });
@@ -43,10 +48,7 @@ describe('org', () => {
         memberAccessType: 'INVITE_ONLY',
       };
 
-      await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      await createOrg(orgData, serviceOptions);
 
       const dbResult = await orgModel.exists({
         name: ORG_NAME,
@@ -65,10 +67,7 @@ describe('org', () => {
         memberAccessType: 'INVITE_ONLY',
       };
 
-      const result = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await createOrg(orgData, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
     });
@@ -80,10 +79,7 @@ describe('org', () => {
         memberAccessType: 'INVITE_ONLY',
       };
 
-      const result = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await createOrg(orgData, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
@@ -92,73 +88,54 @@ describe('org', () => {
       );
     });
 
-    test('INVITE_ONLY access type should be allowed', async () => {
+    test('Clash with existing name should be refused', async () => {
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
       };
 
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      await createOrg(orgData, serviceOptions);
 
-      requireSuccessfulResult(methodResult);
-      const dbResult = await orgModel.findOne({
-        name: methodResult.result.name,
-      });
-      expect(dbResult?.memberAccessType).toBe(MemberAccessType.INVITE_ONLY);
+      const methodResult = await createOrg(orgData, serviceOptions);
+
+      requireFailureResult(methodResult);
+      expect(methodResult.reason).toBe(OrgProblemType.EXISTING_ORG_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused duplicated org name', {
+          name: ORG_NAME,
+        }),
+      );
     });
 
-    test('OPEN access type should be allowed', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'OPEN',
-      };
+    test.each(orgSchemaMemberAccessTypes)(
+      '%s access type should be allowed',
+      async (memberAccessType: OrgSchemaMemberAccessType) => {
+        const orgData: OrgSchema = {
+          name: ORG_NAME,
+          memberAccessType,
+        };
 
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+        const methodResult = await createOrg(orgData, serviceOptions);
 
-      requireSuccessfulResult(methodResult);
-      const dbResult = await orgModel.findOne({
-        name: methodResult.result.name,
-      });
-      expect(dbResult?.memberAccessType).toBe(MemberAccessType.OPEN);
-    });
+        requireSuccessfulResult(methodResult);
+        const dbResult = await orgModel.findOne({
+          name: methodResult.result.name,
+        });
+        expect(dbResult?.memberAccessType).toBe(MEMBER_ACCESS_TYPE_MAPPING[memberAccessType]);
+      },
+    );
 
-    test('Any Awala endpoint should be stored', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'OPEN',
-        awalaEndpoint: AWALA_ENDPOINT,
-      };
-
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
-
-      requireSuccessfulResult(methodResult);
-      const dbResult = await orgModel.findOne({
-        name: methodResult.result.name,
-      });
-      expect(dbResult?.awalaEndpoint).toBe(AWALA_ENDPOINT);
-    });
-
-    test('Non ASCII Awala endpoint should be allowed', async () => {
-      const nonAsciiAwalaEndpoint = 'はじめよう.みんな';
+    test.each([
+      ['ASCII', AWALA_ENDPOINT],
+      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
+    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
       const orgData: OrgSchema = {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
-        awalaEndpoint: nonAsciiAwalaEndpoint,
+        awalaEndpoint,
       };
 
-      const result = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await createOrg(orgData, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
     });
@@ -171,10 +148,7 @@ describe('org', () => {
         awalaEndpoint: malformedAwalaEndpoint,
       };
 
-      const result = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await createOrg(orgData, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_AWALA_ENDPOINT);
@@ -192,10 +166,7 @@ describe('org', () => {
         awalaEndpoint: AWALA_ENDPOINT,
       };
 
-      const methodResult = await createOrg(orgData, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const methodResult = await createOrg(orgData, serviceOptions);
 
       requireSuccessfulResult(methodResult);
 
@@ -203,28 +174,6 @@ describe('org', () => {
         name: methodResult.result.name,
       });
       expect(methodResult.result.name).toStrictEqual(dbResult?.name);
-    });
-
-    test('Clash with existing name should be refused', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
-      const creationOptions: ServiceOptions = {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      };
-      await createOrg(orgData, creationOptions);
-
-      const methodResult = await createOrg(orgData, creationOptions);
-
-      requireFailureResult(methodResult);
-      expect(methodResult.reason).toBe(OrgProblemType.EXISTING_ORG_NAME);
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused duplicated org name', {
-          name: ORG_NAME,
-        }),
-      );
     });
 
     test('Record creation errors should be propagated', async () => {
@@ -235,11 +184,7 @@ describe('org', () => {
       };
 
       const error = await getPromiseRejection(
-        async () =>
-          createOrg(orgData, {
-            dbConnection: connection,
-            logger: mockLogging.logger,
-          }),
+        async () => createOrg(orgData, serviceOptions),
         Error,
       );
 
@@ -262,10 +207,7 @@ describe('org', () => {
           memberAccessType: 'INVITE_ONLY',
           awalaEndpoint: AWALA_ENDPOINT,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       const dbResult = await orgModel.exists({
@@ -275,6 +217,11 @@ describe('org', () => {
       });
 
       expect(dbResult).not.toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org updated', {
+          name: ORG_NAME,
+        }),
+      );
     });
 
     test.each([
@@ -291,24 +238,14 @@ describe('org', () => {
         {
           name,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       expect(response.didSucceed).toBeTrue();
     });
 
     test('Non existing name should be ignored', async () => {
-      const result = await updateOrg(
-        ORG_NAME,
-        {},
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
-      );
+      const result = await updateOrg(ORG_NAME, {}, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
     });
@@ -321,30 +258,34 @@ describe('org', () => {
         {
           name: malformedOrgName,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused malformed org name', { name: malformedOrgName }),
+      );
     });
 
     test('Non matching name should be refused', async () => {
+      const originalName = `a.${ORG_NAME}`;
       const result = await updateOrg(
         ORG_NAME,
         {
-          name: `a.${ORG_NAME}`,
+          name: originalName,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.INVALID_ORG_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused non matching name', {
+          originalName: ORG_NAME,
+          targetName: originalName,
+        }),
+      );
     });
 
     test.each(orgSchemaMemberAccessTypes)(
@@ -360,10 +301,7 @@ describe('org', () => {
           {
             memberAccessType,
           },
-          {
-            dbConnection: connection,
-            logger: mockLogging.logger,
-          },
+          serviceOptions,
         );
 
         expect(response.didSucceed).toBeTrue();
@@ -385,31 +323,31 @@ describe('org', () => {
         {
           awalaEndpoint,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       expect(response.didSucceed).toBeTrue();
     });
 
     test('Malformed Awala endpoint should be refused', async () => {
+      const malformedAwalaEndpoint = 'MALFORMED_AWALA_ENDPOINT';
       const result = await updateOrg(
         ORG_NAME,
         {
           name: ORG_NAME,
           memberAccessType: 'INVITE_ONLY',
-          awalaEndpoint: 'INVALID_AWALA_ENDPOINT',
+          awalaEndpoint: malformedAwalaEndpoint,
         },
-        {
-          dbConnection: connection,
-          logger: mockLogging.logger,
-        },
+        serviceOptions,
       );
 
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_AWALA_ENDPOINT);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused malformed Awala endpoint', {
+          awalaEndpoint: malformedAwalaEndpoint,
+        }),
+      );
     });
 
     test('Record update errors should be propagated', async () => {
@@ -420,11 +358,7 @@ describe('org', () => {
       };
 
       const error = await getPromiseRejection(
-        async () =>
-          updateOrg(ORG_NAME, orgData, {
-            dbConnection: connection,
-            logger: mockLogging.logger,
-          }),
+        async () => updateOrg(ORG_NAME, orgData, serviceOptions),
         Error,
       );
 
@@ -440,13 +374,10 @@ describe('org', () => {
         awalaEndpoint: AWALA_ENDPOINT,
       });
 
-      const methodResponse = await getOrg(ORG_NAME, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await getOrg(ORG_NAME, serviceOptions);
 
-      requireSuccessfulResult(methodResponse);
-      expect(methodResponse.result).toMatchObject({
+      requireSuccessfulResult(result);
+      expect(result.result).toMatchObject({
         name: ORG_NAME,
         memberAccessType: 'OPEN',
         awalaEndpoint: AWALA_ENDPOINT,
@@ -454,26 +385,16 @@ describe('org', () => {
     });
 
     test('Invalid name should return non existing error', async () => {
-      const methodResponse = await getOrg(ORG_NAME, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await getOrg(ORG_NAME, serviceOptions);
 
-      requireFailureResult(methodResponse);
-      expect(methodResponse.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
+      requireFailureResult(result);
+      expect(result.reason).toBe(OrgProblemType.ORG_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
       await connection.close();
 
-      const error = await getPromiseRejection(
-        async () =>
-          getOrg(ORG_NAME, {
-            dbConnection: connection,
-            logger: mockLogging.logger,
-          }),
-        Error,
-      );
+      const error = await getPromiseRejection(async () => getOrg(ORG_NAME, serviceOptions), Error);
 
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
@@ -486,10 +407,7 @@ describe('org', () => {
         memberAccessType: MemberAccessType.OPEN,
       });
 
-      const result = await deleteOrg(ORG_NAME, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await deleteOrg(ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await orgModel.exists({
@@ -507,10 +425,7 @@ describe('org', () => {
         memberAccessType: MemberAccessType.OPEN,
       });
 
-      const result = await deleteOrg(ORG_NAME, {
-        dbConnection: connection,
-        logger: mockLogging.logger,
-      });
+      const result = await deleteOrg(ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await orgModel.exists({
@@ -523,11 +438,7 @@ describe('org', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () =>
-          deleteOrg(ORG_NAME, {
-            dbConnection: connection,
-            logger: mockLogging.logger,
-          }),
+        async () => deleteOrg(ORG_NAME, serviceOptions),
         Error,
       );
 
