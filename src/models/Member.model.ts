@@ -17,5 +17,4 @@ export class MemberModelSchema {
 
   @prop({ required: true })
   public orgName!: string;
-
 }

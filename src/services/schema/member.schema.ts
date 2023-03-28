@@ -5,19 +5,16 @@ export const MEMBER_SCHEMA = {
 
   properties: {
     name: { type: 'string' },
-    email: { type: 'string' },
-    orgName: { type: 'string' },
+    email: { type: 'string', format: 'email' },
 
     role: {
       type: 'string',
       enum: ['ORG_ADMIN', 'REGULAR'],
     },
-
   },
 
-  required: ['role', 'orgName'],
+  required: ['role'],
 } as const;
-
 
 export const memberSchemaRoles = MEMBER_SCHEMA.properties.role.enum;
 export type MemberSchemaRole = (typeof memberSchemaRoles)[number];

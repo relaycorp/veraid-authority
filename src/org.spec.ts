@@ -21,9 +21,7 @@ import {
 import { getPromiseRejection } from './testUtils/jest.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
-import type {
-  ServiceOptions,
-} from './serviceTypes.js';
+import type { ServiceOptions } from './serviceTypes.js';
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
