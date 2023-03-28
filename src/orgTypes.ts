@@ -1,13 +1,5 @@
-import type { Connection } from 'mongoose';
-import type { BaseLogger } from 'pino';
-
 import type { OrgSchema } from './services/schema/org.schema.js';
 import { MemberAccessType } from './models/Org.model.js';
-
-export interface ServiceOptions {
-  readonly dbConnection: Connection;
-  readonly logger: BaseLogger;
-}
 
 export interface OrgCreationResult {
   name: string;
