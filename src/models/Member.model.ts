@@ -9,9 +9,6 @@ export class MemberModelSchema {
   @prop()
   public name?: string;
 
-  @prop()
-  public awalaEndpoint?: string;
-
   @prop({ required: true, enum: Role })
   public role!: Role;
 

@@ -49,13 +49,12 @@ describe('member', () => {
           serviceOptions,
         );
 
-        const dbResult = await memberModel.exists({
+        const dbResult = await memberModel.findOne({
           orgName: ORG_NAME,
           role: ROLE_MAPPING[memberSchemaRole],
         });
-
         requireSuccessfulResult(member);
-        expect(dbResult?._id.toString()).toBe(member.result.id);
+        expect(dbResult?.id).toStrictEqual(member.result.id);
         expect(mockLogging.logs).toContainEqual(
           partialPinoLog('info', 'Member created', { orgName: ORG_NAME }),
         );
@@ -65,7 +64,6 @@ describe('member', () => {
     test.each([
       ['ASCII', MEMBER_NAME],
       ['Non ASCII', NON_ASCII_MEMBER_NAME],
-      ['Empty', undefined],
     ])('%s name should be allowed', async (_type, name: string | undefined) => {
       const memberData: MemberSchema = {
         name,
@@ -75,6 +73,18 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Missing name should be inserted', async () => {
+      const memberData: MemberSchema = {
+        role: 'ORG_ADMIN',
+      };
+
+      const result = await createMember(ORG_NAME, memberData, serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.findById(result.result.id);
+      expect(dbResult?.name).toBeUndefined();
     });
 
     test('Malformed name should be refused', async () => {

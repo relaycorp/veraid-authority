@@ -5,6 +5,3 @@ export const NON_ASCII_AWALA_ENDPOINT = 'はじめよう.みんな';
 export const MEMBER_NAME = 'TEST_MEMBER_NAME';
 export const NON_ASCII_MEMBER_NAME = 'テスト ユーザー';
 export const MEMBER_EMAIL = 'membet@example.com';
-
-// To be fixed
-// export const NON_ASCII_MEMBER_EMAIL = 'member@გამარჯობა.ge';

@@ -3,12 +3,7 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import {
-  MEMBER_EMAIL,
-  MEMBER_NAME,
-  NON_ASCII_MEMBER_NAME,
-  ORG_NAME,
-} from '../../testUtils/stubs.js';
+import { MEMBER_EMAIL, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
@@ -74,7 +69,7 @@ describe('member routes', () => {
 
     test.each([
       ['Invalid', 'INVALID_ROLE'],
-      ['Empty', undefined],
+      ['Missing', undefined],
     ])('%s role should be refused', async (_type, role: string | undefined) => {
       const payload: MemberSchema = {
         role,
@@ -90,10 +85,8 @@ describe('member routes', () => {
 
     test.each([
       ['ASCII', MEMBER_EMAIL],
-
-      // To be fixed -> ['Non ASCII', NON_ASCII_MEMBER_EMAIL],
-      ['Empty', undefined],
-    ])('%s email should be accepted', async (_type, email: string | undefined) => {
+      ['Missing', undefined],
+    ])('%s email should be allowed', async (_type, email: string | undefined) => {
       const payload: MemberSchema = {
         role: 'REGULAR',
         email,
@@ -128,14 +121,10 @@ describe('member routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
 
-    test.each([
-      ['ASCII', MEMBER_NAME],
-      ['Non ASCII', NON_ASCII_MEMBER_NAME],
-      ['Empty', undefined],
-    ])('%s name should be accepted', async (_type, name: string | undefined) => {
+    test('Member name should be allowed', async () => {
       const payload: MemberSchema = {
         role: 'REGULAR',
-        name,
+        name: MEMBER_NAME,
       };
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: true,
@@ -152,7 +141,7 @@ describe('member routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     });
 
-    test('Malformed name should be refused', async () => {
+    test('Malformed name should resolve into bad request status', async () => {
       const payload: MemberSchema = {
         role: 'REGULAR',
         name: `${MEMBER_NAME}@`,
