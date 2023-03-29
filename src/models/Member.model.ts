@@ -9,6 +9,9 @@ export class MemberModelSchema {
   @prop()
   public name?: string;
 
+  @prop()
+  public email?: string;
+
   @prop({ required: true, enum: Role })
   public role!: Role;
 
