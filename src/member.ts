@@ -7,6 +7,10 @@ import type { MemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { type MemberCreationResult, ROLE_MAPPING } from './memberTypes.js';
+import { OrgSchema } from './services/schema/org.schema.js';
+import { OrgProblemType } from './OrgProblemType.js';
+import { OrgModelSchema } from './models/Org.model.js';
+import { REVERSE_MEMBER_ACCESS_MAPPING } from './orgTypes.js';
 
 function validateMemberData(
   memberData: MemberSchema,
@@ -43,5 +47,37 @@ export async function createMember(
   return {
     didSucceed: true,
     result: { id: member.id },
+  };
+}
+
+
+export async function getMember(
+  orgName: string,
+  memberId: string,
+  options: ServiceOptions,
+): Promise<Result<MemberSchema, MemberProblemType>> {
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const member = await memberModel.findOne({
+    orgName,
+    id: memberId
+  });
+
+  if (member === null) {
+    return {
+      didSucceed: false,
+      reason: MemberProblemType.MEMBER_NOT_FOUND,
+    };
+  }
+
+  return {
+    didSucceed: true,
+
+    result: {
+      name: member.name,
+      role: member.role,
+      email: member.
+    },
   };
 }
