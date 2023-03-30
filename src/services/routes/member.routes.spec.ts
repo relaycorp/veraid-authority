@@ -141,6 +141,7 @@ describe('member routes', () => {
         ...injectionOptions,
         payload,
       });
+
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     });
 
@@ -159,8 +160,29 @@ describe('member routes', () => {
         ...injectionOptions,
         payload,
       });
+
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', MemberProblemType.MALFORMED_MEMBER_NAME);
+    });
+
+    test('Duplicated name should resolve into conflict status', async () => {
+      const payload: MemberSchema = {
+        role: 'REGULAR',
+        name: MEMBER_NAME,
+      };
+      mockCreateMember.mockResolvedValueOnce({
+        didSucceed: false,
+
+        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.CONFLICT);
+      expect(response.json()).toHaveProperty('type', MemberProblemType.EXISTING_MEMBER_NAME);
     });
   });
 

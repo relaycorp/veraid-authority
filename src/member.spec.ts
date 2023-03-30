@@ -4,7 +4,13 @@ import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
-import { MEMBER_EMAIL, MEMBER_NAME, NON_ASCII_MEMBER_NAME, ORG_NAME } from './testUtils/stubs.js';
+import {
+  MEMBER_EMAIL,
+  MEMBER_NAME,
+  NON_ASCII_MEMBER_NAME,
+  NON_ASCII_ORG_NAME,
+  ORG_NAME,
+} from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
 import { createMember, getMember } from './member.js';
@@ -88,6 +94,34 @@ describe('member', () => {
       expect(dbResult?.name).toBeUndefined();
     });
 
+    test('Duplicated name within different orgs should be allowed', async () => {
+      const memberData: MemberSchema = {
+        name: MEMBER_NAME,
+        role: 'ORG_ADMIN',
+      };
+
+      await createMember(NON_ASCII_ORG_NAME, memberData, serviceOptions);
+      const result = await createMember(ORG_NAME, memberData, serviceOptions);
+
+      expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Duplicated name within one org should be refused', async () => {
+      const memberData: MemberSchema = {
+        name: MEMBER_NAME,
+        role: 'ORG_ADMIN',
+      };
+
+      await createMember(ORG_NAME, memberData, serviceOptions);
+      const result = await createMember(ORG_NAME, memberData, serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused duplicated member name', { name: MEMBER_NAME }),
+      );
+    });
+
     test('Malformed name should be refused', async () => {
       const malformedName = `${MEMBER_NAME}@`;
       const memberData: MemberSchema = {
@@ -104,7 +138,7 @@ describe('member', () => {
       );
     });
 
-    test('Email should be allowed', async () => {
+    test('Email should be inserted', async () => {
       const memberData: MemberSchema = {
         email: MEMBER_EMAIL,
         role: 'ORG_ADMIN',
@@ -112,7 +146,9 @@ describe('member', () => {
 
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
-      expect(result.didSucceed).toBeTrue();
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.findById(result.result.id);
+      expect(dbResult?.email).toBe(MEMBER_EMAIL);
     });
 
     test('Record creation errors should be propagated', async () => {
