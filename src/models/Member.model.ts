@@ -1,10 +1,14 @@
-import { prop } from '@typegoose/typegoose';
+import { index, prop } from '@typegoose/typegoose';
 
 export enum Role {
   ORG_ADMIN = 'org_admin',
   REGULAR = 'regular',
 }
 
+@index(
+  { orgName: 1, name: 1 },
+  { unique: true, partialFilterExpression: { name: { $exists: true } } },
+)
 export class MemberModelSchema {
   @prop()
   public name?: string;

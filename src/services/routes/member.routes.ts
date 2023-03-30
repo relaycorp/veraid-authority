@@ -11,6 +11,7 @@ const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
   [MemberProblemType.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [MemberProblemType.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
 } as const;
 
 const CREATE_MEMBER_ROUTE_PARAMS = {

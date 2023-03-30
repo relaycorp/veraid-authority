@@ -1,8 +1,9 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import { validateUserName } from '@relaycorp/veraid';
+import type { HydratedDocument } from 'mongoose';
 
 import type { Result } from './utilities/result.js';
-import type { ServiceOptions } from './serviceTypes.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import type { MemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
@@ -37,7 +38,19 @@ export async function createMember(
   });
 
   const role = ROLE_MAPPING[memberData.role];
-  const member = await memberModel.create({ ...memberData, role, orgName });
+  let member: HydratedDocument<MemberModelSchema>;
+  try {
+    member = await memberModel.create({ ...memberData, role, orgName });
+  } catch (err) {
+    if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
+      options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
+      return {
+        didSucceed: false,
+        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+      };
+    }
+    throw err as Error;
+  }
 
   options.logger.info({ orgName }, 'Member created');
   return {

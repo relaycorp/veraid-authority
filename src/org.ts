@@ -10,10 +10,8 @@ import {
   type OrgCreationResult,
   REVERSE_MEMBER_ACCESS_MAPPING,
 } from './orgTypes.js';
-import type { ServiceOptions } from './serviceTypes.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
-
-const MONGODB_DUPLICATE_INDEX_CODE = 11_000;
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
