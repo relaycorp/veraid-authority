@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import type { Connection } from 'mongoose';
+import type { Connection, HydratedDocument } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
@@ -13,7 +13,7 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
-import { createMember, getMember } from './member.js';
+import { createMember, deleteMember, getMember } from './member.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -215,5 +215,53 @@ describe('member', () => {
 
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
+  });
+
+  describe('deleteMember', () => {
+    test('Existing org name and id should remove member', async () => {
+      const constMember: HydratedDocument<MemberModelSchema> = await memberModel.create({
+        name: MEMBER_NAME,
+        role: Role.ORG_ADMIN,
+        orgName: ORG_NAME,
+      });
+
+      const result = await deleteMember(ORG_NAME, constMember.id, serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.exists({
+        name: ORG_NAME,
+      });
+      expect(dbResult).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member deleted', { id: constMember.id }),
+      );
+    });
+
+    // joni joni
+    // test('Non existing name should not remove any org', async () => {
+    //   await orgModel.create({
+    //     name: NON_ASCII_ORG_NAME,
+    //     memberAccessType: MemberAccessType.OPEN,
+    //   });
+    //
+    //   const result = await deleteOrg(ORG_NAME, serviceOptions);
+    //
+    //   requireSuccessfulResult(result);
+    //   const dbResult = await orgModel.exists({
+    //     name: NON_ASCII_ORG_NAME,
+    //   });
+    //   expect(dbResult).not.toBeNull();
+    // });
+    //
+    // test('Record deletion errors should be propagated', async () => {
+    //   await connection.close();
+    //
+    //   const error = await getPromiseRejection(
+    //     async () => deleteOrg(ORG_NAME, serviceOptions),
+    //     Error,
+    //   );
+    //
+    //   expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    // });
   });
 });

@@ -86,3 +86,24 @@ export async function getMember(
     },
   };
 }
+
+export async function deleteMember(
+  orgName: string,
+  memberId: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, MemberProblemType>> {
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  const response = await memberModel.deleteOne({
+    orgName,
+    _id: memberId,
+  });
+  console.log(response.deletedCount);
+  options.logger.info({ id: memberId }, 'Member deleted');
+
+  return {
+    didSucceed: true,
+  };
+}

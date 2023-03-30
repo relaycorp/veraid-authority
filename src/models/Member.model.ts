@@ -10,6 +10,11 @@ export enum Role {
   { unique: true, partialFilterExpression: { name: { $exists: true } } },
 )
 export class MemberModelSchema {
+  @prop({
+    _id: true,
+  })
+  public id!: string;
+
   @prop()
   public name?: string;
 
