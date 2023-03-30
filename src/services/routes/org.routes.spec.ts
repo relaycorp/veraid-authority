@@ -73,6 +73,7 @@ describe('org routes', () => {
       expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual({
         self: `/orgs/${name}`,
+        members: `/orgs/${name}/members`,
       });
     });
 

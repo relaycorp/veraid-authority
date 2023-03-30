@@ -31,11 +31,13 @@ const ORG_ROUTE_PARAMS = {
 
 interface OrgUrls {
   self: string;
+  members: string;
 }
 
 function makeUrls(name: string): OrgUrls {
   return {
     self: `/orgs/${name}`,
+    members: `/orgs/${name}/members`,
   };
 }
 
