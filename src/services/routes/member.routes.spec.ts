@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import { MEMBER_EMAIL, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
-import type { Result } from '../../utilities/result.js';
+import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';
@@ -19,14 +19,17 @@ import {
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),
 );
+const mockGetMember = mockSpy(jest.fn<() => Promise<Result<MemberSchema, MemberProblemType>>>());
 jest.unstable_mockModule('../../member.js', () => ({
   createMember: mockCreateMember,
+  getMember: mockGetMember,
 }));
 
 const { setUpTestServer } = await import('../../testUtils/server.js');
 
 describe('member routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
+  const mongoId = '6424ad273f75645b35f9ee79';
   const getTestServer = setUpTestServer();
   let serverInstance: FastifyTypedInstance;
   const testMemberId = 'TEST_ID';
@@ -158,6 +161,52 @@ describe('member routes', () => {
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', MemberProblemType.MALFORMED_MEMBER_NAME);
+    });
+  });
+
+  describe('get by org name and member id', () => {
+    const injectionOptions: InjectOptions = {
+      method: 'GET',
+      url: `/orgs/${ORG_NAME}/members/${mongoId}`,
+    };
+
+    test('Existing member should be returned', async () => {
+      const getMemberSuccessResponse: SuccessfulResult<MemberSchema> = {
+        didSucceed: true,
+
+        result: {
+          role: 'ORG_ADMIN',
+          name: MEMBER_NAME,
+          email: MEMBER_EMAIL,
+        },
+      };
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+
+      const response = await serverInstance.inject(injectionOptions);
+
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, mongoId, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+      expect(response.headers['content-type']).toStartWith('application/json');
+      expect(response.json()).toStrictEqual(getMemberSuccessResponse.result);
+    });
+
+    test('Non existing member id should resolve into not found status', async () => {
+      mockGetMember.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: MemberProblemType.MEMBER_NOT_FOUND,
+      });
+
+      const response = await serverInstance.inject(injectionOptions);
+
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, mongoId, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
     });
   });
 });

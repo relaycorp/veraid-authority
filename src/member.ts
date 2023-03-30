@@ -6,11 +6,7 @@ import type { ServiceOptions } from './serviceTypes.js';
 import type { MemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
-import { type MemberCreationResult, ROLE_MAPPING } from './memberTypes.js';
-import { OrgSchema } from './services/schema/org.schema.js';
-import { OrgProblemType } from './OrgProblemType.js';
-import { OrgModelSchema } from './models/Org.model.js';
-import { REVERSE_MEMBER_ACCESS_MAPPING } from './orgTypes.js';
+import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
 
 function validateMemberData(
   memberData: MemberSchema,
@@ -50,7 +46,6 @@ export async function createMember(
   };
 }
 
-
 export async function getMember(
   orgName: string,
   memberId: string,
@@ -59,12 +54,9 @@ export async function getMember(
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const member = await memberModel.findOne({
-    orgName,
-    id: memberId
-  });
+  const member = await memberModel.findById(memberId);
 
-  if (member === null) {
+  if (member === null || member.orgName !== orgName) {
     return {
       didSucceed: false,
       reason: MemberProblemType.MEMBER_NOT_FOUND,
@@ -76,8 +68,8 @@ export async function getMember(
 
     result: {
       name: member.name,
-      role: member.role,
-      email: member.
+      role: REVERSE_ROLE_MAPPING[member.role],
+      email: member.email,
     },
   };
 }

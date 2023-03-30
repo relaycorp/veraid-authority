@@ -3,8 +3,9 @@ import { createConnection, type Connection, type ConnectOptions } from 'mongoose
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
 import { OrgModelSchema } from '../models/Org.model.js';
+import { MemberModelSchema } from '../models/Member.model.js';
 
-const MODEL_SCHEMAS = Object.values([OrgModelSchema]).filter(
+const MODEL_SCHEMAS = Object.values([OrgModelSchema, MemberModelSchema]).filter(
   (schema) => typeof schema === 'function',
 );
 
