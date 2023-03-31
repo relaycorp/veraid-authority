@@ -7,7 +7,7 @@ import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceType
 import type { MemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
-import { type MemberCreationResult, ROLE_MAPPING } from './memberTypes.js';
+import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
 
 function validateMemberData(
   memberData: MemberSchema,
@@ -56,5 +56,33 @@ export async function createMember(
   return {
     didSucceed: true,
     result: { id: member.id },
+  };
+}
+
+export async function getMember(
+  orgName: string,
+  memberId: string,
+  options: ServiceOptions,
+): Promise<Result<MemberSchema, MemberProblemType>> {
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const member = await memberModel.findById(memberId);
+
+  if (member === null || member.orgName !== orgName) {
+    return {
+      didSucceed: false,
+      reason: MemberProblemType.MEMBER_NOT_FOUND,
+    };
+  }
+
+  return {
+    didSucceed: true,
+
+    result: {
+      name: member.name,
+      role: REVERSE_ROLE_MAPPING[member.role],
+      email: member.email,
+    },
   };
 }

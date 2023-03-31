@@ -4,7 +4,7 @@ import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import type { FastifyTypedInstance } from '../fastify.js';
 import { MEMBER_SCHEMA } from '../schema/member.schema.js';
-import { createMember } from '../../member.js';
+import { createMember, getMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
@@ -12,6 +12,7 @@ const RESPONSE_CODE_BY_PROBLEM: {
 } = {
   [MemberProblemType.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
   [MemberProblemType.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
+  [MemberProblemType.MEMBER_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 } as const;
 
 const CREATE_MEMBER_ROUTE_PARAMS = {
@@ -24,6 +25,22 @@ const CREATE_MEMBER_ROUTE_PARAMS = {
   },
 
   required: ['orgName'],
+} as const;
+
+const MEMBER_ROUTE_PARAMS = {
+  type: 'object',
+
+  properties: {
+    orgName: {
+      type: 'string',
+    },
+
+    memberId: {
+      type: 'string',
+    },
+  },
+
+  required: ['orgName', 'memberId'],
 } as const;
 
 interface MemberUrls {
@@ -68,6 +85,33 @@ export default function registerRoutes(
       await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
         type: result.reason,
       });
+    },
+  });
+
+  fastify.route({
+    method: ['GET'],
+    url: '/orgs/:orgName/members/:memberId',
+
+    schema: {
+      params: MEMBER_ROUTE_PARAMS,
+    },
+
+    async handler(request, reply): Promise<void> {
+      const { orgName, memberId } = request.params;
+      const serviceOptions = {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      };
+
+      const result = await getMember(orgName, memberId, serviceOptions);
+      if (!result.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
+          type: result.reason,
+        });
+        return;
+      }
+
+      await reply.code(HTTP_STATUS_CODES.OK).send(result.result);
     },
   });
 
