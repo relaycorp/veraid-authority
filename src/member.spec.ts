@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import type { Connection, HydratedDocument } from 'mongoose';
+import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
@@ -223,7 +223,7 @@ describe('member', () => {
 
   describe('deleteMember', () => {
     test('Existing id should remove member', async () => {
-      const member: HydratedDocument<MemberModelSchema> = await memberModel.create({
+      const member = await memberModel.create({
         role: Role.ORG_ADMIN,
         orgName: ORG_NAME,
       });
@@ -239,7 +239,7 @@ describe('member', () => {
     });
 
     test('Non existing id should not remove any member', async () => {
-      const member: HydratedDocument<MemberModelSchema> = await memberModel.create({
+      const member = await memberModel.create({
         role: Role.ORG_ADMIN,
         orgName: ORG_NAME,
       });
