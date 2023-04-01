@@ -5,8 +5,8 @@ import type { Connection } from 'mongoose';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  MEMBER_API_ID,
   MEMBER_EMAIL,
+  MEMBER_MONGO_ID,
   MEMBER_NAME,
   NON_ASCII_MEMBER_NAME,
   NON_ASCII_ORG_NAME,
@@ -199,7 +199,7 @@ describe('member', () => {
         role: Role.ORG_ADMIN,
       });
 
-      const result = await getMember(ORG_NAME, MEMBER_API_ID, serviceOptions);
+      const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.MEMBER_NOT_FOUND);
@@ -244,7 +244,7 @@ describe('member', () => {
         orgName: ORG_NAME,
       });
 
-      const result = await deleteMember(MEMBER_API_ID, serviceOptions);
+      const result = await deleteMember(MEMBER_MONGO_ID, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberModel.findById(member._id);
@@ -255,7 +255,7 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => deleteMember(MEMBER_API_ID, serviceOptions),
+        async () => deleteMember(MEMBER_MONGO_ID, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
