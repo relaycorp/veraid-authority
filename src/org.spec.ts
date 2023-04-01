@@ -96,6 +96,7 @@ describe('org', () => {
       };
       await createOrg(orgData, serviceOptions);
 
+      // Use different data to make sure the creation operation isn't being deduped
       const methodResult = await createOrg(
         { ...orgData, memberAccessType: 'OPEN' },
         serviceOptions,
