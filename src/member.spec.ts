@@ -417,7 +417,7 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => updateMember(MEMBER_API_ID, {}, serviceOptions),
+        async () => updateMember(MEMBER_MONGO_ID, {}, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
