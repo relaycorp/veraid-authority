@@ -5,8 +5,8 @@ import type { Connection } from 'mongoose';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  MEMBER_EMAIL,
   MEMBER_API_ID,
+  MEMBER_EMAIL,
   MEMBER_NAME,
   NON_ASCII_MEMBER_NAME,
   NON_ASCII_ORG_NAME,
@@ -14,7 +14,7 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
-import { createMember, deleteMember, getMember } from './member.js';
+import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -256,6 +256,168 @@ describe('member', () => {
 
       const error = await getPromiseRejection(
         async () => deleteMember(MEMBER_API_ID, serviceOptions),
+        Error,
+      );
+      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+  });
+
+  describe('updateMember', () => {
+    const testEmail = 'different@email.com';
+
+    test('Valid should be updated', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+        email: MEMBER_EMAIL,
+      });
+
+      await updateMember(
+        member._id.toString(),
+        {
+          name: NON_ASCII_MEMBER_NAME,
+          role: 'REGULAR',
+          email: testEmail,
+        },
+        serviceOptions,
+      );
+
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult?.orgName).toBe(ORG_NAME);
+      expect(dbResult?.name).toBe(NON_ASCII_MEMBER_NAME);
+      expect(dbResult?.role).toBe(Role.REGULAR);
+      expect(dbResult?.email).toBe(testEmail);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member updated', {
+          id: member._id.toString(),
+        }),
+      );
+    });
+
+    test('Duplicated name within different orgs should be allowed', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+      await memberModel.create({
+        name: NON_ASCII_MEMBER_NAME,
+        orgName: NON_ASCII_ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          name: NON_ASCII_MEMBER_NAME,
+        },
+        serviceOptions,
+      );
+
+      expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Duplicated name within one org should be refused', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+      await memberModel.create({
+        name: NON_ASCII_MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          name: NON_ASCII_MEMBER_NAME,
+        },
+        serviceOptions,
+      );
+
+      requireFailureResult(result);
+      expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused duplicated member name', { name: NON_ASCII_MEMBER_NAME }),
+      );
+    });
+
+    test('Malformed name should be refused', async () => {
+      const malformedName = `${MEMBER_NAME}@`;
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          name: malformedName,
+        },
+        serviceOptions,
+      );
+
+      requireFailureResult(result);
+      expect(result.reason).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused malformed member name', { name: malformedName }),
+      );
+    });
+
+    test.each(memberSchemaRoles)(
+      'Role ORG_ADMIN should be allowed',
+      async (memberSchemaRole: MemberSchemaRole) => {
+        const member = await memberModel.create({
+          orgName: ORG_NAME,
+          role: ROLE_MAPPING[memberSchemaRole],
+        });
+
+        const response = await updateMember(
+          member._id.toString(),
+          {
+            role: memberSchemaRole,
+          },
+          serviceOptions,
+        );
+
+        expect(response.didSucceed).toBeTrue();
+      },
+    );
+
+    test('Duplicated email within one org should be allowed', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+        email: testEmail,
+      });
+      await memberModel.create({
+        name: NON_ASCII_MEMBER_NAME,
+        orgName: NON_ASCII_ORG_NAME,
+        role: Role.ORG_ADMIN,
+        email: MEMBER_EMAIL,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          email: MEMBER_EMAIL,
+        },
+        serviceOptions,
+      );
+
+      expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Update errors should be propagated', async () => {
+      await connection.close();
+
+      const error = await getPromiseRejection(
+        async () => updateMember(MEMBER_API_ID, {}, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');

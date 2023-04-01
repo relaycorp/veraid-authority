@@ -3,7 +3,7 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { MEMBER_EMAIL, MEMBER_API_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
+import { MEMBER_API_ID, MEMBER_EMAIL, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
@@ -14,6 +14,7 @@ import {
   type MemberSchema,
   type MemberSchemaRole,
   memberSchemaRoles,
+  type PatchMemberSchema,
 } from '../schema/member.schema.js';
 
 const mockCreateMember = mockSpy(
@@ -21,10 +22,12 @@ const mockCreateMember = mockSpy(
 );
 const mockGetMember = mockSpy(jest.fn<() => Promise<Result<MemberSchema, MemberProblemType>>>());
 const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
+const mockUpdateMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
 jest.unstable_mockModule('../../member.js', () => ({
   createMember: mockCreateMember,
   getMember: mockGetMember,
   deleteMember: mockDeleteMember,
+  updateMember: mockUpdateMember,
 }));
 
 const { setUpTestServer } = await import('../../testUtils/server.js');
@@ -271,6 +274,137 @@ describe('member routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
+    });
+  });
+
+  describe('update', () => {
+    const injectionOptions: InjectOptions = {
+      method: 'PATCH',
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_API_ID}`,
+    };
+
+    const getMemberSuccessResponse: SuccessfulResult<MemberSchema> = {
+      didSucceed: true,
+
+      result: {
+        name: MEMBER_NAME,
+        email: MEMBER_EMAIL,
+        role: 'ORG_ADMIN',
+      },
+    };
+
+    test('Empty parameters should be allowed', async () => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload: {},
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test.each(memberSchemaRoles)('Role %s should be allowed', async (role: MemberSchemaRole) => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+      const payload: MemberSchema = {
+        role,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
+    test('Invalid role should be resolved into bad request status', async () => {
+      const payload: PatchMemberSchema = {
+        role: 'INVALID_ROLE' as any,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+    });
+
+    test('Malformed name should be resolved into bad request status', async () => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: MemberProblemType.MALFORMED_MEMBER_NAME,
+      });
+      const payload: PatchMemberSchema = {
+        name: `@${MEMBER_NAME}`,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response.json()).toHaveProperty('type', MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+    });
+
+    test('Duplicated name should be resolved into bad request status', async () => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+      });
+      const payload: PatchMemberSchema = {
+        name: `@${MEMBER_NAME}`,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response.json()).toHaveProperty('type', MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.CONFLICT);
+    });
+
+    test('Non existing org name or member id should resolve into not found status', async () => {
+      mockGetMember.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: MemberProblemType.MEMBER_NOT_FOUND,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload: {},
+      });
+
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_API_ID, {
+        logger: serverInstance.log,
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    test('Malformed email should be resolved into bad request status', async () => {
+      const payload: PatchMemberSchema = {
+        email: 'INVALID_EMAIL',
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
   });
 });

@@ -3,8 +3,8 @@ import type { RouteOptions } from 'fastify';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import { MEMBER_SCHEMA } from '../schema/member.schema.js';
-import { createMember, deleteMember, getMember } from '../../member.js';
+import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../schema/member.schema.js';
+import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
@@ -141,6 +141,45 @@ export default function registerRoutes(
       await deleteMember(memberId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
+    },
+  });
+
+  fastify.route({
+    method: ['PATCH'],
+    url: '/orgs/:orgName/members/:memberId',
+
+    schema: {
+      params: MEMBER_ROUTE_PARAMS,
+      body: PATCH_MEMBER_SCHEMA,
+    },
+
+    async handler(request, reply): Promise<void> {
+      const { orgName, memberId } = request.params;
+      const serviceOptions = {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      };
+
+      const getMemberResult = await getMember(orgName, memberId, serviceOptions);
+      if (!getMemberResult.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.reason]).send({
+          type: getMemberResult.reason,
+        });
+        return;
+      }
+
+      const result = await updateMember(orgName, request.body, {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      });
+      if (result.didSucceed) {
+        await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
+        return;
+      }
+
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
+        type: result.reason,
+      });
     },
   });
 
