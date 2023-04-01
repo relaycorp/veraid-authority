@@ -94,10 +94,12 @@ describe('org', () => {
         name: ORG_NAME,
         memberAccessType: 'INVITE_ONLY',
       };
-
       await createOrg(orgData, serviceOptions);
 
-      const methodResult = await createOrg(orgData, serviceOptions);
+      const methodResult = await createOrg(
+        { ...orgData, memberAccessType: 'OPEN' },
+        serviceOptions,
+      );
 
       requireFailureResult(methodResult);
       expect(methodResult.reason).toBe(OrgProblemType.EXISTING_ORG_NAME);
