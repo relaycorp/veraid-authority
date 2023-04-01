@@ -3,7 +3,7 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
+import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
@@ -237,7 +237,7 @@ describe('member routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
     };
 
     test('Valid org name and member id should be accepted', async () => {
@@ -254,7 +254,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockDeleteMember).toHaveBeenCalledWith(ORG_NAME, {
+      expect(mockDeleteMember).toHaveBeenCalledWith(MEMBER_MONGO_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });

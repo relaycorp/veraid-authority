@@ -138,7 +138,7 @@ export default function registerRoutes(
         return;
       }
 
-      await deleteMember(orgName, serviceOptions);
+      await deleteMember(memberId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },
