@@ -280,7 +280,7 @@ describe('member routes', () => {
   describe('update', () => {
     const injectionOptions: InjectOptions = {
       method: 'PATCH',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_API_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
     };
 
     const getMemberSuccessResponse: SuccessfulResult<MemberSchema> = {
@@ -386,7 +386,7 @@ describe('member routes', () => {
         payload: {},
       });
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_API_ID, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
