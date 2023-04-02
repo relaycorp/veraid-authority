@@ -6,6 +6,7 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   MEMBER_EMAIL,
+  MEMBER_MONGO_ID,
   MEMBER_NAME,
   NON_ASCII_MEMBER_NAME,
   NON_ASCII_ORG_NAME,
@@ -13,7 +14,7 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
-import { createMember, getMember } from './member.js';
+import { createMember, deleteMember, getMember } from './member.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -193,13 +194,12 @@ describe('member', () => {
     });
 
     test('Invalid member id should return non existing error', async () => {
-      const nonExistingMongoId = '6424ad273f75645b35f9ee79';
       await memberModel.create({
         orgName: ORG_NAME,
         role: Role.ORG_ADMIN,
       });
 
-      const result = await getMember(ORG_NAME, nonExistingMongoId, serviceOptions);
+      const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.MEMBER_NOT_FOUND);
@@ -217,6 +217,47 @@ describe('member', () => {
         Error,
       );
 
+      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+  });
+
+  describe('deleteMember', () => {
+    test('Existing id should remove member', async () => {
+      const member = await memberModel.create({
+        role: Role.ORG_ADMIN,
+        orgName: ORG_NAME,
+      });
+
+      const result = await deleteMember(member._id.toString(), serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member deleted', { id: member._id.toString() }),
+      );
+    });
+
+    test('Non existing id should not remove any member', async () => {
+      const member = await memberModel.create({
+        role: Role.ORG_ADMIN,
+        orgName: ORG_NAME,
+      });
+
+      const result = await deleteMember(MEMBER_MONGO_ID, serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult).not.toBeNull();
+    });
+
+    test('Record deletion errors should be propagated', async () => {
+      await connection.close();
+
+      const error = await getPromiseRejection(
+        async () => deleteMember(MEMBER_MONGO_ID, serviceOptions),
+        Error,
+      );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
   });
