@@ -85,7 +85,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Auth: Org member.
   - Input: None.
   - Output: Nothing.
-- `GET /orgs/{orgName}/members/{memberId}/public-keys/{keyId}/bundle`: Get VeraId Member Bundle for a given public key.
+- `GET /orgs/{orgName}/members/{memberId}/public-keys/{keyId}/bundle`*: Get VeraId Member Bundle for a given public key.
   - Auth: Org member.
   - Input (query string):
     - `service`: The OID for the service where the bundle will be valid (e.g., `1.2.3.4.5`).
@@ -96,9 +96,12 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
     - `MemberIdRequest`.
       - Input:
         - URL to public key (e.g., `/orgs/bbc.com/members/alice/public-keys/abcde`). Alternatively, the org name, member ID and key ID can be passed separately.
+        - The OID for the service where the bundle will be valid (e.g., `1.2.3.4.5`).
         - The current timestamp.
         - The parameters above, digitally signed with the private key associated with the public key.
       - Output: VeraId Member Bundle.
+
+\* We may skip this endpoint in v1 because the endpoint `POST /orgs/{orgName}/awala/` already supports this functionality.
 
 This server will have the following background processes:
 
