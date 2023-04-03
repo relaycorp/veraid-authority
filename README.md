@@ -34,7 +34,7 @@ We'll use OAuth2 via the library [fastify-auth0-verify](https://github.com/nearf
 The API will use the following roles:
 
 - Admin. They can do absolutely anything on any organisation.
-- Org admin. They can do manage their own organisation.
+- Org admin. They can do anything within their own organisation.
 - Org member. They can manage much of their own membership in their respective organisation.
 
 ## HTTP Endpoints
@@ -75,32 +75,30 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Output: Same as input to `POST /orgs/{orgName}/members`.
 - `DELETE /orgs/{orgName}/members/{memberId}`: Delete member.
   - Auth: Org admin.
-- `POST /orgs/{orgName}/members/{memberId}/invites`: Create member invite, if access type is invite-only.
-  - Auth: Org admin.
-  - Input: None.
-  - Output: Single-use claim token (UUID4).
-- `PATCH /orgs/{orgName}/members/{memberId}/public-key`*: Claim invite, if access type is invite-only.
-  - Auth: Single-use claim token in `Authorization` header.
-  - Input: VeraId member public key.
-  - Output: Nothing.
-- `GET /orgs/{orgName}/members/{memberId}/bundle`*: Get VeraId Member Bundle.
+- `POST /orgs/{orgName}/members/{memberId}/public-keys`: Register public key for member.
+  - Auth: Org member.
+  - Input:
+    - Content type: `application/vnd.etsi.tsl.der`.
+    - Body: The DER-encoded public key.
+  - Output: The URL for the new key.
+- `DELETE /orgs/{orgName}/members/{memberId}/public-keys/{keyId}`: Unregister public key for member.
   - Auth: Org member.
   - Input: None.
+  - Output: Nothing.
+- `GET /orgs/{orgName}/members/{memberId}/public-keys/{keyId}/bundle`: Get VeraId Member Bundle for a given public key.
+  - Auth: Org member.
+  - Input (query string):
+    - `service`: The OID for the service where the bundle will be valid (e.g., `1.2.3.4.5`).
   - Output: VeraId Member Bundle.
 - `POST /orgs/{orgName}/awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
   - Awala service messages:
-    - `MemberInviteClaim` (if access type is invite-only).
-      - Input: Single-use claim token.
+    - `MemberIdRequest`.
+      - Input:
+        - URL to public key (e.g., `/orgs/bbc.com/members/alice/public-keys/abcde`). Alternatively, the org name, member ID and key ID can be passed separately.
+        - The current timestamp.
+        - The parameters above, digitally signed with the private key associated with the public key.
       - Output: VeraId Member Bundle.
-    - `MemberIdRequest` (if access type is open).
-      - Input: VeraId public key and desired username.
-      - Output: VeraId Member Bundle.
-    - `MemberIdRenewal`.
-      - Input: Username, signed with asymmetric key in the VeraId.
-      - Output: New VeraId certificate.
-
-\* We may skip this endpoint in v1 because the endpoint `POST /orgs/{orgName}/awala/` already supports this functionality.
 
 This server will have the following background processes:
 
