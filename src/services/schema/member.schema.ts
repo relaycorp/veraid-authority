@@ -18,6 +18,11 @@ export const MEMBER_SCHEMA = {
 
 export const PATCH_MEMBER_SCHEMA = {
   ...MEMBER_SCHEMA,
+  properties: {
+    ...MEMBER_SCHEMA.properties,
+    name: { type: ['string','null'] },
+    email: { type: ['string','null'], format: 'email' },
+  },
   required: [],
 } as const;
 

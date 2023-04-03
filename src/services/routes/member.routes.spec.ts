@@ -338,6 +338,23 @@ describe('member routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
 
+    test('Null name should be allowed', async () => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+      const payload: PatchMemberSchema = {
+        name: null,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
+    });
+
     test('Malformed name should be resolved into bad request status', async () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
       mockUpdateMember.mockResolvedValueOnce({
@@ -393,6 +410,23 @@ describe('member routes', () => {
       });
       expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    test('Null email should be allowed', async () => {
+      mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
+      mockUpdateMember.mockResolvedValueOnce({
+        didSucceed: true,
+      });
+      const payload: PatchMemberSchema = {
+        email: null,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     });
 
     test('Malformed email should be resolved into bad request status', async () => {

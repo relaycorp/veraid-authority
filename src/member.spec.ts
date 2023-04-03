@@ -265,7 +265,7 @@ describe('member', () => {
   describe('updateMember', () => {
     const testEmail = 'different@email.com';
 
-    test('Valid should be updated', async () => {
+    test('Valid data should be updated', async () => {
       const member = await memberModel.create({
         name: MEMBER_NAME,
         orgName: ORG_NAME,
@@ -295,6 +295,52 @@ describe('member', () => {
       );
     });
 
+    test('Empty data should be accepted and nothing should be updated', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+        email: MEMBER_EMAIL,
+      });
+
+      await updateMember(
+        member._id.toString(),
+        {},
+        serviceOptions,
+      );
+
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult?.orgName).toBe(ORG_NAME);
+      expect(dbResult?.name).toBe(MEMBER_NAME);
+      expect(dbResult?.role).toBe(Role.ORG_ADMIN);
+      expect(dbResult?.email).toBe(MEMBER_EMAIL);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member updated', {
+          id: member._id.toString(),
+        }),
+      );
+    });
+
+    test('Null should unset name', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          name: null,
+        },
+        serviceOptions,
+      );
+
+      expect(result.didSucceed).toBeTrue();
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult?.name).toBe(undefined);
+    });
+
     test('Duplicated name within different orgs should be allowed', async () => {
       const member = await memberModel.create({
         name: MEMBER_NAME,
@@ -317,6 +363,7 @@ describe('member', () => {
 
       expect(result.didSucceed).toBeTrue();
     });
+
 
     test('Duplicated name within one org should be refused', async () => {
       const member = await memberModel.create({
@@ -411,6 +458,26 @@ describe('member', () => {
       );
 
       expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Null should unset email', async () => {
+      const member = await memberModel.create({
+        email: MEMBER_EMAIL,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          email: null,
+        },
+        serviceOptions,
+      );
+
+      expect(result.didSucceed).toBeTrue();
+      const dbResult = await memberModel.findById(member._id);
+      expect(dbResult?.email).toBe(undefined);
     });
 
     test('Update errors should be propagated', async () => {
