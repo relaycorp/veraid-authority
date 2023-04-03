@@ -4,7 +4,7 @@ import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import type { FastifyTypedInstance } from '../fastify.js';
 import { MEMBER_SCHEMA } from '../schema/member.schema.js';
-import { createMember, getMember } from '../../member.js';
+import { createMember, deleteMember, getMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
@@ -112,6 +112,35 @@ export default function registerRoutes(
       }
 
       await reply.code(HTTP_STATUS_CODES.OK).send(result.result);
+    },
+  });
+
+  fastify.route({
+    method: ['DELETE'],
+    url: '/orgs/:orgName/members/:memberId',
+
+    schema: {
+      params: MEMBER_ROUTE_PARAMS,
+    },
+
+    async handler(request, reply): Promise<void> {
+      const { orgName, memberId } = request.params;
+      const serviceOptions = {
+        logger: this.log,
+        dbConnection: this.mongoose,
+      };
+
+      const getMemberResult = await getMember(orgName, memberId, serviceOptions);
+      if (!getMemberResult.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.reason]).send({
+          type: getMemberResult.reason,
+        });
+        return;
+      }
+
+      await deleteMember(memberId, serviceOptions);
+
+      await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },
   });
 
