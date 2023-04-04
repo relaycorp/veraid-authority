@@ -72,6 +72,8 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `PATCH /orgs/{orgName}/members/{memberId}`: Modify member.
   - Auth: Org admin.
   - Input: Same as in `POST /orgs/{orgName}/members`.
+    - Setting name as null unsets the field
+    - Setting email as null unsets the field
 - `DELETE /orgs/{orgName}/members/{memberId}`: Delete member.
   - Auth: Org admin.
 - `POST /orgs/{orgName}/members/{memberId}/public-keys`: Register public key for member.
