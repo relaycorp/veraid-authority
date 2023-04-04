@@ -1,6 +1,6 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import { validateUserName } from '@relaycorp/veraid';
-import type { HydratedDocument, UpdateQuery } from 'mongoose';
+import type { HydratedDocument } from 'mongoose';
 
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
@@ -8,7 +8,7 @@ import type { MemberSchema, PatchMemberSchema } from './services/schema/member.s
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
-import { AnyKeys } from 'mongoose';
+
 
 function validateMemberData(
   memberData: PatchMemberSchema,
@@ -103,7 +103,6 @@ export async function deleteMember(
     didSucceed: true,
   };
 }
-
 export async function updateMember(
   memberId: string,
   memberData: PatchMemberSchema,
@@ -118,29 +117,12 @@ export async function updateMember(
     existingConnection: options.dbConnection,
   });
 
-  const updateOptions : UpdateQuery<MemberModelSchema> = {
-    $unset : {}
-  };
-  if(memberData.role){
-    updateOptions.role = ROLE_MAPPING[memberData.role];
-  }
-
-  const unset : AnyKeys<MemberModelSchema> = {};
-  if(memberData.name === null){
-    updateOptions.$unset = unset;
-    unset.name = ""
-  }else{
-    updateOptions.name = memberData.name;
-  }
-  if(memberData.email === null){
-    updateOptions.$unset = unset;
-    unset.email = ""
-  }else{
-    updateOptions.email = memberData.email;
-  }
+  const role = memberData.role && ROLE_MAPPING[memberData.role];
 
   try {
-    await memberModel.findByIdAndUpdate(memberId, updateOptions);
+
+    await memberModel.findByIdAndUpdate(memberId, { ...memberData, name:undefined,role });
+    // await memberModel.findByIdAndUpdate(memberId, updateOptions);
   } catch (err) {
     if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
