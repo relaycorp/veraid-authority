@@ -8,6 +8,7 @@ import type { MemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
+import { MemberPublicKeySchema } from './models/PublicKey.model.js';
 
 function validateMemberData(
   memberData: MemberSchema,
@@ -98,6 +99,47 @@ export async function deleteMember(
   await memberModel.findByIdAndDelete(memberId);
 
   options.logger.info({ id: memberId }, 'Member deleted');
+  return {
+    didSucceed: true,
+  };
+}
+
+
+export async function createPublicKey(
+  memberId: string,
+  publicKey: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, MemberProblemType>> {
+  const memberModel = getModelForClass(MemberPublicKeySchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  await memberModel.create({
+    memberId,
+    publicKey
+  });
+
+  options.logger.info({ id: memberId }, 'Public key created');
+  return {
+    didSucceed: true,
+  };
+}
+
+export async function removePublicKey(
+  memberId: string,
+  publicKey: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, MemberProblemType>> {
+  const memberModel = getModelForClass(MemberPublicKeySchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  await memberModel.deleteOne({
+    memberId,
+    publicKey
+  });
+
+  options.logger.info({ memberId, publicKey }, 'Public key deleted');
   return {
     didSucceed: true,
   };
