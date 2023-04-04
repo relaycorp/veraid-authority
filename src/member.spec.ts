@@ -82,7 +82,7 @@ describe('member', () => {
       expect(result.didSucceed).toBeTrue();
     });
 
-    test('Missing name should be inserted', async () => {
+    test('Missing name should be set to null', async () => {
       const memberData: MemberSchema = {
         role: 'ORG_ADMIN',
       };
@@ -91,7 +91,20 @@ describe('member', () => {
 
       requireSuccessfulResult(result);
       const dbResult = await memberModel.findById(result.result.id);
-      expect(dbResult?.name).toBeUndefined();
+      expect(dbResult?.name).toBeNull();
+    });
+
+    test('Null name should be set', async () => {
+      const memberData: MemberSchema = {
+        name: null,
+        role: 'ORG_ADMIN',
+      };
+
+      const result = await createMember(ORG_NAME, memberData, serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberModel.findById(result.result.id);
+      expect(dbResult?.name).toBeNull();
     });
 
     test('Duplicated name within different orgs should be allowed', async () => {
@@ -101,6 +114,18 @@ describe('member', () => {
       };
 
       await createMember(NON_ASCII_ORG_NAME, memberData, serviceOptions);
+      const result = await createMember(ORG_NAME, memberData, serviceOptions);
+
+      expect(result.didSucceed).toBeTrue();
+    });
+
+    test('Duplicated null name within one org should be allowed', async () => {
+      const memberData: MemberSchema = {
+        name: null,
+        role: 'ORG_ADMIN',
+      };
+
+      await createMember(ORG_NAME, memberData, serviceOptions);
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
@@ -303,11 +328,7 @@ describe('member', () => {
         email: MEMBER_EMAIL,
       });
 
-      await updateMember(
-        member._id.toString(),
-        {},
-        serviceOptions,
-      );
+      await updateMember(member._id.toString(), {}, serviceOptions);
 
       const dbResult = await memberModel.findById(member._id);
       expect(dbResult?.orgName).toBe(ORG_NAME);
@@ -321,7 +342,7 @@ describe('member', () => {
       );
     });
 
-    test('Null should unset name', async () => {
+    test('Null name should be set', async () => {
       const member = await memberModel.create({
         name: MEMBER_NAME,
         orgName: ORG_NAME,
@@ -338,7 +359,7 @@ describe('member', () => {
 
       expect(result.didSucceed).toBeTrue();
       const dbResult = await memberModel.findById(member._id);
-      expect(dbResult?.name).toBe(undefined);
+      expect(dbResult!.name).toBeNull();
     });
 
     test('Duplicated name within different orgs should be allowed', async () => {
@@ -364,6 +385,29 @@ describe('member', () => {
       expect(result.didSucceed).toBeTrue();
     });
 
+    test('Multiple null name within one org should be allowed', async () => {
+      const member = await memberModel.create({
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+      await memberModel.create({
+        name: null,
+        orgName: ORG_NAME,
+        role: Role.ORG_ADMIN,
+      });
+
+      const result = await updateMember(
+        member._id.toString(),
+        {
+          name: null,
+        },
+        serviceOptions,
+      );
+
+      requireSuccessfulResult(result);
+      expect(result.didSucceed).toBeTrue();
+    });
 
     test('Duplicated name within one org should be refused', async () => {
       const member = await memberModel.create({
@@ -460,7 +504,7 @@ describe('member', () => {
       expect(result.didSucceed).toBeTrue();
     });
 
-    test('Null should unset email', async () => {
+    test('Null email should be set', async () => {
       const member = await memberModel.create({
         email: MEMBER_EMAIL,
         orgName: ORG_NAME,
@@ -477,7 +521,7 @@ describe('member', () => {
 
       expect(result.didSucceed).toBeTrue();
       const dbResult = await memberModel.findById(member._id);
-      expect(dbResult?.email).toBe(undefined);
+      expect(dbResult?.email).toBeNull();
     });
 
     test('Update errors should be propagated', async () => {

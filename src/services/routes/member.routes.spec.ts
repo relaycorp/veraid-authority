@@ -95,7 +95,8 @@ describe('member routes', () => {
     test.each([
       ['ASCII', MEMBER_EMAIL],
       ['Missing', undefined],
-    ])('%s email should be allowed', async (_type, email: string | undefined) => {
+      ['Null', null],
+    ])('%s email should be allowed', async (_type, email: string | null | undefined) => {
       const payload: MemberSchema = {
         role: 'REGULAR',
         email,
@@ -134,6 +135,27 @@ describe('member routes', () => {
       const payload: MemberSchema = {
         role: 'REGULAR',
         name: MEMBER_NAME,
+      };
+      mockCreateMember.mockResolvedValueOnce({
+        didSucceed: true,
+
+        result: {
+          id: testMemberId,
+        },
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+    });
+
+    test('Null member name should be allowed', async () => {
+      const payload: MemberSchema = {
+        role: 'REGULAR',
+        name: null,
       };
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: true,

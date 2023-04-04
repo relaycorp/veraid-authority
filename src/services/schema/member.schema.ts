@@ -4,8 +4,8 @@ export const MEMBER_SCHEMA = {
   type: 'object',
 
   properties: {
-    name: { type: 'string' },
-    email: { type: 'string', format: 'email' },
+    name: { type: ['string', 'null'] },
+    email: { type: ['string', 'null'], format: 'email' },
 
     role: {
       type: 'string',
@@ -18,11 +18,6 @@ export const MEMBER_SCHEMA = {
 
 export const PATCH_MEMBER_SCHEMA = {
   ...MEMBER_SCHEMA,
-  properties: {
-    ...MEMBER_SCHEMA.properties,
-    name: { type: ['string','null'] },
-    email: { type: ['string','null'], format: 'email' },
-  },
   required: [],
 } as const;
 

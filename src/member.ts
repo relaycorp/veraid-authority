@@ -9,7 +9,6 @@ import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
 
-
 function validateMemberData(
   memberData: PatchMemberSchema,
   options: ServiceOptions,
@@ -120,9 +119,7 @@ export async function updateMember(
   const role = memberData.role && ROLE_MAPPING[memberData.role];
 
   try {
-
-    await memberModel.findByIdAndUpdate(memberId, { ...memberData, name:undefined,role });
-    // await memberModel.findByIdAndUpdate(memberId, updateOptions);
+    await memberModel.findByIdAndUpdate(memberId, { ...memberData, role });
   } catch (err) {
     if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
