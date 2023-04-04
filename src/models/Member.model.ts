@@ -10,15 +10,11 @@ export enum Role {
   { unique: true, partialFilterExpression: { name: { $type: 'string' } } },
 )
 export class MemberModelSchema {
-  @prop({
-    default: null,
-  })
-  public name?: string;
+  @prop({ default: null })
+  public name!: string | null;
 
-  @prop({
-    default: null,
-  })
-  public email?: string;
+  @prop({ default: null })
+  public email!: string | null;
 
   @prop({ required: true, enum: Role })
   public role!: Role;
