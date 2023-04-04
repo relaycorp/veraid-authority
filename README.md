@@ -77,8 +77,8 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `POST /orgs/{orgName}/members/{memberId}/public-keys`: Register public key for member.
   - Auth: Org member.
   - Input:
-    - Content type: `application/vnd.etsi.tsl.der`.
-    - Body: The DER-encoded public key.
+    - The DER-encoded public key.
+    - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
   - Output: The URL for the new key.
 - `DELETE /orgs/{orgName}/members/{memberId}/public-keys/{keyId}`: Unregister public key for member.
   - Auth: Org member.
@@ -86,19 +86,26 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Output: Nothing.
 - `GET /orgs/{orgName}/members/{memberId}/public-keys/{keyId}/bundle`*: Get VeraId Member Bundle for a given public key.
   - Auth: Org member.
-  - Input (query string):
-    - `service`: The OID for the service where the bundle will be valid (e.g., `1.2.3.4.5`).
   - Output: VeraId Member Bundle.
+- `POST /orgs/{orgName}/members/{memberId}/public-key-import-tokens`: Generate single-use token to import a member public key.
+  - Auth: Org member.
+  - Input:
+    - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
+  - Output: A single-use UUID4.
 - `POST /orgs/{orgName}/awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
-  - Awala service messages:
-    - `MemberIdRequest`.
-      - Input:
-        - URL to public key (e.g., `/orgs/bbc.com/members/alice/public-keys/abcde`). Alternatively, the org name, member ID and key ID can be passed separately.
-        - The OID for the service where the bundle will be valid (e.g., `1.2.3.4.5`).
-        - The current timestamp.
-        - The parameters above, digitally signed with the private key associated with the public key.
-      - Output: VeraId Member Bundle.
+  - Incoming service messages:
+    - `MemberIdRequest`. Fields:
+      - URL to public key (e.g., `/orgs/bbc.com/members/alice/public-keys/abcde`). Alternatively, the org name, member ID and key ID can be passed separately.
+      - The current timestamp.
+      - Digital signature for the parameters above, produced with the private key associated with the public key.
+    - `MemberPublicKeyImport`. Fields:
+      - The single-use import token.
+      - The DER-encoded public key.
+  - Outgoing service messages:
+    - `MemberIdBundle`.
+      - Trigger: Successful `MemberIdRequest` or `MemberPublicKeyImport` messages.
+      - Payload: VeraId Member Bundle.
 
 \* We may skip this endpoint in v1 because the endpoint `POST /orgs/{orgName}/awala/` already supports this functionality.
 
