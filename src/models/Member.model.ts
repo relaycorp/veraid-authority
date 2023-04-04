@@ -7,14 +7,14 @@ export enum Role {
 
 @index(
   { orgName: 1, name: 1 },
-  { unique: true, partialFilterExpression: { name: { $exists: true } } },
+  { unique: true, partialFilterExpression: { name: { $type: 'string' } } },
 )
 export class MemberModelSchema {
-  @prop()
-  public name?: string;
+  @prop({ default: null })
+  public name!: string | null;
 
-  @prop()
-  public email?: string;
+  @prop({ default: null })
+  public email!: string | null;
 
   @prop({ required: true, enum: Role })
   public role!: Role;
