@@ -1,5 +1,5 @@
-import type { OrgSchema } from './services/schema/org.schema.js';
-import { MemberAccessType } from './models/Org.model.js';
+import type { OrgSchema } from '../../services/schema/org.schema.js';
+import { MemberAccessType } from '../../models/Org.model.js';
 
 export interface OrgCreationResult {
   name: string;

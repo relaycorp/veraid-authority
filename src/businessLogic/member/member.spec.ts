@@ -2,8 +2,8 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import {
   MEMBER_EMAIL,
   MEMBER_MONGO_ID,
@@ -11,19 +11,19 @@ import {
   NON_ASCII_MEMBER_NAME,
   NON_ASCII_ORG_NAME,
   ORG_NAME,
-} from './testUtils/stubs.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+} from '../../testUtils/stubs.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+import { MemberModelSchema, Role } from '../../models/Member.model.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
   memberSchemaRoles,
-} from './services/schema/member.schema.js';
+} from '../../services/schema/member.schema.js';
 import { ROLE_MAPPING } from './memberTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 import { MemberProblemType } from './MemberProblemType.js';
-import { getPromiseRejection } from './testUtils/jest.js';
+import { getPromiseRejection } from '../../testUtils/jest.js';
 
 describe('member', () => {
   const getConnection = setUpTestDbConnection();

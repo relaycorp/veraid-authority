@@ -4,8 +4,9 @@ import { deleteModelWithClass } from '@typegoose/typegoose';
 
 import { OrgModelSchema } from '../models/Org.model.js';
 import { MemberModelSchema } from '../models/Member.model.js';
+import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
 
-const MODEL_SCHEMAS = Object.values([OrgModelSchema, MemberModelSchema]).filter(
+const MODEL_SCHEMAS = Object.values([OrgModelSchema, MemberModelSchema, MemberPublicKeyModelSchema]).filter(
   (schema) => typeof schema === 'function',
 );
 

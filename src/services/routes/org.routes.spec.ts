@@ -15,9 +15,9 @@ import {
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
 } from '../schema/org.schema.js';
-import type { OrgCreationResult } from '../../orgTypes.js';
+import type { OrgCreationResult } from '../../businessLogic/org/orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
-import { OrgProblemType } from '../../OrgProblemType.js';
+import { OrgProblemType } from '../../businessLogic/org/OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';

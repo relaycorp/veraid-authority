@@ -8,8 +8,8 @@ import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import type { MemberCreationResult } from '../../memberTypes.js';
-import { MemberProblemType } from '../../MemberProblemType.js';
+import type { MemberCreationResult } from '../../businessLogic/member/memberTypes.js';
+import { MemberProblemType } from '../../businessLogic/member/MemberProblemType.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
