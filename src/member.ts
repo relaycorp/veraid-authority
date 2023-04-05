@@ -4,18 +4,18 @@ import type { HydratedDocument } from 'mongoose';
 
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import type { MemberSchema } from './services/schema/member.schema.js';
+import type { MemberSchema, PatchMemberSchema } from './services/schema/member.schema.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
 import { MemberPublicKeySchema } from './models/PublicKey.model.js';
 
 function validateMemberData(
-  memberData: MemberSchema,
+  memberData: PatchMemberSchema,
   options: ServiceOptions,
 ): MemberProblemType | undefined {
   try {
-    if (memberData.name !== undefined) {
+    if (memberData.name !== undefined && memberData.name !== null) {
       validateUserName(memberData.name);
     }
   } catch {
@@ -104,7 +104,6 @@ export async function deleteMember(
   };
 }
 
-
 export async function createPublicKey(
   memberId: string,
   publicKey: string,
@@ -140,6 +139,41 @@ export async function removePublicKey(
   });
 
   options.logger.info({ memberId, publicKey }, 'Public key deleted');
+  return {
+    didSucceed: true,
+  };
+}
+
+export async function updateMember(
+  memberId: string,
+  memberData: PatchMemberSchema,
+  options: ServiceOptions,
+): Promise<Result<undefined, MemberProblemType>> {
+  const validationFailure = validateMemberData(memberData, options);
+  if (validationFailure !== undefined) {
+    return { didSucceed: false, reason: validationFailure };
+  }
+
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  const role = memberData.role && ROLE_MAPPING[memberData.role];
+
+  try {
+    await memberModel.findByIdAndUpdate(memberId, { ...memberData, role });
+  } catch (err) {
+    if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
+      options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
+      return {
+        didSucceed: false,
+        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+      };
+    }
+    throw err as Error;
+  }
+
+  options.logger.info({ id: memberId }, 'Member updated');
   return {
     didSucceed: true,
   };
