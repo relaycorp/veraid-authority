@@ -1,11 +1,12 @@
 import { prop } from '@typegoose/typegoose';
-import { Types } from 'mongoose';
 
 export class MemberPublicKeyModelSchema {
   @prop({ required: true })
-  public memberId!: Types.ObjectId;
+  public memberId!: string;
+
+  @prop({ required: true })
+  public oid!: string;
 
   @prop({ required: true })
   public publicKey!: string;
-
 }

@@ -1,51 +1,34 @@
 import { getModelForClass } from '@typegoose/typegoose';
 
-import type { Result } from '../../utilities/result.js';
+import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import type { ServiceOptions } from '../serviceTypes.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { MemberPublicKeyModelSchema } from '../../models/MemberPublicKey.model.js';
-import { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberPublicKeySchema } from '../../services/schema/memberPublicKey.schema.js';
-import { PatchMemberSchema } from '../../services/schema/member.schema.js';
-import { MemberProblemType } from '../member/MemberProblemType.js';
-import { validateUserName } from '@relaycorp/veraid';
+import type { MemberPublicKeySchema } from '../../services/schema/memberPublicKey.schema.js';
 
-
-function validateMemberPublicKeyData(
-  memberPublicKeyData: MemberPublicKeySchema,
-  options: ServiceOptions,
-): MemberProblemType | undefined {
-  try {
-    if (memberPublicKeyData.publicKey) {
-      validateUserName(memberData.name);
-    }
-  } catch {
-    options.logger.info({ name: memberData.name }, 'Refused malformed member name');
-    return MemberProblemType.MALFORMED_MEMBER_NAME;
-  }
-  return undefined;
-}
+import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 
 export async function createMemberPublicKey(
   memberId: string,
   memberPublicKeyData: MemberPublicKeySchema,
   options: ServiceOptions,
-): Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>> {
+): Promise<SuccessfulResult<MemberPublicKeyCreationResult>> {
   const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
     existingConnection: options.dbConnection,
   });
 
   const memberPublicKey = await memberPublicKeyModel.create({
     memberId,
-    ...memberPublicKeyData
+    ...memberPublicKeyData,
   });
 
   options.logger.info({ id: memberPublicKey.id }, 'Member public key created');
   return {
     didSucceed: true,
+
     result: {
-      id: memberPublicKey.id
-    }
+      id: memberPublicKey.id,
+    },
   };
 }
 
@@ -62,5 +45,31 @@ export async function deleteMemberPublicKey(
   options.logger.info({ id: publicKeyId }, 'Member public key deleted');
   return {
     didSucceed: true,
+  };
+}
+
+export async function getMemberPublicKey(
+  publicKeyId: string,
+  options: ServiceOptions,
+): Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblemType>> {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  const memberPublicKey = await memberPublicKeyModel.findById(publicKeyId);
+
+  if (memberPublicKey === null) {
+    return {
+      didSucceed: false,
+      reason: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
+    };
+  }
+  return {
+    didSucceed: true,
+
+    result: {
+      publicKey: memberPublicKey.publicKey,
+      oid: memberPublicKey.oid,
+    },
   };
 }

@@ -1,23 +1,25 @@
-/* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from '../../testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
-import {
-  MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY, MEMBER_PUBLIC_KEY_MONGO_ID,
-} from '../../testUtils/stubs.js';
+import { MEMBER_MONGO_ID, MEMBER_PUBLIC_KEY_MONGO_ID, TEST_OID } from '../../testUtils/stubs.js';
 import type { ServiceOptions } from '../serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { getPromiseRejection } from '../../testUtils/jest.js';
+import { MemberPublicKeyModelSchema } from '../../models/MemberPublicKey.model.js';
+import { generatePublicKey } from '../../testUtils/publicKeyGenerator.js';
+
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
+  getMemberPublicKey,
 } from './memberPublicKey.js';
-import { requireSuccessfulResult } from '../../testUtils/result.js';
-import { getPromiseRejection } from '../../testUtils/jest.js';
-import { MemberPublicKeyModelSchema } from '../../models/MemberPublicKey.model.js';
+import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 
-describe('member', () => {
+const publicKey = await generatePublicKey();
+
+describe('member public key', () => {
   const getConnection = setUpTestDbConnection();
 
   let mockLogging: MockLogging;
@@ -38,27 +40,84 @@ describe('member', () => {
 
   describe('createMemberPublicKey', () => {
     test('Member public key should be created', async () => {
-        const memberPublicKey = await createMemberPublicKey(
-          MEMBER_MONGO_ID,
-          MEMBER_PUBLIC_KEY,
-          serviceOptions,
-        );
+      const memberPublicKey = await createMemberPublicKey(
+        MEMBER_MONGO_ID,
+        {
+          publicKey,
+          oid: TEST_OID,
+        },
+        serviceOptions,
+      );
 
-        requireSuccessfulResult(memberPublicKey)
-        const dbResult = await memberPublicKeyModel.findById(memberPublicKey.result.id);
-        expect(dbResult?.memberId).toStrictEqual(MEMBER_MONGO_ID);
-        expect(dbResult?.publicKey).toStrictEqual(MEMBER_PUBLIC_KEY);
-        expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('info', 'Member public key created', { id: memberPublicKey.result.id }),
-        );
-      },
-    );
+      requireSuccessfulResult(memberPublicKey);
+      const dbResult = await memberPublicKeyModel.findById(memberPublicKey.result.id);
+      expect(dbResult?.memberId).toStrictEqual(MEMBER_MONGO_ID);
+      expect(dbResult?.publicKey).toStrictEqual(publicKey);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member public key created', { id: memberPublicKey.result.id }),
+      );
+    });
 
     test('Record creation errors should be propagated', async () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => createMemberPublicKey(MEMBER_MONGO_ID, MEMBER_PUBLIC_KEY, serviceOptions),
+        async () =>
+          createMemberPublicKey(
+            MEMBER_MONGO_ID,
+            {
+              publicKey,
+              oid: TEST_OID,
+            },
+            serviceOptions,
+          ),
+        Error,
+      );
+
+      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+  });
+
+  describe('getMemberPublicKey', () => {
+    test('Existing id should return the corresponding data', async () => {
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        oid: TEST_OID,
+        publicKey,
+      });
+
+      const result = await getMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
+
+      requireSuccessfulResult(result);
+      expect(result.result).toMatchObject({
+        oid: TEST_OID,
+        publicKey,
+      });
+    });
+
+    test('Invalid id should return non existing error', async () => {
+      await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        oid: TEST_OID,
+        publicKey,
+      });
+
+      const result = await getMemberPublicKey(MEMBER_MONGO_ID, serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+    });
+
+    test('Record Find errors should be propagated', async () => {
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        oid: TEST_OID,
+        publicKey,
+      });
+      await connection.close();
+
+      const error = await getPromiseRejection(
+        async () => getMemberPublicKey(memberPublicKey._id.toString(), serviceOptions),
         Error,
       );
 
@@ -70,10 +129,11 @@ describe('member', () => {
     test('Existing id should remove member public key', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
-        publicKey: MEMBER_PUBLIC_KEY
+        publicKey,
+        oid: TEST_OID,
       });
 
-      const result = await deleteMemberPublicKey(memberPublicKey.id, serviceOptions);
+      const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey._id);
@@ -86,7 +146,8 @@ describe('member', () => {
     test('Non existing id should not remove any member public key', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
-        publicKey: MEMBER_PUBLIC_KEY
+        publicKey,
+        oid: TEST_OID,
       });
 
       const result = await deleteMemberPublicKey(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);

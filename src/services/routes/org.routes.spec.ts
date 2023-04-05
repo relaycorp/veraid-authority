@@ -26,7 +26,7 @@ const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, Or
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
-jest.unstable_mockModule('../../org.js', () => ({
+jest.unstable_mockModule('../../businessLogic/org/org.js', () => ({
   createOrg: mockCreateOrg,
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,

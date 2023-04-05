@@ -3,7 +3,6 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { MemberAccessType, OrgModelSchema } from '../../models/Org.model.js';
-import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import {
   type OrgSchema,
   type OrgSchemaMemberAccessType,
@@ -19,9 +18,11 @@ import {
   ORG_NAME,
 } from '../../testUtils/stubs.js';
 import { getPromiseRejection } from '../../testUtils/jest.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+
 import { OrgProblemType } from './OrgProblemType.js';
 import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();

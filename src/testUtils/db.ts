@@ -6,9 +6,11 @@ import { OrgModelSchema } from '../models/Org.model.js';
 import { MemberModelSchema } from '../models/Member.model.js';
 import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
 
-const MODEL_SCHEMAS = Object.values([OrgModelSchema, MemberModelSchema, MemberPublicKeyModelSchema]).filter(
-  (schema) => typeof schema === 'function',
-);
+const MODEL_SCHEMAS = Object.values([
+  OrgModelSchema,
+  MemberModelSchema,
+  MemberPublicKeyModelSchema,
+]).filter((schema) => typeof schema === 'function');
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,no-underscore-dangle
 export const MONGODB_URI = (global as any).__MONGO_URI__ as string;
