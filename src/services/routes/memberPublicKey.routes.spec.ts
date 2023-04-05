@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
   MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   ORG_NAME,
   TEST_OID,
 } from '../../testUtils/stubs.js';
@@ -58,7 +58,7 @@ describe('member public keys routes', () => {
         didSucceed: true,
 
         result: {
-          id: MEMBER_PUBLIC_KEY_MONGO_ID,
+          id: PUBLIC_KEY_ID,
         },
       });
 
@@ -70,7 +70,7 @@ describe('member public keys routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual({
-        self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${MEMBER_PUBLIC_KEY_MONGO_ID}`,
+        self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
       });
     });
 
@@ -92,7 +92,7 @@ describe('member public keys routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${MEMBER_PUBLIC_KEY_MONGO_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
     };
 
     test('Valid id should be accepted', async () => {
@@ -110,11 +110,11 @@ describe('member public keys routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(MEMBER_PUBLIC_KEY_MONGO_ID, {
+      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(PUBLIC_KEY_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
-      expect(mockDeleteMemberPublicKey).toHaveBeenCalledWith(MEMBER_PUBLIC_KEY_MONGO_ID, {
+      expect(mockDeleteMemberPublicKey).toHaveBeenCalledWith(PUBLIC_KEY_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });

@@ -3,7 +3,11 @@ import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from '../../testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
-import { MEMBER_MONGO_ID, MEMBER_PUBLIC_KEY_MONGO_ID, TEST_OID } from '../../testUtils/stubs.js';
+import {
+  MEMBER_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
+  TEST_OID,
+} from '../../testUtils/stubs.js';
 import type { ServiceOptions } from '../serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 import { getPromiseRejection } from '../../testUtils/jest.js';
@@ -150,7 +154,7 @@ describe('member public key', () => {
         oid: TEST_OID,
       });
 
-      const result = await deleteMemberPublicKey(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
+      const result = await deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey.id);
@@ -161,7 +165,7 @@ describe('member public key', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => deleteMemberPublicKey(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions),
+        async () => deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
