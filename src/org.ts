@@ -2,11 +2,10 @@ import { getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
 import type { HydratedDocument } from 'mongoose';
 
-import { OrgModelSchema } from '../../models/Org.model.js';
-import type { OrgSchema, OrgSchemaPatch } from '../../services/schema/org.schema.js';
-import type { Result } from '../../utilities/result.js';
-import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
-
+import { OrgModelSchema } from './models/Org.model.js';
+import type { OrgSchema, OrgSchemaPatch } from './services/schema/org.schema.js';
+import type { Result } from './utilities/result.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import {
   MEMBER_ACCESS_TYPE_MAPPING,
   type OrgCreationResult,

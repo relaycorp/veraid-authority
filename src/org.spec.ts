@@ -2,24 +2,23 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { MemberAccessType, OrgModelSchema } from '../../models/Org.model.js';
+import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
 import {
   type OrgSchema,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
-} from '../../services/schema/org.schema.js';
-import { setUpTestDbConnection } from '../../testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
-import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+} from './services/schema/org.schema.js';
+import { setUpTestDbConnection } from './testUtils/db.js';
+import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import {
   AWALA_ENDPOINT,
   NON_ASCII_AWALA_ENDPOINT,
   NON_ASCII_ORG_NAME,
   ORG_NAME,
-} from '../../testUtils/stubs.js';
-import { getPromiseRejection } from '../../testUtils/jest.js';
-import type { ServiceOptions } from '../serviceTypes.js';
-
+} from './testUtils/stubs.js';
+import { getPromiseRejection } from './testUtils/jest.js';
+import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';

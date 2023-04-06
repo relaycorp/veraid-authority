@@ -1,19 +1,18 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { setUpTestDbConnection } from '../../testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import { setUpTestDbConnection } from './testUtils/db.js';
+import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   TEST_OID,
-} from '../../testUtils/stubs.js';
-import type { ServiceOptions } from '../serviceTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
-import { getPromiseRejection } from '../../testUtils/jest.js';
-import { MemberPublicKeyModelSchema } from '../../models/MemberPublicKey.model.js';
-import { generatePublicKey } from '../../testUtils/publicKeyGenerator.js';
-
+} from './testUtils/stubs.js';
+import type { ServiceOptions } from './serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
+import { getPromiseRejection } from './testUtils/jest.js';
+import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { generatePublicKey } from './testUtils/publicKeyGenerator.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,

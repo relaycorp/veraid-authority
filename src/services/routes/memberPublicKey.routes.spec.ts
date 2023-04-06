@@ -12,8 +12,8 @@ import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import type { MemberPublicKeyCreationResult } from '../../businessLogic/memberPublicKey/memberPublicKeyTypes.js';
-import { MemberPublicKeyProblemType } from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
+import type { MemberPublicKeyCreationResult } from '../../memberPublicKeyTypes.js';
+import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
 import type { MemberPublicKeySchema } from '../schema/memberPublicKey.schema.js';
 import { generatePublicKey } from '../../testUtils/publicKeyGenerator.js';
 
@@ -27,7 +27,7 @@ const mockDeleteMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyProblemType>>>(),
 );
 
-jest.unstable_mockModule('../../businessLogic/memberPublicKey/memberPublicKey.js', () => ({
+jest.unstable_mockModule('../../memberPublicKey.js', () => ({
   createMemberPublicKey: mockCreateMemberPublicKey,
   getMemberPublicKey: mockGetMemberPublicKey,
   deleteMemberPublicKey: mockDeleteMemberPublicKey,

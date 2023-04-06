@@ -15,9 +15,9 @@ import {
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
 } from '../schema/org.schema.js';
-import type { OrgCreationResult } from '../../businessLogic/org/orgTypes.js';
+import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
-import { OrgProblemType } from '../../businessLogic/org/OrgProblemType.js';
+import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';
@@ -26,7 +26,7 @@ const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, Or
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
-jest.unstable_mockModule('../../businessLogic/org/org.js', () => ({
+jest.unstable_mockModule('../../org.js', () => ({
   createOrg: mockCreateOrg,
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,
