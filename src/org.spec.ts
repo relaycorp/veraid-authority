@@ -22,9 +22,12 @@ import { getPromiseRejection } from './testUtils/jest.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
 import type { ServiceOptions } from './serviceTypes.js';
+import { mockKms } from './testUtils/kms/mockKms.js';
+import { derSerialisePublicKey } from './utilities/webcrypto.js';
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
+  const getMockKms = mockKms();
 
   let mockLogging: MockLogging;
   let connection: Connection;
@@ -193,6 +196,45 @@ describe('org', () => {
       );
 
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+
+    describe('Key pair', () => {
+      const orgData: OrgSchema = {
+        name: ORG_NAME,
+        memberAccessType: 'INVITE_ONLY',
+      };
+
+      test('Key pair should be generated', async () => {
+        const kms = getMockKms();
+        expect(kms.generatedKeyPairs).toHaveLength(0);
+
+        await createOrg(orgData, serviceOptions);
+
+        expect(kms.generatedKeyPairs).toHaveLength(1);
+      });
+
+      test('Private key reference should be stored in DB', async () => {
+        const result = await createOrg(orgData, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const dbResult = await orgModel.findOne({ name: result.result.name });
+        const kms = getMockKms();
+        const [keyPair] = kms.generatedKeyPairs;
+        expect(Buffer.from(dbResult!.privateKeyRef)).toStrictEqual(
+          await kms.getPrivateKeyRef(keyPair.privateKey),
+        );
+      });
+
+      test('Public key should be stored DER-serialised in DB', async () => {
+        const result = await createOrg(orgData, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const dbResult = await orgModel.findOne({ name: result.result.name });
+        const [keyPair] = getMockKms().generatedKeyPairs;
+        expect(Buffer.from(dbResult!.publicKey)).toStrictEqual(
+          await derSerialisePublicKey(keyPair.publicKey),
+        );
+      });
     });
   });
 

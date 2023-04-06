@@ -1,10 +1,9 @@
 import { KmsRsaPssProvider } from '@relaycorp/webcrypto-kms';
 import { jest } from '@jest/globals';
-import { Crypto } from '@peculiar/webcrypto';
+
+import { NODEJS_PROVIDER } from '../webcrypto.js';
 
 type SupportedFormat = Exclude<KeyFormat, 'jwk'>;
-
-const NODEJS_PROVIDER = new Crypto().subtle;
 
 function getFinalFormat(format: SupportedFormat): SupportedFormat {
   return format === 'raw' ? 'pkcs8' : format;

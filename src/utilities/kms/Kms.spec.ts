@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 import type { KmsRsaPssProvider } from '@relaycorp/webcrypto-kms';
 
-import { MockKmsRsaPssProvider } from '../../testUtils/MockKmsRsaPssProvider.js';
 import { getMockContext } from '../../testUtils/jest.js';
+import { MockKmsRsaPssProvider } from '../../testUtils/kms/MockKmsRsaPssProvider.js';
 
 jest.unstable_mockModule('./provider.js', () => ({
   getKmsProvider: jest.fn(() => new MockKmsRsaPssProvider()),
@@ -13,17 +13,17 @@ const { getKmsProvider } = await import('./provider.js');
 
 const F4 = 65_537;
 
-async function rawExportKey(key: CryptoKey, provider: MockKmsRsaPssProvider): Promise<Buffer> {
-  const exportedKey = (await provider.exportKey('raw', key)) as ArrayBuffer;
+async function pkc8ExportKey(key: CryptoKey, provider: MockKmsRsaPssProvider): Promise<Buffer> {
+  const exportedKey = (await provider.exportKey('pkcs8', key)) as ArrayBuffer;
   return Buffer.from(exportedKey);
 }
 
 describe('Kms', () => {
-  describe('generateKey', () => {
+  describe('generateKeyPair', () => {
     test('RSA algorithm should use PSS padding', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
       expect(privateKey.algorithm.name).toBe('RSA-PSS');
     });
@@ -31,7 +31,7 @@ describe('Kms', () => {
     test('Hash algorithm should be SHA-256', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
       expect(privateKey.algorithm).toHaveProperty('hash.name', 'SHA-256');
     });
@@ -39,7 +39,7 @@ describe('Kms', () => {
     test('Modulus length should be 2048', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
       expect(privateKey.algorithm).toHaveProperty('modulusLength', 2048);
     });
@@ -47,7 +47,7 @@ describe('Kms', () => {
     test('Public exponent should be F4 (65537)', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
       const publicExponentArray = (privateKey.algorithm as RsaHashedKeyGenParams).publicExponent;
       const publicExponent = Buffer.from(publicExponentArray).readIntBE(
@@ -60,7 +60,7 @@ describe('Kms', () => {
     test('Key should be extractable', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
       expect(privateKey.extractable).toBeTrue();
     });
@@ -68,34 +68,34 @@ describe('Kms', () => {
     test('Key pair usages should only allow signing and verifying', async () => {
       const kms = new Kms(new MockKmsRsaPssProvider());
 
-      const { privateKey, publicKey } = await kms.generateKey();
+      const { privateKey, publicKey } = await kms.generateKeyPair();
 
       expect(privateKey.usages).toStrictEqual(['sign']);
       expect(publicKey.usages).toStrictEqual(['verify']);
     });
   });
 
-  describe('destroyKey', () => {
+  describe('destroyPrivateKey', () => {
     test('Specified key should be destroyed', async () => {
       const provider = new MockKmsRsaPssProvider();
       const kms = new Kms(provider);
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
-      await kms.destroyKey(privateKey);
+      await kms.destroyPrivateKey(privateKey);
 
       expect(provider.destroyKey).toHaveBeenCalledWith(privateKey);
     });
   });
 
-  describe('getKeyRef', () => {
+  describe('getPrivateKeyRef', () => {
     test('Specified key should be exported as raw', async () => {
       const provider = new MockKmsRsaPssProvider();
       const kms = new Kms(provider);
-      const { privateKey } = await kms.generateKey();
+      const { privateKey } = await kms.generateKeyPair();
 
-      const keyRef = await kms.getKeyRef(privateKey);
+      const keyRef = await kms.getPrivateKeyRef(privateKey);
 
-      const keySerialisation = await rawExportKey(privateKey, provider);
+      const keySerialisation = await pkc8ExportKey(privateKey, provider);
       expect(keyRef).toStrictEqual(keySerialisation);
     });
   });
@@ -104,13 +104,13 @@ describe('Kms', () => {
     test('Specified key should be imported as raw', async () => {
       const provider = new MockKmsRsaPssProvider();
       const kms = new Kms(provider);
-      const { privateKey } = await kms.generateKey();
-      const keyRef = await kms.getKeyRef(privateKey);
+      const { privateKey } = await kms.generateKeyPair();
+      const keyRef = await kms.getPrivateKeyRef(privateKey);
 
-      const retrievedKey = await kms.retrieveKeyByRef(keyRef);
+      const retrievedKey = await kms.retrievePrivateKeyByRef(keyRef);
 
-      const originalKeySerialised = await rawExportKey(privateKey, provider);
-      const retrievedKeySerialised = await rawExportKey(retrievedKey, provider);
+      const originalKeySerialised = await pkc8ExportKey(privateKey, provider);
+      const retrievedKeySerialised = await pkc8ExportKey(retrievedKey, provider);
       expect(retrievedKeySerialised).toStrictEqual(originalKeySerialised);
     });
   });
@@ -122,7 +122,7 @@ describe('Kms', () => {
       expect(getKmsProvider).toHaveBeenCalledOnce();
       const provider = getMockContext(getKmsProvider).results[0].value as KmsRsaPssProvider;
       const generateKeySpy = jest.spyOn(provider, 'generateKey');
-      await kms.generateKey();
+      await kms.generateKeyPair();
       expect(generateKeySpy).toHaveBeenCalledOnce();
     });
   });
