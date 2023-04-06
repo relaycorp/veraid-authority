@@ -3,9 +3,7 @@ import type { RouteOptions } from 'fastify';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import {
-  MemberPublicKeyProblemType
-} from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblemType } from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
