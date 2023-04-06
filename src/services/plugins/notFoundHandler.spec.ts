@@ -21,21 +21,30 @@ describe('notFoundHandler', () => {
   const endpointUrl = '/';
 
   test('An existing method should be routed to the handler', async () => {
-    const response = await serverInstance.inject({ method: 'GET', url: endpointUrl });
+    const response = await serverInstance.inject({
+      method: 'GET',
+      url: endpointUrl,
+    });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     expect(response).toHaveProperty('headers.content-type', 'text/plain');
   });
 
   test.each(disallowedMethods)('%s requests should be refused', async (method) => {
-    const response = await serverInstance.inject({ method: method as any, url: endpointUrl });
+    const response = await serverInstance.inject({
+      method: method as any,
+      url: endpointUrl,
+    });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.METHOD_NOT_ALLOWED);
     expect(response).toHaveProperty('headers.allow', allowedMethodsString);
   });
 
   test('OPTIONS requests should list the allowed methods', async () => {
-    const response = await serverInstance.inject({ method: 'OPTIONS', url: endpointUrl });
+    const response = await serverInstance.inject({
+      method: 'OPTIONS',
+      url: endpointUrl,
+    });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     expect(response).toHaveProperty('headers.allow', allowedMethodsString);

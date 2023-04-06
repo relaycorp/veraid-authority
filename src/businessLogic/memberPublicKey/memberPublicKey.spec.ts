@@ -21,7 +21,6 @@ import {
 } from './memberPublicKey.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 
-
 const publicKey = await generatePublicKey();
 
 describe('member public key', () => {
@@ -48,7 +47,7 @@ describe('member public key', () => {
       const memberPublicKey = await createMemberPublicKey(
         MEMBER_MONGO_ID,
         {
-          publicKey,
+          publicKey: publicKey.toString('base64'),
           oid: TEST_OID,
         },
         serviceOptions,
@@ -57,10 +56,26 @@ describe('member public key', () => {
       requireSuccessfulResult(memberPublicKey);
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey.result.id);
       expect(dbResult?.memberId).toStrictEqual(MEMBER_MONGO_ID);
-      expect(dbResult?.publicKey).toStrictEqual(publicKey);
+      expect(dbResult?.publicKey.toString('base64')).toStrictEqual(publicKey.toString('base64'));
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member public key created', { id: memberPublicKey.result.id }),
+        partialPinoLog('info', 'Member public key created', {
+          id: memberPublicKey.result.id,
+        }),
       );
+    });
+
+    test('Malformed public key should be refused', async () => {
+      const memberPublicKey = await createMemberPublicKey(
+        MEMBER_MONGO_ID,
+        {
+          publicKey: Buffer.from('invalid public key').toString('base64'),
+          oid: TEST_OID,
+        },
+        serviceOptions,
+      );
+
+      requireFailureResult(memberPublicKey);
+      expect(memberPublicKey.reason).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
     });
 
     test('Record creation errors should be propagated', async () => {
@@ -71,7 +86,7 @@ describe('member public key', () => {
           createMemberPublicKey(
             MEMBER_MONGO_ID,
             {
-              publicKey,
+              publicKey: publicKey.toString('base64'),
               oid: TEST_OID,
             },
             serviceOptions,
@@ -91,16 +106,20 @@ describe('member public key', () => {
         publicKey,
       });
 
-      const result = await getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions);
+      const result = await getMemberPublicKey(
+        MEMBER_MONGO_ID,
+        memberPublicKey._id.toString(),
+        serviceOptions,
+      );
 
       requireSuccessfulResult(result);
       expect(result.result).toMatchObject({
         oid: TEST_OID,
-        publicKey,
+        publicKey: publicKey.toString('base64'),
       });
     });
 
-    test('Invalid id should return non existing error', async () => {
+    test('Non existent id should return non existing error', async () => {
       const invalidPublicKeyId = '111111111111111111111111';
       await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
@@ -114,7 +133,7 @@ describe('member public key', () => {
       expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
 
-    test('Invalid member id should return non existing error', async () => {
+    test('Non existent member id should return non existing error', async () => {
       const invalidMemberKeyId = '111111111111111111111111';
       await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
@@ -132,12 +151,13 @@ describe('member public key', () => {
       const memberPublicKey = await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
         oid: TEST_OID,
-        publicKey,
+        publicKey: publicKey.toString('base64'),
       });
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions),
+        async () =>
+          getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions),
         Error,
       );
 
@@ -159,7 +179,9 @@ describe('member public key', () => {
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey._id);
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member public key deleted', { id: memberPublicKey.id }),
+        partialPinoLog('info', 'Member public key deleted', {
+          id: memberPublicKey.id,
+        }),
       );
     });
 

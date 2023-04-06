@@ -8,5 +8,5 @@ export class MemberPublicKeyModelSchema {
   public oid!: string;
 
   @prop({ required: true })
-  public publicKey!: string;
+  public publicKey!: Buffer;
 }

@@ -13,5 +13,7 @@ async function fastifyMongoose(fastify: FastifyInstance): Promise<void> {
   fastify.decorate('mongoose', mongooseConnection);
 }
 
-const fastifyMongoosePlugin = fastifyPlugin(fastifyMongoose, { name: 'fastify-mongoose' });
+const fastifyMongoosePlugin = fastifyPlugin(fastifyMongoose, {
+  name: 'fastify-mongoose',
+});
 export default fastifyMongoosePlugin;

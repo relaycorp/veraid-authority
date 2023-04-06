@@ -12,5 +12,5 @@ export const generatePublicKey = async () => {
       format: 'der',
     },
   });
-  return publicKey.toString();
+  return publicKey;
 };

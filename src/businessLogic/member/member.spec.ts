@@ -144,7 +144,9 @@ describe('member', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused duplicated member name', { name: MEMBER_NAME }),
+        partialPinoLog('info', 'Refused duplicated member name', {
+          name: MEMBER_NAME,
+        }),
       );
     });
 
@@ -160,7 +162,9 @@ describe('member', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed member name', { name: malformedName }),
+        partialPinoLog('info', 'Refused malformed member name', {
+          name: malformedName,
+        }),
       );
     });
 
@@ -433,7 +437,9 @@ describe('member', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused duplicated member name', { name: NON_ASCII_MEMBER_NAME }),
+        partialPinoLog('info', 'Refused duplicated member name', {
+          name: NON_ASCII_MEMBER_NAME,
+        }),
       );
     });
 
@@ -456,7 +462,9 @@ describe('member', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed member name', { name: malformedName }),
+        partialPinoLog('info', 'Refused malformed member name', {
+          name: malformedName,
+        }),
       );
     });
 

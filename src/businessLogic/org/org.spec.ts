@@ -86,7 +86,9 @@ describe('org', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed org name', { name: malformedName }),
+        partialPinoLog('info', 'Refused malformed org name', {
+          name: malformedName,
+        }),
       );
     });
 
@@ -269,7 +271,9 @@ describe('org', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed org name', { name: malformedOrgName }),
+        partialPinoLog('info', 'Refused malformed org name', {
+          name: malformedOrgName,
+        }),
       );
     });
 

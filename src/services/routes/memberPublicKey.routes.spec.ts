@@ -12,8 +12,12 @@ import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import type { MemberPublicKeyCreationResult } from '../../businessLogic/memberPublicKey/memberPublicKeyTypes.js';
-import { MemberPublicKeyProblemType } from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
+import type {
+  MemberPublicKeyCreationResult
+} from '../../businessLogic/memberPublicKey/memberPublicKeyTypes.js';
+import {
+  MemberPublicKeyProblemType
+} from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
 import type { MemberPublicKeySchema } from '../schema/memberPublicKey.schema.js';
 import { generatePublicKey } from '../../testUtils/publicKeyGenerator.js';
 
@@ -52,7 +56,7 @@ describe('member public keys routes', () => {
     test('Valid data should be stored', async () => {
       const payload: MemberPublicKeySchema = {
         oid: TEST_OID,
-        publicKey,
+        publicKey: publicKey.toString('base64'),
       };
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: true,
@@ -74,10 +78,30 @@ describe('member public keys routes', () => {
       });
     });
 
+    test('Malformed public key should be refused', async () => {
+      const payload: MemberPublicKeySchema = {
+        oid: TEST_OID,
+        publicKey: Buffer.from('invalid public key').toString('base64'),
+      };
+      mockCreateMemberPublicKey.mockResolvedValueOnce({
+        didSucceed: false,
+        reason: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+      });
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(response.json()).toStrictEqual({
+        type: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+      });
+    });
+
     test('Malformed oid should be refused', async () => {
       const payload: MemberPublicKeySchema = {
         oid: `${TEST_OID}@`,
-        publicKey,
+        publicKey: publicKey.toString('base64'),
       };
 
       const response = await serverInstance.inject({
@@ -100,7 +124,7 @@ describe('member public keys routes', () => {
         didSucceed: true,
 
         result: {
-          publicKey,
+          publicKey: publicKey.toString('base64'),
           oid: TEST_OID,
         },
       });

@@ -3,7 +3,9 @@ import type { RouteOptions } from 'fastify';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import type { FastifyTypedInstance } from '../fastify.js';
-import { MemberPublicKeyProblemType } from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
+import {
+  MemberPublicKeyProblemType
+} from '../../businessLogic/memberPublicKey/MemberPublicKeyProblemType.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
@@ -15,6 +17,8 @@ const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberPublicKeyProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
   [MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+
+  [MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
 const CREATE_MEMBER_PUBLIC_KEY_PARAMS = {
@@ -73,6 +77,12 @@ export default function registerRoutes(
         logger: this.log,
         dbConnection: this.mongoose,
       });
+      if (!result.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
+          type: result.reason,
+        });
+        return;
+      }
 
       await reply.code(HTTP_STATUS_CODES.OK).send(makeUrls(orgName, memberId, result.result.id));
     },

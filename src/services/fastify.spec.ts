@@ -18,7 +18,9 @@ jest.unstable_mockModule('fastify', () => ({
 }));
 
 const mockMakeLogger = jest.fn().mockReturnValue({});
-jest.unstable_mockModule('../utilities/logging.js', () => ({ makeLogger: mockMakeLogger }));
+jest.unstable_mockModule('../utilities/logging.js', () => ({
+  makeLogger: mockMakeLogger,
+}));
 
 const mockExitHandler = jest.fn().mockReturnValue({});
 jest.unstable_mockModule('../utilities/exitHandling.js', () => ({
@@ -67,7 +69,10 @@ describe('configureFastify', () => {
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', async () => {
     const requestIdHeader = 'X-Id';
-    mockEnvironmentVariables({ ...REQUIRED_SERVER_ENV_VARS, REQUEST_ID_HEADER: requestIdHeader });
+    mockEnvironmentVariables({
+      ...REQUIRED_SERVER_ENV_VARS,
+      REQUEST_ID_HEADER: requestIdHeader,
+    });
 
     await configureFastify([dummyRoutes]);
 
