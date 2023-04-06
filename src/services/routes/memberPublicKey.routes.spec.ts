@@ -49,7 +49,7 @@ describe('member public keys routes', () => {
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys`,
     };
 
-    test('Valid should be stored', async () => {
+    test('Valid data should be stored', async () => {
       const payload: MemberPublicKeySchema = {
         oid: TEST_OID,
         publicKey,
@@ -110,7 +110,7 @@ describe('member public keys routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(PUBLIC_KEY_ID, {
+      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(MEMBER_MONGO_ID, PUBLIC_KEY_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });

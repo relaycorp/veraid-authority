@@ -87,13 +87,13 @@ export default function registerRoutes(
     },
 
     async handler(request, reply): Promise<void> {
-      const { memberPrivateKey } = request.params;
+      const { memberId, memberPrivateKey } = request.params;
       const serviceOptions = {
         logger: this.log,
         dbConnection: this.mongoose,
       };
 
-      const memberPublicKey = await getMemberPublicKey(memberPrivateKey, serviceOptions);
+      const memberPublicKey = await getMemberPublicKey(memberId, memberPrivateKey, serviceOptions);
       if (!memberPublicKey.didSucceed) {
         await reply.code(RESPONSE_CODE_BY_PROBLEM[memberPublicKey.reason]).send({
           type: memberPublicKey.reason,

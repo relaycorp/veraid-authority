@@ -21,6 +21,7 @@ import {
 } from './memberPublicKey.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 
+
 const publicKey = await generatePublicKey();
 
 describe('member public key', () => {
@@ -90,7 +91,7 @@ describe('member public key', () => {
         publicKey,
       });
 
-      const result = await getMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
+      const result = await getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
       expect(result.result).toMatchObject({
@@ -100,13 +101,28 @@ describe('member public key', () => {
     });
 
     test('Invalid id should return non existing error', async () => {
+      const invalidPublicKeyId = '111111111111111111111111';
       await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
         oid: TEST_OID,
         publicKey,
       });
 
-      const result = await getMemberPublicKey(MEMBER_MONGO_ID, serviceOptions);
+      const result = await getMemberPublicKey(MEMBER_MONGO_ID, invalidPublicKeyId, serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+    });
+
+    test('Invalid member id should return non existing error', async () => {
+      const invalidMemberKeyId = '111111111111111111111111';
+      await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        oid: TEST_OID,
+        publicKey,
+      });
+
+      const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
@@ -121,7 +137,7 @@ describe('member public key', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => getMemberPublicKey(memberPublicKey._id.toString(), serviceOptions),
+        async () => getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions),
         Error,
       );
 

@@ -49,6 +49,7 @@ export async function deleteMemberPublicKey(
 }
 
 export async function getMemberPublicKey(
+  memberId: string,
   publicKeyId: string,
   options: ServiceOptions,
 ): Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblemType>> {
@@ -58,7 +59,7 @@ export async function getMemberPublicKey(
 
   const memberPublicKey = await memberPublicKeyModel.findById(publicKeyId);
 
-  if (memberPublicKey === null) {
+  if (memberPublicKey === null || memberPublicKey.memberId != memberId) {
     return {
       didSucceed: false,
       reason: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
