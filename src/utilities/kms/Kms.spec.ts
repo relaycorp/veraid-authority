@@ -1,6 +1,15 @@
-import { MockKmsRsaPssProvider } from '../../testUtils/MockKmsRsaPssProvider.js';
+import { jest } from '@jest/globals';
+import type { KmsRsaPssProvider } from '@relaycorp/webcrypto-kms';
 
-import { Kms } from './Kms.js';
+import { MockKmsRsaPssProvider } from '../../testUtils/MockKmsRsaPssProvider.js';
+import { getMockContext } from '../../testUtils/jest.js';
+
+jest.unstable_mockModule('./provider.js', () => ({
+  getKmsProvider: jest.fn(() => new MockKmsRsaPssProvider()),
+}));
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const { Kms } = await import('./Kms.js');
+const { getKmsProvider } = await import('./provider.js');
 
 const F4 = 65_537;
 
@@ -103,6 +112,18 @@ describe('Kms', () => {
       const originalKeySerialised = await rawExportKey(privateKey, provider);
       const retrievedKeySerialised = await rawExportKey(retrievedKey, provider);
       expect(retrievedKeySerialised).toStrictEqual(originalKeySerialised);
+    });
+  });
+
+  describe('init', () => {
+    test('Global provider should be passed to KMS', async () => {
+      const kms = await Kms.init();
+
+      expect(getKmsProvider).toHaveBeenCalledOnce();
+      const provider = getMockContext(getKmsProvider).results[0].value as KmsRsaPssProvider;
+      const generateKeySpy = jest.spyOn(provider, 'generateKey');
+      await kms.generateKey();
+      expect(generateKeySpy).toHaveBeenCalledOnce();
     });
   });
 });

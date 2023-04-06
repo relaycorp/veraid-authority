@@ -2,6 +2,8 @@ import type { KmsRsaPssProvider } from '@relaycorp/webcrypto-kms';
 
 import { bufferToArrayBuffer } from '../buffer.js';
 
+import { getKmsProvider } from './provider.js';
+
 const HASHING_ALGORITHM_NAME = 'SHA-256';
 const HASHING_ALGORITHM: KeyAlgorithm = { name: HASHING_ALGORITHM_NAME };
 const RSA_PSS_IMPORT_ALGORITHM: RsaHashedImportParams = {
@@ -15,7 +17,12 @@ const RSA_PSS_CREATION_ALGORITHM: RsaHashedKeyGenParams = {
 };
 
 export class Kms {
-  public constructor(public readonly provider: KmsRsaPssProvider) {}
+  public static async init(): Promise<Kms> {
+    const provider = await getKmsProvider();
+    return new Kms(provider);
+  }
+
+  public constructor(protected readonly provider: KmsRsaPssProvider) {}
 
   public async generateKey(): Promise<CryptoKeyPair> {
     return this.provider.generateKey(RSA_PSS_CREATION_ALGORITHM, true, ['sign', 'verify']);
