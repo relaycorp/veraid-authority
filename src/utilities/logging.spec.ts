@@ -44,7 +44,7 @@ describe('makeLogger', () => {
   });
 
   test('AUTHORITY_VERSION env var should be required', () => {
-    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, AUTHORITY_VERSION: undefined, });
+    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, AUTHORITY_VERSION: undefined });
 
     expect(() => makeLogger()).toThrowWithMessage(env.EnvVarError, /AUTHORITY_VERSION/u);
   });
@@ -59,7 +59,7 @@ describe('makeLogger', () => {
 
   test('App name should be set to LOG_ENV_NAME if present', () => {
     const environmentName = 'env-name';
-    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, LOG_ENV_NAME: environmentName, });
+    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, LOG_ENV_NAME: environmentName });
     makeLogger();
 
     expect(getPinoOptions).toHaveBeenCalledWith(
@@ -90,7 +90,7 @@ describe('makeLogger', () => {
 
   test('LOG_TARGET env var should be honoured if present', () => {
     const loggingTarget = 'the-logging-target';
-    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, LOG_TARGET: loggingTarget, });
+    mockEnvironmentVariables({ ...REQUIRED_ENV_VARS, LOG_TARGET: loggingTarget });
 
     makeLogger();
 
