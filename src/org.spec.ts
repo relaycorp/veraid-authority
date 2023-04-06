@@ -206,11 +206,11 @@ describe('org', () => {
 
       test('Key pair should be generated', async () => {
         const kms = getMockKms();
-        expect(kms.generatedKeyPairs).toHaveLength(0);
+        expect(kms.generatedKeyPairRefs).toHaveLength(0);
 
         await createOrg(orgData, serviceOptions);
 
-        expect(kms.generatedKeyPairs).toHaveLength(1);
+        expect(kms.generatedKeyPairRefs).toHaveLength(1);
       });
 
       test('Private key reference should be stored in DB', async () => {
@@ -219,10 +219,8 @@ describe('org', () => {
         requireSuccessfulResult(result);
         const dbResult = await orgModel.findOne({ name: result.result.name });
         const kms = getMockKms();
-        const [keyPair] = kms.generatedKeyPairs;
-        expect(Buffer.from(dbResult!.privateKeyRef)).toStrictEqual(
-          await kms.getPrivateKeyRef(keyPair.privateKey),
-        );
+        const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
+        expect(Buffer.from(dbResult!.privateKeyRef)).toStrictEqual(privateKeyRef);
       });
 
       test('Public key should be stored DER-serialised in DB', async () => {
@@ -230,10 +228,10 @@ describe('org', () => {
 
         requireSuccessfulResult(result);
         const dbResult = await orgModel.findOne({ name: result.result.name });
-        const [keyPair] = getMockKms().generatedKeyPairs;
-        expect(Buffer.from(dbResult!.publicKey)).toStrictEqual(
-          await derSerialisePublicKey(keyPair.publicKey),
-        );
+        const kms = getMockKms();
+        const [{ publicKey: generatedPublicKey }] = kms.generatedKeyPairRefs;
+        const expectedPublicKey = await derSerialisePublicKey(generatedPublicKey);
+        expect(Buffer.from(dbResult!.publicKey)).toStrictEqual(expectedPublicKey);
       });
     });
   });
@@ -447,11 +445,13 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
+    const orgData: OrgSchema = {
+      name: ORG_NAME,
+      memberAccessType: 'INVITE_ONLY',
+    };
+
     test('Existing name should remove org', async () => {
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-      });
+      await createOrg(orgData, serviceOptions);
 
       const result = await deleteOrg(ORG_NAME, serviceOptions);
 
@@ -466,21 +466,32 @@ describe('org', () => {
     });
 
     test('Non existing name should not remove any org', async () => {
-      await orgModel.create({
-        name: NON_ASCII_ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-      });
+      await createOrg(orgData, serviceOptions);
 
-      const result = await deleteOrg(ORG_NAME, serviceOptions);
+      const result = await deleteOrg(NON_ASCII_ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
-      const dbResult = await orgModel.exists({
-        name: NON_ASCII_ORG_NAME,
-      });
+      const dbResult = await orgModel.exists({ name: ORG_NAME });
       expect(dbResult).not.toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Ignored deletion of non-existing org', {
+          name: NON_ASCII_ORG_NAME,
+        }),
+      );
+    });
+
+    test('Private key should be destroyed', async () => {
+      await createOrg(orgData, serviceOptions);
+
+      await deleteOrg(ORG_NAME, serviceOptions);
+
+      const kms = getMockKms();
+      const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
+      expect(kms.destroyedPrivateKeyRefs).toContainEqual(privateKeyRef);
     });
 
     test('Record deletion errors should be propagated', async () => {
+      await createOrg(orgData, serviceOptions);
       await connection.close();
 
       const error = await getPromiseRejection(

@@ -159,11 +159,19 @@ export async function deleteOrg(
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
+  const org = await orgModel.findOne({ name });
 
-  await orgModel.deleteOne({
-    name,
-  });
-  options.logger.info({ name }, 'Org deleted');
+  if (org === null) {
+    options.logger.info({ name }, 'Ignored deletion of non-existing org');
+  } else {
+    const kms = await Kms.init();
+    const privateKey = await kms.retrievePrivateKeyByRef(org.privateKeyRef);
+    await kms.destroyPrivateKey(privateKey);
+
+    await org.deleteOne();
+
+    options.logger.info({ name }, 'Org deleted');
+  }
 
   return {
     didSucceed: true,

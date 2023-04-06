@@ -4,10 +4,15 @@ import { Kms } from '../../utilities/kms/Kms.js';
 
 import { MockKmsRsaPssProvider } from './MockKmsRsaPssProvider.js';
 
-class MockKms extends Kms {
-  public readonly generatedKeyPairs: CryptoKeyPair[] = [];
+interface KeyPairRef {
+  privateKeyRef: Buffer;
+  publicKey: CryptoKey;
+}
 
-  public readonly destroyedPrivateKeys: CryptoKey[] = [];
+class MockKms extends Kms {
+  public readonly generatedKeyPairRefs: KeyPairRef[] = [];
+
+  public readonly destroyedPrivateKeyRefs: Buffer[] = [];
 
   public constructor() {
     super(new MockKmsRsaPssProvider());
@@ -15,13 +20,18 @@ class MockKms extends Kms {
 
   public override async generateKeyPair(): Promise<CryptoKeyPair> {
     const keyPair = await super.generateKeyPair();
-    this.generatedKeyPairs.push(keyPair);
+
+    const privateKeyRef = await this.getPrivateKeyRef(keyPair.privateKey);
+    this.generatedKeyPairRefs.push({ privateKeyRef, publicKey: keyPair.publicKey });
+
     return keyPair;
   }
 
   public override async destroyPrivateKey(key: CryptoKey): Promise<void> {
     await super.destroyPrivateKey(key);
-    this.destroyedPrivateKeys.push(key);
+
+    const keyRef = await this.getPrivateKeyRef(key);
+    this.destroyedPrivateKeyRefs.push(keyRef);
   }
 }
 
