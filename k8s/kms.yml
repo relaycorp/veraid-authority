@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mock-aws-kms
+  name: mock-aws-kms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-aws-kms
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: mock-aws-kms
+    spec:
+      containers:
+        - image: nsmithuk/local-kms:3.11.4
+          name: mock-aws-kms
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mock-aws-kms
+  name: mock-aws-kms
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: mock-aws-kms
+  type: ClusterIP
