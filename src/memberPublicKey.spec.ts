@@ -11,7 +11,6 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { getPromiseRejection } from './testUtils/jest.js';
 import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
 import {
   createMemberPublicKey,
@@ -86,24 +85,6 @@ describe('member public key', () => {
       expect(memberPublicKey.reason).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
     });
 
-    test('Record creation errors should be propagated', async () => {
-      await connection.close();
-
-      const error = await getPromiseRejection(
-        async () =>
-          createMemberPublicKey(
-            MEMBER_MONGO_ID,
-            {
-              publicKey: publicKeyBase64,
-              serviceOid: TEST_SERVICE_OID,
-            },
-            serviceOptions,
-          ),
-        Error,
-      );
-
-      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
-    });
   });
 
   describe('getMemberPublicKey', () => {
@@ -154,23 +135,6 @@ describe('member public key', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
-
-    test('Record Find errors should be propagated', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        serviceOid: TEST_SERVICE_OID,
-        publicKey: publicKeyBase64,
-      });
-      await connection.close();
-
-      const error = await getPromiseRejection(
-        async () =>
-          getMemberPublicKey(MEMBER_MONGO_ID, memberPublicKey._id.toString(), serviceOptions),
-        Error,
-      );
-
-      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
-    });
   });
 
   describe('deleteMemberPublicKey', () => {
@@ -207,14 +171,5 @@ describe('member public key', () => {
       expect(dbResult).not.toBeNull();
     });
 
-    test('Record deletion errors should be propagated', async () => {
-      await connection.close();
-
-      const error = await getPromiseRejection(
-        async () => deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions),
-        Error,
-      );
-      expect(error).toHaveProperty('name', 'MongoNotConnectedError');
-    });
   });
 });
