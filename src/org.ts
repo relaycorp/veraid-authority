@@ -1,6 +1,6 @@
-import { getModelForClass } from '@typegoose/typegoose';
+import { type DocumentType, getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
-import type { HydratedDocument } from 'mongoose';
+import type { AnyKeys } from 'mongoose';
 
 import { OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema, OrgSchemaPatch } from './services/schema/org.schema.js';
@@ -12,6 +12,8 @@ import {
   REVERSE_MEMBER_ACCESS_MAPPING,
 } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
+import { Kms } from './utilities/kms/Kms.js';
+import { derSerialisePublicKey } from './utilities/webcrypto.js';
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
@@ -50,10 +52,17 @@ export async function createOrg(
     return { didSucceed: false, reason: validationFailure };
   }
 
+  const kms = await Kms.init();
+  const { privateKey, publicKey } = await kms.generateKeyPair();
   const memberAccessType = MEMBER_ACCESS_TYPE_MAPPING[orgData.memberAccessType]!;
-  let org: HydratedDocument<OrgModelSchema>;
+  const org: AnyKeys<DocumentType<OrgModelSchema>> = {
+    ...orgData,
+    memberAccessType,
+    privateKeyRef: await kms.getPrivateKeyRef(privateKey),
+    publicKey: await derSerialisePublicKey(publicKey),
+  };
   try {
-    org = await orgModel.create({ ...orgData, memberAccessType });
+    await orgModel.create(org);
   } catch (err) {
     if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
       options.logger.info({ name: orgData.name }, 'Refused duplicated org name');
@@ -68,7 +77,7 @@ export async function createOrg(
   options.logger.info({ name: orgData.name }, 'Org created');
   return {
     didSucceed: true,
-    result: { name: org.name },
+    result: { name: orgData.name },
   };
 }
 
@@ -150,11 +159,19 @@ export async function deleteOrg(
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
+  const org = await orgModel.findOne({ name });
 
-  await orgModel.deleteOne({
-    name,
-  });
-  options.logger.info({ name }, 'Org deleted');
+  if (org === null) {
+    options.logger.info({ name }, 'Ignored deletion of non-existing org');
+  } else {
+    const kms = await Kms.init();
+    const privateKey = await kms.retrievePrivateKeyByRef(org.privateKeyRef);
+    await kms.destroyPrivateKey(privateKey);
+
+    await org.deleteOne();
+
+    options.logger.info({ name }, 'Org deleted');
+  }
 
   return {
     didSucceed: true,

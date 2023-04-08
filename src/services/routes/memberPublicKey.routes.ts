@@ -36,10 +36,10 @@ const MEMBER_PUBLIC_KEY_PARAMS = {
   properties: {
     orgName: { type: 'string' },
     memberId: { type: 'string' },
-    memberPrivateKey: { type: 'string' },
+    memberPublicKeyId: { type: 'string' },
   },
 
-  required: ['orgName', 'memberId', 'memberPrivateKey'],
+  required: ['orgName', 'memberId', 'memberPublicKeyId'],
 } as const;
 
 interface MemberPublicKeyUrls {
@@ -88,20 +88,20 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/orgs/:orgName/members/:memberId/public-keys/:memberPrivateKey',
+    url: '/orgs/:orgName/members/:memberId/public-keys/:memberPublicKeyId',
 
     schema: {
       params: MEMBER_PUBLIC_KEY_PARAMS,
     },
 
     async handler(request, reply): Promise<void> {
-      const { memberId, memberPrivateKey } = request.params;
+      const { memberId, memberPublicKeyId } = request.params;
       const serviceOptions = {
         logger: this.log,
         dbConnection: this.mongoose,
       };
 
-      const memberPublicKey = await getMemberPublicKey(memberId, memberPrivateKey, serviceOptions);
+      const memberPublicKey = await getMemberPublicKey(memberId, memberPublicKeyId, serviceOptions);
       if (!memberPublicKey.didSucceed) {
         await reply.code(RESPONSE_CODE_BY_PROBLEM[memberPublicKey.reason]).send({
           type: memberPublicKey.reason,
@@ -109,7 +109,7 @@ export default function registerRoutes(
         return;
       }
 
-      await deleteMemberPublicKey(memberPrivateKey, serviceOptions);
+      await deleteMemberPublicKey(memberPublicKeyId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },

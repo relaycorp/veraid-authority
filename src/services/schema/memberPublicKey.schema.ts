@@ -5,10 +5,10 @@ export const MEMBER_PUBLIC_KEY_SCHEMA = {
 
   properties: {
     publicKey: { type: 'string' },
-    oid: { type: 'string', pattern: '^(?:[0-9]+\\.)*[0-9]+$' },
+    serviceOid: { type: 'string', pattern: '^(?:[0-9]+\\.)*[0-9]+$' },
   },
 
-  required: ['oid', 'publicKey'],
+  required: ['serviceOid', 'publicKey'],
 } as const;
 
 export type MemberPublicKeySchema = FromSchema<typeof MEMBER_PUBLIC_KEY_SCHEMA>;

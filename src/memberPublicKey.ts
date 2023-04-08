@@ -90,7 +90,7 @@ export async function getMemberPublicKey(
 
     result: {
       publicKey: memberPublicKey.publicKey.toString('base64'),
-      oid: memberPublicKey.oid,
+      serviceOid: memberPublicKey.serviceOid,
     },
   };
 }

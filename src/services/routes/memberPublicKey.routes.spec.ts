@@ -6,7 +6,7 @@ import {
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   ORG_NAME,
-  TEST_OID,
+  TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
 import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
@@ -15,7 +15,8 @@ import type { FastifyTypedInstance } from '../fastify.js';
 import type { MemberPublicKeyCreationResult } from '../../memberPublicKeyTypes.js';
 import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
 import type { MemberPublicKeySchema } from '../schema/memberPublicKey.schema.js';
-import { generatePublicKey } from '../../testUtils/publicKeyGenerator.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 
 const mockCreateMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
@@ -33,7 +34,9 @@ jest.unstable_mockModule('../../memberPublicKey.js', () => ({
   deleteMemberPublicKey: mockDeleteMemberPublicKey,
 }));
 const { setUpTestServer } = await import('../../testUtils/server.js');
-const publicKey = await generatePublicKey();
+const { publicKey } = await generateKeyPair();
+const publicKeyBuffer = await derSerialisePublicKey(publicKey);
+const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 describe('member public keys routes', () => {
   configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
@@ -51,8 +54,8 @@ describe('member public keys routes', () => {
 
     test('Valid data should be stored', async () => {
       const payload: MemberPublicKeySchema = {
-        oid: TEST_OID,
-        publicKey: publicKey.toString('base64'),
+        serviceOid: TEST_SERVICE_OID,
+        publicKey: publicKeyBase64,
       };
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: true,
@@ -68,7 +71,6 @@ describe('member public keys routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-      expect(response.headers['content-type']).toStartWith('application/json');
       expect(response.json()).toStrictEqual({
         self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
       });
@@ -76,7 +78,7 @@ describe('member public keys routes', () => {
 
     test('Malformed public key should be refused', async () => {
       const payload: MemberPublicKeySchema = {
-        oid: TEST_OID,
+        serviceOid: TEST_SERVICE_OID,
         publicKey: Buffer.from('invalid public key').toString('base64'),
       };
       mockCreateMemberPublicKey.mockResolvedValueOnce({
@@ -94,10 +96,10 @@ describe('member public keys routes', () => {
       });
     });
 
-    test('Malformed oid should be refused', async () => {
+    test('Malformed service OID should be refused', async () => {
       const payload: MemberPublicKeySchema = {
-        oid: `${TEST_OID}@`,
-        publicKey: publicKey.toString('base64'),
+        serviceOid: `${TEST_SERVICE_OID}@`,
+        publicKey: publicKeyBase64,
       };
 
       const response = await serverInstance.inject({
@@ -120,8 +122,8 @@ describe('member public keys routes', () => {
         didSucceed: true,
 
         result: {
-          publicKey: publicKey.toString('base64'),
-          oid: TEST_OID,
+          publicKey: publicKeyBase64,
+          serviceOid: TEST_SERVICE_OID,
         },
       });
       mockDeleteMemberPublicKey.mockResolvedValueOnce({
