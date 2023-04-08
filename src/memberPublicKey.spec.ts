@@ -84,7 +84,6 @@ describe('member public key', () => {
       requireFailureResult(memberPublicKey);
       expect(memberPublicKey.reason).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
     });
-
   });
 
   describe('getMemberPublicKey', () => {
@@ -170,6 +169,5 @@ describe('member public key', () => {
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey.id);
       expect(dbResult).not.toBeNull();
     });
-
   });
 });
