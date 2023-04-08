@@ -31,6 +31,10 @@ spec:
 
             - name: OAUTH2_JWKS_URL
               value: http://mock-authz-server.default/default/jwks
+            - name: OAUTH2_TOKEN_AUDIENCE
+              value: default
+            - name: OAUTH2_TOKEN_ISSUER_REGEX
+              value: ^http://[^/]+/default$
 
             # Mock AWS KMS (used by WebCrypto KMS)
             - name: KMS_ADAPTER

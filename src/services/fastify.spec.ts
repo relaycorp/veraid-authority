@@ -1,9 +1,12 @@
 import { jest } from '@jest/globals';
+import envVar from 'env-var';
 import type { FastifyInstance, FastifyPluginCallback } from 'fastify';
+import fastifyOauth2Verify from 'fastify-auth0-verify';
 import pino from 'pino';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../testUtils/jest.js';
+import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from '../testUtils/authn.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
@@ -26,7 +29,7 @@ jest.unstable_mockModule('../utilities/exitHandling.js', () => ({
 }));
 
 const dummyRoutes: FastifyPluginCallback = () => null;
-const mockEnvironmentVariables = configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
+const mockEnvVars = configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
 
 const { configureFastify, runFastify } = await import('./fastify.js');
 const { fastify } = await import('fastify');
@@ -67,7 +70,7 @@ describe('configureFastify', () => {
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', async () => {
     const requestIdHeader = 'X-Id';
-    mockEnvironmentVariables({ ...REQUIRED_SERVER_ENV_VARS, REQUEST_ID_HEADER: requestIdHeader });
+    mockEnvVars({ ...REQUIRED_SERVER_ENV_VARS, REQUEST_ID_HEADER: requestIdHeader });
 
     await configureFastify([dummyRoutes]);
 
@@ -117,6 +120,134 @@ describe('configureFastify', () => {
     const serverInstance = await configureFastify([dummyRoutes]);
 
     expect(serverInstance).toBe(mockFastify);
+  });
+
+  describe('OAuth2 plugin', () => {
+    test('OAUTH2_JWKS_URL should be defined', async () => {
+      mockEnvVars({ ...REQUIRED_SERVER_ENV_VARS, OAUTH2_JWKS_URL: undefined });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_JWKS_URL/u,
+      );
+    });
+
+    test('OAUTH2_JWKS_URL should be used as the domain', async () => {
+      await configureFastify([dummyRoutes]);
+
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyOauth2Verify,
+        expect.objectContaining({ domain: OAUTH2_JWKS_URL }),
+      );
+    });
+
+    test('OAUTH2_JWKS_URL should be a well-formed URL', async () => {
+      const malformedUrl = 'not a url';
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_JWKS_URL: malformedUrl,
+      });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_JWKS_URL/u,
+      );
+    });
+
+    test('OAUTH2_TOKEN_ISSUER or OAUTH2_TOKEN_ISSUER_REGEX should be set', async () => {
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_TOKEN_ISSUER: undefined,
+        OAUTH2_TOKEN_ISSUER_REGEX: undefined,
+      });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        Error,
+        'Either OAUTH2_TOKEN_ISSUER or OAUTH2_TOKEN_ISSUER_REGEX should be set',
+      );
+    });
+
+    test('Both OAUTH2_TOKEN_ISSUER and OAUTH2_TOKEN_ISSUER_REGEX should not be set', async () => {
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_TOKEN_ISSUER_REGEX: OAUTH2_TOKEN_ISSUER,
+      });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        Error,
+        'Either OAUTH2_TOKEN_ISSUER or OAUTH2_TOKEN_ISSUER_REGEX should be set',
+      );
+    });
+
+    test('OAUTH2_TOKEN_ISSUER should be used as the issuer if set', async () => {
+      await configureFastify([dummyRoutes]);
+
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyOauth2Verify,
+        expect.objectContaining({ issuer: OAUTH2_TOKEN_ISSUER }),
+      );
+    });
+
+    test('OAUTH2_TOKEN_ISSUER should be a well-formed URL', async () => {
+      const malformedUrl = 'not a url';
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_TOKEN_ISSUER: malformedUrl,
+      });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_TOKEN_ISSUER/u,
+      );
+    });
+
+    test('OAUTH2_TOKEN_ISSUER_REGEX should be used as the issuer if set', async () => {
+      const issuerRegex = '^this is a regex$';
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_TOKEN_ISSUER: undefined,
+        OAUTH2_TOKEN_ISSUER_REGEX: issuerRegex,
+      });
+
+      await configureFastify([dummyRoutes]);
+
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyOauth2Verify,
+        expect.objectContaining({ issuer: new RegExp(issuerRegex, 'u') }),
+      );
+    });
+
+    test('OAUTH2_TOKEN_ISSUER_REGEX should be a well-formed regex', async () => {
+      const malformedRegex = '[';
+      mockEnvVars({
+        ...REQUIRED_SERVER_ENV_VARS,
+        OAUTH2_TOKEN_ISSUER: undefined,
+        OAUTH2_TOKEN_ISSUER_REGEX: malformedRegex,
+      });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_TOKEN_ISSUER_REGEX/u,
+      );
+    });
+
+    test('OAUTH2_TOKEN_AUDIENCE should be defined', async () => {
+      mockEnvVars({ ...REQUIRED_SERVER_ENV_VARS, OAUTH2_TOKEN_AUDIENCE: undefined });
+
+      await expect(configureFastify([dummyRoutes])).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_TOKEN_AUDIENCE/u,
+      );
+    });
+
+    test('OAUTH2_TOKEN_AUDIENCE should be used as the audience', async () => {
+      await configureFastify([dummyRoutes]);
+
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyOauth2Verify,
+        expect.objectContaining({ audience: OAUTH2_TOKEN_AUDIENCE }),
+      );
+    });
   });
 });
 
