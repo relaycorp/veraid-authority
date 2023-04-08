@@ -68,7 +68,6 @@ describe('member public key', () => {
           id: memberPublicKey.result.id,
         }),
       );
-      jest.useRealTimers();
     });
 
     test('Malformed public key should be refused', async () => {
