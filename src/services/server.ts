@@ -7,6 +7,7 @@ import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import memberPublicKey from './routes/memberPublicKey.routes.js';
+import memberKeyImportToken from './routes/memberKeyImportToken.routes.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
 import fastifyMongoose from './plugins/fastifyMongoose.js';
 
@@ -15,6 +16,7 @@ const ROUTES: FastifyPluginCallback<RouteOptions>[] = [
   orgRoutes,
   memberRoutes,
   memberPublicKey,
+  memberKeyImportToken,
 ];
 
 /**
