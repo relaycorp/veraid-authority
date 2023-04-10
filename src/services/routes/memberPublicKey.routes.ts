@@ -62,7 +62,7 @@ export default function registerRoutes(
 ): void {
   fastify.route({
     method: ['POST'],
-    url: '/orgs/:orgName/members/:memberId/public-keys',
+    url: '/',
 
     schema: {
       params: CREATE_MEMBER_PUBLIC_KEY_PARAMS,
@@ -88,7 +88,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/orgs/:orgName/members/:memberId/public-keys/:memberPublicKeyId',
+    url: '/:memberPublicKeyId',
 
     schema: {
       params: MEMBER_PUBLIC_KEY_PARAMS,

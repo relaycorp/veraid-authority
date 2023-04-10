@@ -3,7 +3,6 @@ import {
   type FastifyInstance,
   type FastifyPluginCallback,
   type HTTPMethods,
-  type RouteOptions,
 } from 'fastify';
 import type { Logger } from 'pino';
 import fastifyRoutes from '@fastify/routes';
@@ -15,17 +14,11 @@ import { configureExitHandling } from '../utilities/exitHandling.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
-import memberRoutes from './routes/member.routes.js';
-import memberPublicKey from './routes/memberPublicKey.routes.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
 import fastifyMongoose from './plugins/fastifyMongoose.js';
+import type { RouteOptions } from './types/RouteOptions.js';
 
-const ROUTES: FastifyPluginCallback<RouteOptions>[] = [
-  healthcheckRoutes,
-  orgRoutes,
-  memberRoutes,
-  memberPublicKey,
-];
+const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 
 const DEFAULT_REQUEST_ID_HEADER = 'X-Request-Id';
 const SERVER_PORT = 8080;
@@ -89,7 +82,7 @@ export async function makeServer(customLogger?: Logger): Promise<FastifyInstance
   const verifyOptions = getOauth2PluginOptions();
   await server.register(fastifyOauth2Verify, verifyOptions);
 
-  await Promise.all(ROUTES.map((route) => server.register(route)));
+  await Promise.all(ROOT_ROUTES.map((route) => server.register(route)));
 
   await server.ready();
 
