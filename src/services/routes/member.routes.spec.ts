@@ -72,6 +72,7 @@ describe('member routes', () => {
         expect(response.headers['content-type']).toStartWith('application/json');
         expect(response.json()).toStrictEqual({
           self: `/orgs/${ORG_NAME}/members/${testMemberId}`,
+          publicKeys: `/orgs/${ORG_NAME}/members/${testMemberId}/public-keys`,
         });
       },
     );
