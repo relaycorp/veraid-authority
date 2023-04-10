@@ -2,6 +2,15 @@
 
 VeraId Certificate Authority (CA) server.
 
+## Environment variables
+
+- `AUTHORITY_VERSION` (required). The version of this server.
+- `MONGODB_URI` (required).
+- OAuth2 authentication:
+  - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
+  - Either `OAUTH2_TOKEN_ISSUER` or `OAUTH2_TOKEN_ISSUER_REGEX` (required). The (URL of the) authorisation server.
+  - `OAUTH2_TOKEN_AUDIENCE` (required). The identifier of the current instance of this server (typically its public URL).
+
 ## Development
 
 This app requires the following system dependencies:
