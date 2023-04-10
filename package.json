@@ -29,7 +29,7 @@
     "fastify-plugin": "^4.5.0",
     "is-valid-domain": "^0.1.6",
     "json-schema-to-ts": "^2.7.2",
-    "mongoose": "^6.10.2",
+    "mongoose": "^6.10.5",
     "pino": "^8.11.0"
   },
   "devDependencies": {

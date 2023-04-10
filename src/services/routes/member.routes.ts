@@ -45,11 +45,13 @@ const MEMBER_ROUTE_PARAMS = {
 
 interface MemberUrls {
   self: string;
+  publicKeys: string;
 }
 
 function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }): MemberUrls {
   return {
     self: `/orgs/${orgName}/members/${memberId}`,
+    publicKeys: `/orgs/${orgName}/members/${memberId}/public-keys`,
   };
 }
 

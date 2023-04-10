@@ -35,17 +35,17 @@ describe('notFoundHandler', () => {
   });
 
   test('OPTIONS requests should list the allowed methods', async () => {
-    const response = await serverInstance.inject({ method: 'OPTIONS', url: endpointUrl });
+    const response = await serverInstance.inject({
+      method: 'OPTIONS',
+      url: endpointUrl,
+    });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     expect(response).toHaveProperty('headers.allow', allowedMethodsString);
   });
 
   test('Non existing path should result in 404 error', async () => {
-    const response = await serverInstance.inject({
-      method: 'OPTIONS',
-      url: '/NonExistingPath',
-    });
+    const response = await serverInstance.inject({ method: 'OPTIONS', url: '/NonExistingPath' });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
     expect(response).not.toHaveProperty('headers.allow');

@@ -3,7 +3,6 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
-import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import {
   type OrgSchema,
   type OrgSchemaMemberAccessType,
@@ -19,9 +18,10 @@ import {
   ORG_NAME,
 } from './testUtils/stubs.js';
 import { getPromiseRejection } from './testUtils/jest.js';
+import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
-import type { ServiceOptions } from './serviceTypes.js';
+import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 
@@ -88,7 +88,9 @@ describe('org', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed org name', { name: malformedName }),
+        partialPinoLog('info', 'Refused malformed org name', {
+          name: malformedName,
+        }),
       );
     });
 
@@ -308,7 +310,9 @@ describe('org', () => {
       requireFailureResult(result);
       expect(result.reason).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed org name', { name: malformedOrgName }),
+        partialPinoLog('info', 'Refused malformed org name', {
+          name: malformedOrgName,
+        }),
       );
     });
 
