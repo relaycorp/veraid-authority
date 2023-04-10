@@ -2,10 +2,10 @@ import type { RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../schema/member.schema.js';
 import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];

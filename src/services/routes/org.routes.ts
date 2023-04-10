@@ -3,9 +3,9 @@ import type { RouteOptions } from 'fastify';
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
 import { ORG_SCHEMA, ORG_SCHEMA_PATCH } from '../schema/org.schema.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in OrgProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
