@@ -92,22 +92,27 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input:
     - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
   - Output: A single-use UUID4.
-- `POST /orgs/{orgName}/awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
+- `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
   - Incoming service messages:
-    - `MemberIdRequest`. Fields:
-      - URL to public key (e.g., `/orgs/bbc.com/members/alice/public-keys/abcde`). Alternatively, the org name, member ID and key ID can be passed separately.
+    - `MemberIdRequest`. Payload (`application/json`):
+      - The id for the respective member public key.
       - The current timestamp.
       - Digital signature for the parameters above, produced with the private key associated with the public key.
-    - `MemberPublicKeyImport`. Fields:
+    - `MemberPublicKeyImport`. Payload (`application/json`):
       - The single-use import token.
       - The DER-encoded public key.
   - Outgoing service messages:
     - `MemberIdBundle`.
-      - Trigger: Successful `MemberIdRequest` or `MemberPublicKeyImport` messages.
-      - Payload: VeraId Member Bundle.
+      - Trigger: Successful `MemberIdRequest`.
+      - Payload (`application/vnd.veraid.member-bundle`): VeraId Member Bundle.
+    - `MemberPublicKeyImportAck`.
+      - Trigger: Successful `MemberPublicKeyImport`.
+      - Payload (`application/json`):
+        - The id for the member public key. This is to be passed in subsequent `MemberIdRequest` messages.
+        - VeraId Member Bundle.
 
-\* We may skip this endpoint in v1 because the endpoint `POST /orgs/{orgName}/awala/` already supports this functionality.
+\* We may skip this endpoint in v1 because the endpoint `POST /awala/` already supports this functionality.
 
 This server will have the following background processes:
 
