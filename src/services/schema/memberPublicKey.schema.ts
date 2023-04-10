@@ -1,6 +1,6 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
-import { SERVICE_OID_REGEX } from './validaitons.js';
+import { SERVICE_OID_REGEX } from './validaiton.js';
 
 export const MEMBER_PUBLIC_KEY_SCHEMA = {
   type: 'object',

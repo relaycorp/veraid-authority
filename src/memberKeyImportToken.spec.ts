@@ -45,7 +45,7 @@ describe('member key import token', () => {
       );
     });
 
-    test('Multiple tokens with same member id and service oid should be created', async () => {
+    test('Multiple tokens for same member and service should be allowed', async () => {
       const meberKeyImportTokenOne = await createMemberKeyImportToken(
         MEMBER_MONGO_ID,
         TEST_SERVICE_OID,
