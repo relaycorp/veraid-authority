@@ -6,6 +6,7 @@ import env from 'env-var';
 
 import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
+import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
