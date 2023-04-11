@@ -8,8 +8,7 @@ spec:
       containers:
         - name: authority-server
           image: dev.local/veraid-authority
-          args:
-            - build/main/bin/server.js
+          args: [api]
           readinessProbe:
             httpGet:
               path: /
