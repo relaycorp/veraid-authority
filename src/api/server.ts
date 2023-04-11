@@ -4,7 +4,6 @@ import fastifyRoutes from '@fastify/routes';
 import fastifyOauth2Verify, { type FastifyAuth0VerifyOptions } from 'fastify-auth0-verify';
 import env from 'env-var';
 
-import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 
