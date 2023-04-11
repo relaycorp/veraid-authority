@@ -103,11 +103,15 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Output: A single-use UUID4.
 - `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
-  - Incoming service messages:
-    - `MemberIdRequest`. Payload (`application/json`):
-      - The id for the respective member public key.
-      - The current timestamp.
-      - Digital signature for the parameters above, produced with the private key associated with the public key.
+  - HTTP response: `204 Accepted` (no content) if the input was valid and the request was successfully processed, or else an appropriate 4XX response.
+  - Awala service messages:
+    - `MemberIdRequest`.
+      - HTTP request body (`application/json`):
+        - The id for the respective member public key.
+        - The future start date of the bundle. (Bundles will be issued at that time or later, but never before)
+        - Digital signature for the parameters above, produced with the private key associated with the public key.
+        - The Awala Parcel Delivery Authorisation (PDA). This is a binary value.
+      - Successful outcome: Create new DB record to **schedule** the issuance and delivery of a member id bundle. This DB record will contain the data in the request.
     - `MemberPublicKeyImport`. Payload (`application/json`):
       - The single-use import token.
       - The DER-encoded public key.
@@ -122,6 +126,12 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
         - VeraId Member Bundle.
 
 \* We may skip this endpoint in v1 because the endpoint `POST /awala/` already supports this functionality.
+
+## Event sinks
+
+- Member Id issuance scheduler: Reads the DB collection for scheduled issuances and creates new events to be consumed by `Member id issuer`.
+- Member Id issuer.
+
 
 This server will have the following background processes:
 
