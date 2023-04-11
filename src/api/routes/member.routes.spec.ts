@@ -6,7 +6,7 @@ import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/
 import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../http.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { MemberCreationResult } from '../../memberTypes.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
 import {
@@ -14,8 +14,8 @@ import {
   type MemberSchemaRole,
   memberSchemaRoles,
   type PatchMemberSchema,
-} from '../schema/member.schema.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
+} from '../../schemas/member.schema.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),

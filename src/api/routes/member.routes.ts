@@ -1,9 +1,9 @@
-import { HTTP_STATUS_CODES } from '../http.js';
-import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../schema/member.schema.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../../schemas/member.schema.js';
 import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
-import type { RouteOptions } from '../types/RouteOptions.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 
 import memberPublicKeyRoutes from './memberPublicKey.routes.js';
 import memberKeyImportToken from './memberKeyImportToken.routes.js';

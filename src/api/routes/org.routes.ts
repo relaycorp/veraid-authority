@@ -1,9 +1,9 @@
-import { HTTP_STATUS_CODES } from '../http.js';
-import { ORG_SCHEMA, ORG_SCHEMA_PATCH } from '../schema/org.schema.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { ORG_SCHEMA, ORG_SCHEMA_PATCH } from '../../schemas/org.schema.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
-import type { RouteOptions } from '../types/RouteOptions.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 
 import memberRoutes from './member.routes.js';
 

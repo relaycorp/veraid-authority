@@ -5,7 +5,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
-import type { MemberPublicKeySchema } from './services/schema/memberPublicKey.schema.js';
+import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 

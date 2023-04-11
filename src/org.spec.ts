@@ -7,7 +7,7 @@ import {
   type OrgSchema,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
-} from './services/schema/org.schema.js';
+} from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';

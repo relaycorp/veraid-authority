@@ -5,11 +5,11 @@ import fastifyOauth2Verify, { type FastifyAuth0VerifyOptions } from 'fastify-aut
 import env from 'env-var';
 
 import { makeFastify } from '../utilities/fastify/server.js';
+import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
-import type { RouteOptions } from './types/RouteOptions.js';
 
 const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 

@@ -1,7 +1,7 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../http.js';
-import type { PluginDone } from '../types/PluginDone.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 
 export default function registerRoutes(
   fastify: FastifyInstance,
