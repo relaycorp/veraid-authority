@@ -1,15 +1,19 @@
 import { type FastifyInstance, type RouteOptions } from 'fastify';
-import type { PluginDone } from '../types/PluginDone.js';
+import type { PluginDone } from '../../../services/types/PluginDone.js';
 
 export default function notFoundHandler(
   fastify: FastifyInstance,
   _opts: RouteOptions,
   done: PluginDone,
 ): void {
+  console.log(11111);
   fastify.setErrorHandler(function (error, _request, reply) {
     console.log(1111)
       // fastify will use parent error handler to handle this
       reply.send(error)
+  })
+  fastify.addHook('onError', function ( _request, reply,error) {
+    reply.send(error);
   })
 
   // fastify.setNotFoundHandler(async (request, reply): Promise<void> => {

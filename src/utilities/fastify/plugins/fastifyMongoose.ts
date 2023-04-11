@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
-import { createMongooseConnectionFromEnv } from '../../utilities/mongo.js';
+import { createMongooseConnectionFromEnv } from '../../mongo.js';
 
 async function fastifyMongoose(fastify: FastifyInstance): Promise<void> {
   const mongooseConnection = await createMongooseConnectionFromEnv();
