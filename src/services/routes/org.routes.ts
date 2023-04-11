@@ -55,6 +55,9 @@ export default function registerRoutes(
     },
 
     async handler(request, reply): Promise<void> {
+      if(1==1){
+        throw new Error();
+      }
       const result = await createOrg(request.body, {
         logger: this.log,
         dbConnection: this.mongoose,

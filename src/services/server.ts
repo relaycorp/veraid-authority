@@ -7,6 +7,7 @@ import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import memberPublicKey from './routes/memberPublicKey.routes.js';
+import errorHandler from './plugins/errorHandler.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
 import fastifyMongoose from './plugins/fastifyMongoose.js';
 
@@ -24,7 +25,7 @@ const ROUTES: FastifyPluginCallback<RouteOptions>[] = [
  */
 export async function makeServer(logger?: Logger): Promise<FastifyInstance> {
   return configureFastify(
-    [fastifyMongoose, fastifyRoutes, notFoundHandler, ...ROUTES],
+    [fastifyMongoose, fastifyRoutes, notFoundHandler, errorHandler, ...ROUTES, errorHandler],
     undefined,
     logger,
   );
