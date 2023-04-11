@@ -7,7 +7,6 @@ import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../test
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import type { MemberCreationResult } from '../../memberTypes.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
 import {
@@ -16,6 +15,7 @@ import {
   memberSchemaRoles,
   type PatchMemberSchema,
 } from '../schema/member.schema.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),

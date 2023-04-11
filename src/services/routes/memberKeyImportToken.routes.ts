@@ -2,9 +2,9 @@ import type { RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import { MEMBER_KEY_IMPORT_TOKEN_SCHEMA } from '../schema/memberKeyImportToken.schema.js';
 import { createMemberKeyImportToken } from '../../memberKeyImportToken.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const MEMBER_KEY_IMPORT_TOKEN_PARAMS = {
   type: 'object',
@@ -24,7 +24,7 @@ export default function registerRoutes(
 ): void {
   fastify.route({
     method: ['POST'],
-    url: '/orgs/:orgName/members/:memberId/public-key-import-tokens',
+    url: '/',
 
     schema: {
       params: MEMBER_KEY_IMPORT_TOKEN_PARAMS,

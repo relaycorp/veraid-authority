@@ -11,9 +11,9 @@ import {
 import type { SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import type { MemberKeyImportTokenSchema } from '../schema/memberKeyImportToken.schema.js';
 import type { MemberKeyImportTokenCreationResult } from '../../memberKeyImportTokenTypes.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
@@ -55,7 +55,6 @@ describe('member key import token routes', () => {
         payload,
       });
 
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(mockCreateMemberKeyImportToken).toHaveBeenCalledOnceWith(
         MEMBER_MONGO_ID,
         TEST_SERVICE_OID,
@@ -64,6 +63,7 @@ describe('member key import token routes', () => {
           dbConnection: serverInstance.mongoose,
         },
       );
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
         token: MEMBER_KEY_IMPORT_TOKEN,
       });
