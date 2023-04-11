@@ -1,11 +1,11 @@
-import type { RouteOptions } from 'fastify';
-
 import { HTTP_STATUS_CODES } from '../http.js';
-import type { PluginDone } from '../types/PluginDone.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../schema/member.schema.js';
 import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
 import { MemberProblemType } from '../../MemberProblemType.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
+import type { RouteOptions } from '../types/RouteOptions.js';
+
+import memberPublicKeyRoutes from './memberPublicKey.routes.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
@@ -55,14 +55,13 @@ function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }):
   };
 }
 
-export default function registerRoutes(
+export default async function registerRoutes(
   fastify: FastifyTypedInstance,
-  _opts: RouteOptions,
-  done: PluginDone,
-): void {
+  opts: RouteOptions,
+): Promise<void> {
   fastify.route({
     method: ['POST'],
-    url: '/orgs/:orgName/members',
+    url: '/',
 
     schema: {
       params: CREATE_MEMBER_ROUTE_PARAMS,
@@ -92,7 +91,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['GET'],
-    url: '/orgs/:orgName/members/:memberId',
+    url: '/:memberId',
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
@@ -119,7 +118,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/orgs/:orgName/members/:memberId',
+    url: '/:memberId',
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
@@ -148,7 +147,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['PATCH'],
-    url: '/orgs/:orgName/members/:memberId',
+    url: '/:memberId',
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
@@ -185,5 +184,5 @@ export default function registerRoutes(
     },
   });
 
-  done();
+  await fastify.register(memberPublicKeyRoutes, { ...opts, prefix: '/:memberId/public-keys' });
 }

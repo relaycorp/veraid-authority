@@ -2,7 +2,6 @@ import type { RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../http.js';
 import type { PluginDone } from '../types/PluginDone.js';
-import type { FastifyTypedInstance } from '../fastify.js';
 import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
 import {
   createMemberPublicKey,
@@ -10,6 +9,7 @@ import {
   getMemberPublicKey,
 } from '../../memberPublicKey.js';
 import { MEMBER_PUBLIC_KEY_SCHEMA } from '../schema/memberPublicKey.schema.js';
+import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberPublicKeyProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
@@ -62,7 +62,7 @@ export default function registerRoutes(
 ): void {
   fastify.route({
     method: ['POST'],
-    url: '/orgs/:orgName/members/:memberId/public-keys',
+    url: '/',
 
     schema: {
       params: CREATE_MEMBER_PUBLIC_KEY_PARAMS,
@@ -88,7 +88,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/orgs/:orgName/members/:memberId/public-keys/:memberPublicKeyId',
+    url: '/:memberPublicKeyId',
 
     schema: {
       params: MEMBER_PUBLIC_KEY_PARAMS,
