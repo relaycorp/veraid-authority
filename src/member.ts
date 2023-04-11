@@ -4,7 +4,7 @@ import type { HydratedDocument } from 'mongoose';
 
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import type { MemberSchema, PatchMemberSchema } from './services/schema/member.schema.js';
+import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js';
 import { MemberModelSchema } from './models/Member.model.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';

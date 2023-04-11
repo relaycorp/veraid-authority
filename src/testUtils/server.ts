@@ -1,5 +1,5 @@
-import { makeServer } from '../services/server.js';
-import type { FastifyTypedInstance } from '../services/types/FastifyTypedInstance.js';
+import { makeServer } from '../api/server.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 
 export function setUpTestServer(): () => FastifyTypedInstance {
   let server: FastifyTypedInstance;

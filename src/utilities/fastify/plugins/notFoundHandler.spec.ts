@@ -1,9 +1,9 @@
 import type { HTTPMethods } from 'fastify';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../../testUtils/envVars.js';
-import { HTTP_STATUS_CODES } from '../../../services/http.js';
+import { HTTP_STATUS_CODES } from '../../http.js';
 import { setUpTestServer } from '../../../testUtils/server.js';
-import type { FastifyTypedInstance } from '../../../services/types/FastifyTypedInstance.js';
+import type { FastifyTypedInstance } from '../FastifyTypedInstance.js';
 import { HTTP_METHODS } from '../server.js';
 
 describe('notFoundHandler', () => {

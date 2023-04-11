@@ -1,15 +1,15 @@
 import type { RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../http.js';
-import type { PluginDone } from '../types/PluginDone.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
   getMemberPublicKey,
 } from '../../memberPublicKey.js';
-import { MEMBER_PUBLIC_KEY_SCHEMA } from '../schema/memberPublicKey.schema.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
+import { MEMBER_PUBLIC_KEY_SCHEMA } from '../../schemas/memberPublicKey.schema.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberPublicKeyProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
