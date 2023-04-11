@@ -4,8 +4,8 @@ import fastifyRoutes from '@fastify/routes';
 import fastifyOauth2Verify, { type FastifyAuth0VerifyOptions } from 'fastify-auth0-verify';
 import env from 'env-var';
 
-import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 import { makeFastify } from '../utilities/fastify/server.js';
+import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';

@@ -5,11 +5,13 @@ import { deleteModelWithClass } from '@typegoose/typegoose';
 import { OrgModelSchema } from '../models/Org.model.js';
 import { MemberModelSchema } from '../models/Member.model.js';
 import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
+import { MemberKeyImportTokenModelSchema } from '../models/MemberKeyImportToken.model.js';
 
 const MODEL_SCHEMAS = Object.values([
   OrgModelSchema,
   MemberModelSchema,
   MemberPublicKeyModelSchema,
+  MemberKeyImportTokenModelSchema,
 ]).filter((schema) => typeof schema === 'function');
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,no-underscore-dangle

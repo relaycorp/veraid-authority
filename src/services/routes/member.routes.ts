@@ -6,6 +6,7 @@ import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
 import type { RouteOptions } from '../types/RouteOptions.js';
 
 import memberPublicKeyRoutes from './memberPublicKey.routes.js';
+import memberKeyImportToken from './memberKeyImportToken.routes.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
@@ -185,4 +186,8 @@ export default async function registerRoutes(
   });
 
   await fastify.register(memberPublicKeyRoutes, { ...opts, prefix: '/:memberId/public-keys' });
+  await fastify.register(memberKeyImportToken, {
+    ...opts,
+    prefix: '/:memberId/public-key-import-tokens',
+  });
 }
