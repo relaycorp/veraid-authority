@@ -10,5 +10,11 @@ LABEL org.opencontainers.image.source="https://github.com/relaycorp/veraid-autho
 WORKDIR /opt/veraid-authority
 COPY --from=build /tmp/veraid-authority ./
 USER node
-ENTRYPOINT ["node", "--unhandled-rejections=strict", "--experimental-vm-modules", "--enable-source-maps"]
+ENTRYPOINT [ \
+  "node", \
+  "--unhandled-rejections=strict", \
+  "--experimental-vm-modules", \
+  "--enable-source-maps", \
+  "build/main/bin/server.js" \
+  ]
 EXPOSE 8080

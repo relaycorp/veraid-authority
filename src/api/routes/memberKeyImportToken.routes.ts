@@ -1,10 +1,10 @@
 import type { RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../http.js';
-import type { PluginDone } from '../types/PluginDone.js';
-import { MEMBER_KEY_IMPORT_TOKEN_SCHEMA } from '../schema/memberKeyImportToken.schema.js';
 import { createMemberKeyImportToken } from '../../memberKeyImportToken.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
+import { MEMBER_KEY_IMPORT_TOKEN_SCHEMA } from '../../schemas/memberKeyImportToken.schema.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 const MEMBER_KEY_IMPORT_TOKEN_PARAMS = {
   type: 'object',

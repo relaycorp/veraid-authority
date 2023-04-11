@@ -1,4 +1,4 @@
-import type { MemberSchema } from './services/schema/member.schema.js';
+import type { MemberSchema } from './schemas/member.schema.js';
 import { Role } from './models/Member.model.js';
 
 export interface MemberCreationResult {

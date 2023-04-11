@@ -10,13 +10,13 @@ import {
 } from '../../testUtils/stubs.js';
 import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../http.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { MemberPublicKeyCreationResult } from '../../memberPublicKeyTypes.js';
 import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
-import type { MemberPublicKeySchema } from '../schema/memberPublicKey.schema.js';
+import type { MemberPublicKeySchema } from '../../schemas/memberPublicKey.schema.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
-import type { FastifyTypedInstance } from '../types/FastifyTypedInstance.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const mockCreateMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),

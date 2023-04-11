@@ -18,7 +18,7 @@ import {
   type MemberSchema,
   type MemberSchemaRole,
   memberSchemaRoles,
-} from './services/schema/member.schema.js';
+} from './schemas/member.schema.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { getPromiseRejection } from './testUtils/jest.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
