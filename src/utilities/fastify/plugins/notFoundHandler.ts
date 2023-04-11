@@ -1,7 +1,7 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../http.js';
-import type { PluginDone } from '../types/PluginDone.js';
+import { HTTP_STATUS_CODES } from '../../../services/http.js';
+import type { PluginDone } from '../../../services/types/PluginDone.js';
 
 export default function notFoundHandler(
   fastify: FastifyInstance,
