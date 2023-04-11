@@ -1,4 +1,5 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
+
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 
 export default function registerRoutes(
@@ -10,8 +11,8 @@ export default function registerRoutes(
     method: ['HEAD'],
     url: '/error',
 
-    handler(_request, _reply): void {
-      throw new Error("")
+    handler(): void {
+      throw new Error('ERROR_MESSAGE');
     },
   });
 

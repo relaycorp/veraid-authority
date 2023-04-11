@@ -10,10 +10,12 @@ import fastifyMongoose from './plugins/fastifyMongoose.js';
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
 const mockReady = mockSpy(jest.fn<() => Promise<undefined>>());
+const mockSetErrorHandler = mockSpy(jest.fn<() => Promise<undefined>>());
 const mockFastify: FastifyInstance = {
   listen: mockListen,
   ready: mockReady,
   register: mockRegister,
+  setErrorHandler: mockSetErrorHandler,
 } as any;
 jest.unstable_mockModule('fastify', () => ({
   fastify: jest.fn().mockImplementation(() => mockFastify),

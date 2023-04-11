@@ -4,8 +4,9 @@ import type { Logger } from 'pino';
 
 import { makeLogger } from '../logging.js';
 import { configureExitHandling } from '../exitHandling.js';
-import fastifyMongoose from './plugins/fastifyMongoose.js';
 import { HTTP_STATUS_CODES } from '../http.js';
+
+import fastifyMongoose from './plugins/fastifyMongoose.js';
 
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -40,13 +41,20 @@ export async function makeFastify(appPlugin: FastifyPluginAsync, customLogger?: 
 
   await server.register(fastifyMongoose);
 
-  server.setErrorHandler(function (_error, _request, reply) {
-    reply.status(HTTP_STATUS_CODES.INTERNAL_ERROR).send("Internal server error");
-  })
+  const internalServerError = 'Internal server error';
+  server.setErrorHandler(async (error, _request, reply) => {
+    if (error.statusCode !== undefined && error.statusCode < HTTP_STATUS_CODES.INTERNAL_ERROR) {
+      await reply.send(error);
+      return;
+    }
+
+    logger.info(error, internalServerError);
+    await reply.status(HTTP_STATUS_CODES.INTERNAL_ERROR).send(internalServerError);
+  });
+
   await server.register(appPlugin);
 
   await server.ready();
-
 
   return server;
 }
