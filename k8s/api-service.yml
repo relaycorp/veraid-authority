@@ -17,10 +17,12 @@ spec:
           livenessProbe:
             httpGet:
               path: /
+            initialDelaySeconds: 3
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /
-            initialDelaySeconds: 5
+            initialDelaySeconds: 3
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
