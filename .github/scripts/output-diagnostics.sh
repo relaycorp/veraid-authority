@@ -14,14 +14,6 @@ print_header() {
 
 # Main
 
-if ! command -v kubectl; then
-  echo "Skipping because Kubernetes wasn't installed" >&2
-  exit 1
-fi
-
-print_header "Kind clusters"
-kind get clusters
-
 print_header "Images"
 docker images
 
