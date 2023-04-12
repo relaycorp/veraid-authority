@@ -17,7 +17,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
