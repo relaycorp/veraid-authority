@@ -106,7 +106,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - HTTP response: `204 Accepted` (no content) if the input was valid and the request was successfully processed, or else an appropriate 4XX response.
   - Awala service messages:
     - `MemberIdRequest`.
-      - HTTP request body (`application/json`):
+      - HTTP request body (JSON, with content type `application/vnd.veraid.member-bundle-request`):
         - The id for the respective member public key.
         - The future start date of the bundle. (Bundles will be issued at that time or later, but never before)
         - Digital signature for the parameters above, produced with the private key associated with the public key.
