@@ -14,10 +14,6 @@ print_header() {
 
 # Main
 
-# TODO: Remove
-set -x
-which -a kn
-
 print_header "Images"
 docker images
 
