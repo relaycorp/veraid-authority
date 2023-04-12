@@ -14,6 +14,10 @@ spec:
         - name: api
           image: dev.local/veraid-authority
           args: [api]
+          livenessProbe:
+            httpGet:
+              path: /
+            initialDelaySeconds: 10
           readinessProbe:
             httpGet:
               path: /
