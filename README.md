@@ -105,26 +105,56 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Output: A single-use UUID4.
 - `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
-  - Incoming service messages:
-    - `MemberIdRequest`. Payload (`application/json`):
-      - The id for the respective member public key.
-      - The current timestamp.
-      - Digital signature for the parameters above, produced with the private key associated with the public key.
-    - `MemberPublicKeyImport`. Payload (`application/json`):
-      - The single-use import token.
-      - The DER-encoded public key.
-  - Outgoing service messages:
-    - `MemberIdBundle`.
-      - Trigger: Successful `MemberIdRequest`.
-      - Payload (`application/vnd.veraid.member-bundle`): VeraId Member Bundle.
-    - `MemberPublicKeyImportAck`.
-      - Trigger: Successful `MemberPublicKeyImport`.
-      - Payload (`application/json`):
-        - The id for the member public key. This is to be passed in subsequent `MemberIdRequest` messages.
-        - VeraId Member Bundle.
+  - HTTP response: `202 Accepted` (no content) if the input was valid and the request was successfully processed, or `400 Bad Request` if the input was invalid.
+  - Awala service messages:
+    - `MemberBundleRequest`.
+      - HTTP request body (JSON, with content type `application/vnd.veraid.member-bundle-request`):
+        - The id for the respective member public key.
+        - The future start date of the bundle. (Bundles will be issued at that time or later, but never before)
+        - Digital signature for the parameters above, produced with the private key associated with the public key.
+        - The Awala Parcel Delivery Authorisation (PDA).
+      - Successful outcome: Create new DB record to **schedule** the issuance and delivery of a member id bundle. This DB record will contain the data in the request.
+        - Any public key must have a maximum of 1 request at any time, so if we get a duplicate, we should replace the old request with the new one.
+    - `MemberPublicKeyImport`.
+      - Payload (JSON, with content type `application/vnd.veraid.member-public-key-import`):
+        - The single-use import token.
+        - The DER-encoded public key.
+        - The Awala Parcel Delivery Authorisation (PDA).
+      - Successful outcome:
+        1. Same processing as in `POST /orgs/{orgName}/members/{memberId}/public-keys` (i.e., key gets imported).
+        2. Publish `member-public-key-import` event.
 
 \* We may skip this endpoint in v1 because the endpoint `POST /awala/` already supports this functionality.
 
-This server will have the following background processes:
+## Periodic jobs
 
-- [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend. Used to respond to the requests made to `POST /orgs/{orgName}/awala/`.
+The frequency is to be determined by the operator of the app.
+
+- Member bundle scheduler (e.g., every 24 hours). Retrieves all the bundles that should be issued in the next 24 hours, and does the following:
+  1. Checks the signature, and ignores the request if the signature is invalid.
+  2. publishes a `member-bundle-issuance-request` event for each entry (deleting the DB record upon publishing the event).
+
+## Events
+
+All events are JSON-serialised.
+
+- `member-bundle-issuance-request`: A member bundle has been requested. Payload:
+  - Globally-unique id for the public key.
+  - Awala PDA.
+- `member-public-key-import`: A member public key has just been imported. Payload: Same as `member-bundle-issuance-request` (coincidentally; they could diverge in the future).
+
+## Event consumers
+
+The events above are consumed by the following Knative Eventing sinks:
+
+- `member-bundle-issuer`:
+  - Event triggers: `member-bundle-issuance-request`.
+  - Outcome:
+    1. Post Awala PDA to Awala Endpoint Middleware, and extract the Awala recipient address from the response (to be used later).
+    2. Generate VeraId Member Bundle.
+    3. Post bundle to Awala recipient via the Awala Endpoint Middleware.
+- `member-public-key-import-ack`:
+  - Event triggers: `member-public-key-import`.
+  - Outcome: Same as in `member-bundle-issuer`, but the payload to be posted to the Awala Endpoint Middleware should be a JSON document (content type `application/vnd.veraid.member-public-key-import-ack`) with the following fields:
+    - The id for the member public key. This is to be passed in subsequent `MemberBundleRequest` messages.
+    - The VeraId Member Bundle (base64-encoded).
