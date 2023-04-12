@@ -24,22 +24,16 @@ spec:
                 - mongosh
                 - --eval
                 - "db.adminCommand('ping')"
-            initialDelaySeconds: 1
-            periodSeconds: 3
+            periodSeconds: 1
             timeoutSeconds: 3
-            successThreshold: 1
-            failureThreshold: 6
           readinessProbe:
             exec:
               command:
                 - mongosh
                 - --eval
                 - "db.adminCommand('ping')"
-            initialDelaySeconds: 1
-            periodSeconds: 3
+            periodSeconds: 1
             timeoutSeconds: 3
-            successThreshold: 1
-            failureThreshold: 6
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
