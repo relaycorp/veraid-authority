@@ -20,14 +20,8 @@ docker images
 print_header "Kubernetes resources"
 kubectl get all --all-namespaces
 
-print_header "Logs"
-PODS="$(
-  kubectl get pod \
-    -l app.kubernetes.io/name=veraid-authority \
-    "-o=jsonpath={.items[*]['metadata.name']}"
-)"
-for pod in ${PODS}; do
-  print_header "Logs for ${pod}"
+print_header "App pods"
+kubectl describe pod -l app.kubernetes.io/name=veraid-authority
 
-  kubectl logs "${pod}" --all-containers=true
-done
+print_header "App logs"
+kubectl logs --all-containers=true -l app.kubernetes.io/name=veraid-authority
