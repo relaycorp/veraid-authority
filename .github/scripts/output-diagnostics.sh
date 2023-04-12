@@ -14,6 +14,8 @@ print_header() {
 
 # Main
 
+kn quickstart help
+
 print_header "Images"
 docker images
 
