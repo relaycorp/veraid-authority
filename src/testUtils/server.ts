@@ -1,12 +1,12 @@
+import type { Logger } from 'pino';
+
 import { makeServer } from '../api/server.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 
-import type { MockLogging } from './logging.js';
-
-export function setUpTestServer(mockLogging?: MockLogging): () => FastifyTypedInstance {
+export function setUpTestServer(customLogger?: Logger): () => FastifyTypedInstance {
   let server: FastifyTypedInstance;
   beforeEach(async () => {
-    server = await makeServer(mockLogging ? mockLogging.logger : undefined);
+    server = await makeServer(customLogger);
   });
 
   afterEach(async () => {

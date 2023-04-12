@@ -9,14 +9,9 @@ import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
-import errorRoutes from './routes/error.routes.js';
 import orgRoutes from './routes/org.routes.js';
 
-const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [
-  healthcheckRoutes,
-  errorRoutes,
-  orgRoutes,
-];
+const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 
 function getOauth2PluginOptions(): FastifyAuth0VerifyOptions {
   const audience = env.get('OAUTH2_TOKEN_AUDIENCE').required().asString();

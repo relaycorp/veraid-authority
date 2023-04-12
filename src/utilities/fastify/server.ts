@@ -43,13 +43,17 @@ export async function makeFastify(appPlugin: FastifyPluginAsync, customLogger?: 
 
   const internalServerError = 'Internal server error';
   server.setErrorHandler(async (error, _request, reply) => {
-    if (error.statusCode !== undefined && error.statusCode < HTTP_STATUS_CODES.INTERNAL_ERROR) {
+    if (
+      error.statusCode !== undefined &&
+      error.statusCode < HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR
+    ) {
+      logger.info(error, 'Client error');
       await reply.send(error);
       return;
     }
 
-    logger.info(error, internalServerError);
-    await reply.status(HTTP_STATUS_CODES.INTERNAL_ERROR).send(internalServerError);
+    logger.error(error, internalServerError);
+    await reply.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).send(internalServerError);
   });
 
   await server.register(appPlugin);
