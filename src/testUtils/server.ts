@@ -1,5 +1,3 @@
-import type { Logger } from 'pino';
-
 import { makeServer } from '../api/server.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 
