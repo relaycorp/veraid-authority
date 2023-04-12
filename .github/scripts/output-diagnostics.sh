@@ -23,13 +23,13 @@ print_header "Images"
 docker images
 
 print_header "Services"
-kubectl get services
+kubectl get services --all-namespaces
 
 print_header "Jobs"
-kubectl get jobs
+kubectl get jobs --all-namespaces
 
 print_header "Pods"
-kubectl get pods
+kubectl get pods --all-namespaces
 
 PODS="$(
   kubectl get pod \
