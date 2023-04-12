@@ -19,24 +19,20 @@ if ! command -v kubectl; then
   exit 1
 fi
 
+print_header "Kind clusters"
+kind get clusters
+
 print_header "Images"
 docker images
 
-print_header "Services"
-kubectl get services --all-namespaces
-
-print_header "Jobs"
-kubectl get jobs --all-namespaces
-
-print_header "Pods"
-kubectl get pods --all-namespaces
+print_header "Kubernetes resources"
+kubectl get all --all-namespaces
 
 PODS="$(
   kubectl get pod \
     -l app.kubernetes.io/name=veraid-authority \
     "-o=jsonpath={.items[*]['metadata.name']}"
 )"
-
 for pod in ${PODS}; do
   print_header "Logs for ${pod}"
 
