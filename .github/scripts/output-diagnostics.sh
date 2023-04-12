@@ -24,4 +24,4 @@ print_header "App pods"
 kubectl describe pod -l app.kubernetes.io/name=veraid-authority
 
 print_header "App logs"
-kubectl logs --all-containers=true -l app.kubernetes.io/name=veraid-authority
+kubectl logs --prefix --all-containers=true -l app.kubernetes.io/name=veraid-authority
