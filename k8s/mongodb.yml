@@ -18,22 +18,6 @@ spec:
       containers:
         - image: mongo:6.0.4
           name: mongodb
-          livenessProbe:
-            exec:
-              command:
-                - mongosh
-                - --eval
-                - "db.adminCommand('ping')"
-            periodSeconds: 1
-            timeoutSeconds: 3
-          readinessProbe:
-            exec:
-              command:
-                - mongosh
-                - --eval
-                - "db.adminCommand('ping')"
-            periodSeconds: 1
-            timeoutSeconds: 3
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
