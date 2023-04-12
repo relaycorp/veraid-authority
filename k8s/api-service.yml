@@ -17,6 +17,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
+            initialDelaySeconds: 5
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
@@ -31,7 +32,7 @@ spec:
                   name: credentials
                   key: mongodb_password
             - name: MONGODB_URI
-              value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb
+              value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb.default
 
             - name: OAUTH2_JWKS_URL
               value: http://mock-authz-server.default/default/jwks
