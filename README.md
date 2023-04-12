@@ -36,17 +36,19 @@ kn service describe veraid-authority -o url
 
 This multi-tenant server will allow one or more organisations to manage their VeraId setup, and it'll also allow organisation members to claim and renew their VeraId Ids.
 
-## Authentication
+## API
 
-We'll use OAuth2 via the library [fastify-auth0-verify](https://github.com/nearform/fastify-auth0-verify) (which, despite the name, [is agnostic of Auth0](https://github.com/nearform/fastify-auth0-verify/issues/224)).
+### Authentication and authorisation
 
-The API will use the following roles:
+We use OAuth2 with JWKS to delegate authentication to an external identity provider.
+
+The API employs the following roles:
 
 - Admin. They can do absolutely anything on any organisation.
 - Org admin. They can do anything within their own organisation.
 - Org member. They can manage much of their own membership in their respective organisation.
 
-## HTTP Endpoints
+### HTTP Endpoints
 
 It will support the following API endpoints, which are to be consumed by the VeraId CA Console (a CLI used by organisation admins) and VeraId signature producers (used by organisation members):
 
