@@ -2,6 +2,8 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: veraid-authority
+  labels:
+    app.kubernetes.io/name: veraid-authority
 spec:
   template:
     metadata:

@@ -20,6 +20,7 @@ docker images
 print_header "Kubernetes resources"
 kubectl get all --all-namespaces
 
+print_header "Logs"
 PODS="$(
   kubectl get pod \
     -l app.kubernetes.io/name=veraid-authority \
