@@ -4,9 +4,12 @@ metadata:
   name: veraid-authority
 spec:
   template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
-        - name: authority-server
+        - name: api
           image: dev.local/veraid-authority
           args: [api]
           readinessProbe:
@@ -52,3 +55,18 @@ spec:
               value: http://mock-aws-kms:8080
             - name: AWS_KMS_REGION
               value: eu-west-2
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  name: veraid-authority-sink-binding
+spec:
+  subject:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: veraid-authority
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: authority-broker
