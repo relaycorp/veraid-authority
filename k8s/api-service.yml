@@ -19,7 +19,7 @@ spec:
               path: /
             initialDelaySeconds: 6
             periodSeconds: 2
-            timeoutSeconds: 1
+            timeoutSeconds: 0
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
