@@ -3,8 +3,8 @@ import { CloudEvent } from 'cloudevents';
 import envVar from 'env-var';
 
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
-import { CE_SOURCE, K_SINK } from '../../testUtils/eventing.js';
 import { mockSpy } from '../../testUtils/jest.js';
+import { CE_SOURCE, K_SINK } from '../../testUtils/eventing/stubs.js';
 
 const mockEmitter = mockSpy(jest.fn());
 const mockTransport = Symbol('mockTransport');

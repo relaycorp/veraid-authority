@@ -5,6 +5,7 @@ VeraId Certificate Authority (CA) server.
 ## Environment variables
 
 - `AUTHORITY_VERSION` (required). The version of this server.
+- `K_SINK` (required). The URL to the Knative Eventing endpoint where events should be published.
 - `MONGODB_URI` (required).
 - OAuth2 authentication:
   - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
