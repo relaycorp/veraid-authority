@@ -3,7 +3,7 @@ import fastifyPlugin from 'fastify-plugin';
 
 import { createMongooseConnectionFromEnv } from '../../mongo.js';
 
-const DELAY = 2000;
+const DELAY = 3000;
 
 async function fastifyMongoose(fastify: FastifyInstance): Promise<void> {
   // eslint-disable-next-line promise/avoid-new,no-promise-executor-return
