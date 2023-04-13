@@ -25,6 +25,7 @@ describe('healthcheck routes', () => {
         id: 'id',
         source: 'https://example.com',
         type: 'type',
+        data: { foo: 'bar' },
       }),
     );
   });

@@ -3,7 +3,7 @@ import type { CloudEvent } from 'cloudevents';
 
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 
-class MockEmitter extends Emitter {
+class MockEmitter extends Emitter<unknown> {
   public constructor(private readonly events: CloudEvent[]) {
     super();
   }
@@ -15,7 +15,7 @@ class MockEmitter extends Emitter {
 }
 
 export function mockEmitter(): () => CloudEvent[] {
-  const initMock = jest.spyOn(Emitter, 'init');
+  const initMock = jest.spyOn(Emitter<unknown>, 'init');
   let events: CloudEvent[] = [];
 
   beforeEach(() => {
