@@ -10,14 +10,18 @@ export default function registerRoutes(
   _opts: RouteOptions,
   done: PluginDone,
 ): void {
-  const emitter = Emitter.initFromEnv();
+  const emitter = Emitter.init();
 
   fastify.route({
     method: ['POST'],
     url: '/example-event-publisher',
 
     async handler(_request, reply): Promise<void> {
-      const event = new CloudEvent({ id: 'id', source: 'https://example.com', type: 'type' });
+      const event = new CloudEvent({
+        id: 'id', // This should be unique, unless you want to replace an existing (unprocessed) event
+        source: 'https://example.com',
+        type: 'type',
+      });
       await emitter.emit(event);
 
       await reply

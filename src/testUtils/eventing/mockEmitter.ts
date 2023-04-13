@@ -4,20 +4,22 @@ import type { CloudEvent } from 'cloudevents';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 
 class MockEmitter extends Emitter {
-  public static init<InitPayload>(events: CloudEvent<InitPayload>[]): MockEmitter {
-    const emitter = (event: CloudEvent<InitPayload>) => {
-      events.push(event);
-    };
-    return new MockEmitter(emitter as () => Promise<void>);
+  public constructor(private readonly events: CloudEvent[]) {
+    super();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public override async emit(event: CloudEvent): Promise<void> {
+    this.events.push(event);
   }
 }
 
 export function mockEmitter(): () => CloudEvent[] {
-  const initMock = jest.spyOn(Emitter, 'initFromEnv');
+  const initMock = jest.spyOn(Emitter, 'init');
   let events: CloudEvent[] = [];
 
   beforeEach(() => {
-    const mock = MockEmitter.init(events);
+    const mock = new MockEmitter(events);
     initMock.mockReturnValue(mock);
   });
 
