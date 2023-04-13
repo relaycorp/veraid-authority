@@ -17,7 +17,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-            initialDelaySeconds: 4
+            initialDelaySeconds: 5
             periodSeconds: 2
             timeoutSeconds: 1
           env:
