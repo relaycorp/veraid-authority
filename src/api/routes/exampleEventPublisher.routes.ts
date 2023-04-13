@@ -4,17 +4,15 @@ import { CloudEvent } from 'cloudevents';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
-
-interface DummyEventPayload {
-  foo: string;
-}
+import { type ExampleEventPayload, EXAMPLE_EVENT_TYPE } from '../../internalEvents/example.js';
 
 export default function registerRoutes(
   fastify: FastifyInstance,
   _opts: RouteOptions,
   done: PluginDone,
 ): void {
-  const emitter = Emitter.init() as Emitter<DummyEventPayload>;
+  // `POST /awala` is probably the only endpoint in the API server that actually needs the emitter.
+  const emitter = Emitter.init() as Emitter<ExampleEventPayload>;
 
   fastify.route({
     method: ['POST'],
@@ -22,9 +20,21 @@ export default function registerRoutes(
 
     async handler(_request, reply): Promise<void> {
       const event = new CloudEvent({
-        id: 'id', // This should be unique, unless you want to replace an existing (unprocessed) event
-        source: 'https://example.com',
-        type: 'type',
+        // This should be unique for a given `source`, unless we want to replace an existing
+        // (in-flight) event. This is required (but we may not actually care about it).
+        id: 'id',
+
+        // The source is a URL that identifies the source of the event. The URL may or may not
+        // exist. This field is required (but we may not actually care about it).
+        source: 'https://veraid.net/authority/api',
+
+        // The subject is whom this event refers to. The field is optional.
+        subject: 'bbc.com',
+
+        // The type is what we'd use for routing purposes. This field is required.
+        type: EXAMPLE_EVENT_TYPE,
+
+        // The data is the actual payload. This field is required.
         data: { foo: 'bar' },
       });
       await emitter.emit(event);

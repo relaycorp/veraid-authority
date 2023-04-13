@@ -1,13 +1,14 @@
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { setUpTestServer } from '../../testUtils/server.js';
+import type { CloudEventV1 } from 'cloudevents';
+
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
+import { makeTestApiServer } from '../../testUtils/apiServer.js';
+import { type ExampleEventPayload, EXAMPLE_EVENT_TYPE } from '../../internalEvents/example.js';
 
-describe('healthcheck routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
+describe('example event publisher routes', () => {
   const getEvents = mockEmitter();
 
-  const getTestServer = setUpTestServer();
+  const getTestServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();
@@ -21,10 +22,11 @@ describe('healthcheck routes', () => {
 
     expect(response).toHaveProperty('statusCode', 200);
     expect(getEvents()).toContainEqual(
-      expect.objectContaining({
+      expect.objectContaining<Partial<CloudEventV1<ExampleEventPayload>>>({
         id: 'id',
-        source: 'https://example.com',
-        type: 'type',
+        source: 'https://veraid.net/authority/api',
+        subject: 'bbc.com',
+        type: EXAMPLE_EVENT_TYPE,
         data: { foo: 'bar' },
       }),
     );

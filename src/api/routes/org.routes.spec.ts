@@ -2,7 +2,6 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
   AWALA_ENDPOINT,
   NON_ASCII_AWALA_ENDPOINT,
@@ -33,11 +32,10 @@ jest.unstable_mockModule('../../org.js', () => ({
   deleteOrg: mockDeleteOrg,
 }));
 
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
 describe('org routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const getTestServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();

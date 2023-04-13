@@ -4,13 +4,21 @@ VeraId Certificate Authority (CA) server.
 
 ## Environment variables
 
+All processes require the following variables:
+
 - `AUTHORITY_VERSION` (required). The version of this server.
 - `K_SINK` (required). The URL to the Knative Eventing endpoint where events should be published.
 - `MONGODB_URI` (required).
-- OAuth2 authentication:
+- KMS-related variables:
+  - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
+  - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
+
+The API server additionally requires the following variables:
+
+- Authentication-related variables:
   - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
   - Either `OAUTH2_TOKEN_ISSUER` or `OAUTH2_TOKEN_ISSUER_REGEX` (required). The (URL of the) authorisation server.
-  - `OAUTH2_TOKEN_AUDIENCE` (required). The identifier of the current instance of this server (typically its public URL).
+  - `OAUTH2_TOKEN_AUDIENC[example.sink.spec.ts](src%2FbackgroundQueue%2Fsinks%2Fexample.sink.spec.ts)E` (required). The identifier of the current instance of this server (typically its public URL).
 
 ## Development
 

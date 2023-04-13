@@ -9,7 +9,7 @@ import {
   orgSchemaMemberAccessTypes,
 } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import {
   AWALA_ENDPOINT,
@@ -29,12 +29,11 @@ describe('org', () => {
   const getConnection = setUpTestDbConnection();
   const getMockKms = mockKms();
 
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
   let orgModel: ReturnModelType<typeof OrgModelSchema>;
   beforeEach(() => {
-    mockLogging = makeMockLogging();
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,

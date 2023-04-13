@@ -4,7 +4,7 @@ import envVar from 'env-var';
 
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import { CE_SOURCE, K_SINK } from '../../testUtils/eventing/stubs.js';
+import { CE_ID, CE_SOURCE, K_SINK } from '../../testUtils/eventing/stubs.js';
 
 const mockEmitterFunction = mockSpy(jest.fn());
 const mockTransport = Symbol('mockTransport');
@@ -40,7 +40,7 @@ describe('Emitter', () => {
   describe('emit', () => {
     const mockEnvVars = configureMockEnvVars({ K_SINK });
 
-    const event = new CloudEvent({ id: 'id', source: CE_SOURCE, type: 'type' });
+    const event = new CloudEvent({ id: CE_ID, source: CE_SOURCE, type: 'type' });
 
     test('K_SINK should be defined', async () => {
       mockEnvVars({ K_SINK: undefined });
