@@ -7,7 +7,7 @@ import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
 
-import { ProblemType } from './ProblemType.js';
+import { QueueProblemType } from './QueueProblemType.js';
 
 configureMockEnvVars(REQUIRED_QUEUE_ENV_VARS);
 
@@ -38,7 +38,7 @@ describe('makeQueueServer', () => {
       });
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', ProblemType.INVALID_EVENT);
+      expect(response.json()).toHaveProperty('type', QueueProblemType.INVALID_EVENT);
     });
 
     test('Unsupported CloudEvent type should be refused', async () => {
@@ -52,7 +52,7 @@ describe('makeQueueServer', () => {
       const response = await postEvent(event, server);
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', ProblemType.UNSUPPORTED_EVENT);
+      expect(response.json()).toHaveProperty('type', QueueProblemType.UNSUPPORTED_EVENT);
     });
   });
 });

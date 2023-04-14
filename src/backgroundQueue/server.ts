@@ -9,7 +9,7 @@ import { EXAMPLE_EVENT_TYPE } from '../internalEvents/example.js';
 
 import processExample from './sinks/example.sink.js';
 import type { Sink } from './Sink.js';
-import { ProblemType } from './ProblemType.js';
+import { QueueProblemType } from './QueueProblemType.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
   [EXAMPLE_EVENT_TYPE]: processExample,
@@ -36,7 +36,9 @@ function makeQueueServerPlugin(
     try {
       events = HTTP.toEvent(message) as CloudEventV1<unknown>;
     } catch {
-      await reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send({ type: ProblemType.INVALID_EVENT });
+      await reply
+        .status(HTTP_STATUS_CODES.BAD_REQUEST)
+        .send({ type: QueueProblemType.INVALID_EVENT });
       return;
     }
 
@@ -45,7 +47,7 @@ function makeQueueServerPlugin(
     if (sink === undefined) {
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
-        .send({ type: ProblemType.UNSUPPORTED_EVENT });
+        .send({ type: QueueProblemType.UNSUPPORTED_EVENT });
       return;
     }
 
