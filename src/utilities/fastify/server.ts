@@ -1,6 +1,12 @@
-import { fastify, type FastifyInstance, type FastifyPluginAsync, type HTTPMethods } from 'fastify';
+import {
+  fastify,
+  type FastifyInstance,
+  type FastifyPluginAsync,
+  type FastifyPluginCallback,
+  type HTTPMethods,
+} from 'fastify';
 import env from 'env-var';
-import type { Logger } from 'pino';
+import type { BaseLogger } from 'pino';
 
 import { makeLogger } from '../logging.js';
 import { configureExitHandling } from '../exitHandling.js';
@@ -22,7 +28,10 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
   'OPTIONS',
 ];
 
-export async function makeFastify(appPlugin: FastifyPluginAsync, customLogger?: Logger) {
+export async function makeFastify(
+  appPlugin: FastifyPluginAsync | FastifyPluginCallback,
+  customLogger?: BaseLogger,
+) {
   const logger = customLogger ?? makeLogger();
   configureExitHandling(logger);
 

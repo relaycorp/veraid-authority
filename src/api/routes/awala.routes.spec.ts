@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { mockSpy } from '../../testUtils/jest.js';
@@ -16,15 +15,14 @@ jest.unstable_mockModule('../../awala.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
 }));
 
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
 describe('awala routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const getTestApiServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
 
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestApiServer();
   });
 
   test('Invalid content type should resolve to unsupported media type error', async () => {

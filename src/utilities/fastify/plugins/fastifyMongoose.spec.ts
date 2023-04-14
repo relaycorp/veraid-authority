@@ -7,9 +7,7 @@ import { mockSpy } from '../../../testUtils/jest.js';
 const mockMongooseClose = mockSpy(jest.fn());
 const mockMongoose = { close: mockMongooseClose } as unknown as Connection;
 jest.unstable_mockModule('../../mongo.js', () => ({
-  createMongooseConnectionFromEnv: jest
-    .fn<() => Promise<Connection>>()
-    .mockResolvedValue(mockMongoose),
+  createMongooseConnectionFromEnv: jest.fn<() => Connection>().mockReturnValue(mockMongoose),
 }));
 const fastifyMongoose = await import('./fastifyMongoose.js');
 

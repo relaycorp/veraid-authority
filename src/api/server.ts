@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyPluginCallback } from 'fastify';
-import type { Logger } from 'pino';
+import type { BaseLogger } from 'pino';
 import fastifyRoutes from '@fastify/routes';
 import fastifyOauth2Verify, { type FastifyAuth0VerifyOptions } from 'fastify-auth0-verify';
 import env from 'env-var';
@@ -8,14 +8,16 @@ import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
+import exampleEventPublisher from './routes/exampleEventPublisher.routes.js';
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import awalaRoutes from './routes/awala.routes.js';
 
 const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [
+  exampleEventPublisher,
   healthcheckRoutes,
-  awalaRoutes,
   orgRoutes,
+  awalaRoutes,
 ];
 
 function getOauth2PluginOptions(): FastifyAuth0VerifyOptions {
@@ -48,11 +50,6 @@ async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
   await Promise.all(ROOT_ROUTES.map((route) => server.register(route)));
 }
 
-/**
- * Initialize a Fastify server instance.
- *
- * This function doesn't call .listen() so we can use .inject() for testing purposes.
- */
-export async function makeServer(customLogger?: Logger): Promise<FastifyInstance> {
+export async function makeApiServer(customLogger?: BaseLogger): Promise<FastifyInstance> {
   return makeFastify(makeApiServerPlugin, customLogger);
 }

@@ -1,7 +1,6 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -22,11 +21,10 @@ const mockCreateMemberKeyImportToken = mockSpy(
 jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
 }));
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
 describe('member key import token routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const getTestServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();

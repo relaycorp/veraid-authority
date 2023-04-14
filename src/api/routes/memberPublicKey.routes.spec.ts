@@ -1,7 +1,6 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
@@ -33,14 +32,13 @@ jest.unstable_mockModule('../../memberPublicKey.js', () => ({
   getMemberPublicKey: mockGetMemberPublicKey,
   deleteMemberPublicKey: mockDeleteMemberPublicKey,
 }));
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 describe('member public keys routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const getTestServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();

@@ -1,8 +1,8 @@
 import envVar from 'env-var';
 import { type Connection, createConnection } from 'mongoose';
 
-export async function createMongooseConnectionFromEnv(): Promise<Connection> {
+export function createMongooseConnectionFromEnv(): Connection {
   const mongoUri = envVar.get('MONGODB_URI').required().asString();
 
-  return createConnection(mongoUri).asPromise();
+  return createConnection(mongoUri);
 }

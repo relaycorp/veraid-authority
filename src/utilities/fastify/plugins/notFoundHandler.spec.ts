@@ -1,14 +1,14 @@
 import type { HTTPMethods } from 'fastify';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../../testUtils/envVars.js';
+import { configureMockEnvVars } from '../../../testUtils/envVars.js';
 import { HTTP_STATUS_CODES } from '../../http.js';
-import { setUpTestServer } from '../../../testUtils/server.js';
 import type { FastifyTypedInstance } from '../FastifyTypedInstance.js';
 import { HTTP_METHODS } from '../server.js';
+import { REQUIRED_API_ENV_VARS, makeTestApiServer } from '../../../testUtils/apiServer.js';
 
 describe('notFoundHandler', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  configureMockEnvVars(REQUIRED_API_ENV_VARS);
+  const getTestServer = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();

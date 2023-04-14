@@ -2,7 +2,7 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
@@ -17,12 +17,11 @@ function getTimestampWithOffset(miliSeconds: number) {
 describe('awala', () => {
   const getConnection = setUpTestDbConnection();
 
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
   beforeEach(() => {
-    mockLogging = makeMockLogging();
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,

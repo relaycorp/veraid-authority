@@ -1,19 +1,17 @@
 import { jest } from '@jest/globals';
 import envVar from 'env-var';
 
-import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
+import { K_SINK } from './eventing/stubs.js';
 import { MONGODB_URI } from './db.js';
 
 interface EnvVarSet {
   readonly [key: string]: string | undefined;
 }
 
-export const REQUIRED_SERVER_ENV_VARS = {
+export const REQUIRED_ENV_VARS = {
   AUTHORITY_VERSION: '1.2.3',
+  K_SINK,
   MONGODB_URI,
-  OAUTH2_JWKS_URL,
-  OAUTH2_TOKEN_AUDIENCE,
-  OAUTH2_TOKEN_ISSUER,
 };
 
 export function configureMockEnvVars(envVars: EnvVarSet = {}): (envVars: EnvVarSet) => void {
