@@ -1,0 +1,13 @@
+apiVersion: sources.knative.dev/v1
+kind: PingSource
+metadata:
+  name: bundle-issuance-trigger
+spec:
+  schedule: "*/1 * * * *"
+  contentType: "application/cloudevents+json"
+  data: '{"id":"ce-id","type":"net.veraid.authority.member-bundle-issuance-trigger","source":"https://veraid.net/authority","specversion":"1.0","data":{}}'
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: veraid-authority-queue

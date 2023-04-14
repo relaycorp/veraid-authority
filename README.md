@@ -139,7 +139,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 
 The frequency is to be determined by the operator of the app.
 
-- Member bundle scheduler (e.g., every 24 hours). Retrieves all the bundles that should be issued in the next 24 hours, and does the following:
+- Member bundle scheduler (every minute in development). Retrieves all the bundles that should be issued in the next 24 hours, and does the following:
   1. Checks the signature, and ignores the request if the signature is invalid.
   2. publishes a `member-bundle-issuance-request` event for each entry (deleting the DB record upon publishing the event).
 

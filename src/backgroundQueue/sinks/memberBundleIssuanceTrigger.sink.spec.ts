@@ -7,9 +7,12 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import { CE_ID, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
-import { EXAMPLE_TYPE, type ExampleEventPayload } from '../../events/example.event.js';
+import {
+  BUNDLE_ISSUANCE_TRIGGER_TYPE,
+  type MemberBundleIssuanceTriggerPayload,
+} from '../../events/bundleIssuanceTrigger.event.js';
 
-describe('example event publisher routes', () => {
+describe('triggerBundleIssuance', () => {
   configureMockEnvVars(REQUIRED_QUEUE_ENV_VARS);
 
   const mockLogging = makeMockLogging();
@@ -20,11 +23,10 @@ describe('example event publisher routes', () => {
   });
 
   test('Event should be processed', async () => {
-    const event = new CloudEvent<ExampleEventPayload>({
+    const event = new CloudEvent<MemberBundleIssuanceTriggerPayload>({
       id: CE_ID,
       source: CE_SOURCE,
-      type: EXAMPLE_TYPE,
-      data: { foo: 'bar' },
+      type: BUNDLE_ISSUANCE_TRIGGER_TYPE,
     });
 
     const response = await postEvent(event, server);

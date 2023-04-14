@@ -5,14 +5,17 @@ import type { BaseLogger } from 'pino';
 import { makeFastify } from '../utilities/fastify/server.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
-import { EXAMPLE_EVENT_TYPE } from '../internalEvents/example.js';
+import { EXAMPLE_TYPE } from '../events/example.event.js';
+import { BUNDLE_ISSUANCE_TRIGGER_TYPE } from '../events/bundleIssuanceTrigger.event.js';
 
 import processExample from './sinks/example.sink.js';
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
+import triggerBundleIssuance from './sinks/memberBundleIssuanceTrigger.sink.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
-  [EXAMPLE_EVENT_TYPE]: processExample,
+  [EXAMPLE_TYPE]: processExample,
+  [BUNDLE_ISSUANCE_TRIGGER_TYPE]: triggerBundleIssuance,
 };
 
 function makeQueueServerPlugin(
