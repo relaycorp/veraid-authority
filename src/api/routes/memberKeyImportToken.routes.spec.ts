@@ -3,8 +3,8 @@ import { jest } from '@jest/globals';
 
 import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
-  MEMBER_KEY_IMPORT_TOKEN,
   MEMBER_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
   ORG_NAME,
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
@@ -46,7 +46,7 @@ describe('member key import token routes', () => {
         didSucceed: true,
 
         result: {
-          id: MEMBER_KEY_IMPORT_TOKEN,
+          id: MEMBER_PUBLIC_KEY_MONGO_ID,
         },
       });
 
@@ -65,7 +65,7 @@ describe('member key import token routes', () => {
       );
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        token: MEMBER_KEY_IMPORT_TOKEN,
+        token: MEMBER_PUBLIC_KEY_MONGO_ID,
       });
     });
 

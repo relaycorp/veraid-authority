@@ -10,8 +10,13 @@ import notFoundHandler from '../utilities/fastify/plugins/notFoundHandler.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
+import awalaRoutes from './routes/awala.routes.js';
 
-const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
+const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [
+  healthcheckRoutes,
+  awalaRoutes,
+  orgRoutes,
+];
 
 function getOauth2PluginOptions(): FastifyAuth0VerifyOptions {
   const audience = env.get('OAUTH2_TOKEN_AUDIENCE').required().asString();
