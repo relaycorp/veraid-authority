@@ -23,6 +23,7 @@
     "@relaycorp/veraid": "^1.13.2",
     "@relaycorp/webcrypto-kms": "^1.5.1",
     "@typegoose/typegoose": "^10.3.3",
+    "cloudevents": "^6.0.4",
     "env-var": "^7.3.0",
     "fastify": "^4.14.0",
     "fastify-auth0-verify": "github:relaycorp/fastify-auth0-verify#auth0-agnostic-generated",

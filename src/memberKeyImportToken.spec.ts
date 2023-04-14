@@ -2,7 +2,7 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { MEMBER_MONGO_ID, TEST_SERVICE_OID } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { createMemberKeyImportToken } from './memberKeyImportToken.js';
@@ -11,12 +11,11 @@ import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.m
 describe('member key import token', () => {
   const getConnection = setUpTestDbConnection();
 
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
   let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
   beforeEach(() => {
-    mockLogging = makeMockLogging();
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,

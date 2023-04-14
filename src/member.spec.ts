@@ -3,7 +3,7 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   MEMBER_EMAIL,
   MEMBER_MONGO_ID,
@@ -28,12 +28,11 @@ import { MemberProblemType } from './MemberProblemType.js';
 describe('member', () => {
   const getConnection = setUpTestDbConnection();
 
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
   let memberModel: ReturnModelType<typeof MemberModelSchema>;
   beforeEach(() => {
-    mockLogging = makeMockLogging();
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,

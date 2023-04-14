@@ -2,7 +2,6 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
@@ -31,14 +30,13 @@ jest.unstable_mockModule('../../member.js', () => ({
   updateMember: mockUpdateMember,
 }));
 
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
 describe('member routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
   const mongoId = '6424ad273f75645b35f9ee79';
-  const getTestServer = setUpTestServer();
-  let serverInstance: FastifyTypedInstance;
   const testMemberId = 'TEST_ID';
+  const getTestServer = makeTestApiServer();
+  let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
     serverInstance = getTestServer();
   });

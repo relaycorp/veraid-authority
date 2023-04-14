@@ -1,14 +1,13 @@
 import { argv } from 'node:process';
 
-import type { FastifyInstance } from 'fastify';
-
-import { makeServer } from '../api/server.js';
+import { makeApiServer } from '../api/server.js';
+import { makeQueueServer } from '../backgroundQueue/server.js';
 import { runFastify } from '../utilities/fastify/server.js';
-
-type ServerMaker = () => Promise<FastifyInstance>;
+import type { ServerMaker } from '../utilities/fastify/ServerMaker.js';
 
 const SERVER_MAKERS: { [key: string]: ServerMaker } = {
-  api: makeServer,
+  api: makeApiServer,
+  queue: makeQueueServer,
 };
 
 const [, scriptName, serverName] = argv;
