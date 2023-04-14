@@ -6,16 +6,16 @@ import { makeFastify } from '../utilities/fastify/server.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { EXAMPLE_TYPE } from '../events/example.event.js';
-import { BUNDLE_ISSUANCE_TRIGGER_TYPE } from '../events/bundleIssuanceTrigger.event.js';
+import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 
 import processExample from './sinks/example.sink.js';
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
-import triggerBundleIssuance from './sinks/memberBundleIssuanceTrigger.sink.js';
+import triggerBundleRequest from './sinks/memberBundleRequestTrigger.sink.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
   [EXAMPLE_TYPE]: processExample,
-  [BUNDLE_ISSUANCE_TRIGGER_TYPE]: triggerBundleIssuance,
+  [BUNDLE_REQUEST_TRIGGER_TYPE]: triggerBundleRequest,
 };
 
 function makeQueueServerPlugin(
