@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 
 import {
   MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY_MONGO_ID,
+  MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
@@ -44,7 +44,7 @@ describe('member key import token routes', () => {
         didSucceed: true,
 
         result: {
-          id: MEMBER_PUBLIC_KEY_MONGO_ID,
+          id: MEMBER_KEY_IMPORT_TOKEN,
         },
       });
 
@@ -63,7 +63,7 @@ describe('member key import token routes', () => {
       );
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        token: MEMBER_PUBLIC_KEY_MONGO_ID,
+        token: MEMBER_KEY_IMPORT_TOKEN,
       });
     });
 
