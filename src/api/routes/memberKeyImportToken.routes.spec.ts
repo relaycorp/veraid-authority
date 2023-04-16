@@ -13,13 +13,24 @@ import type { MemberKeyImportTokenCreationResult } from '../../memberKeyImportTo
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { MemberKeyImportTokenSchema } from '../../schemas/memberKeyImportToken.schema.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { Result } from '../../utilities/result.js';
+import { MemberKeyImportTokenGetResult } from '../../memberKeyImportTokenTypes.js';
+import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
 
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
 );
+const mockGetMemberKeyImportToken = mockSpy(
+  jest.fn<() => Promise<SuccessfulResult<undefined>>>(),
+);
+const mockDeleteMemberKeyImportToken = mockSpy(
+  jest.fn<() => Promise<Result<MemberKeyImportTokenGetResult, MemberPublicKeyImportProblemType>>>(),
+);
 
 jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
+  getMemberKeyImportToken: mockGetMemberKeyImportToken,
+  deleteMemberKeyImportToken: mockDeleteMemberKeyImportToken,
 }));
 const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 

@@ -6,10 +6,15 @@ import type { JSONSchema, FromSchema } from 'json-schema-to-ts';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { MEMBER_BUNDLE_REQUEST_SCHEMA } from '../../schemas/awala.schema.js';
+import {
+  MEMBER_BUNDLE_REQUEST_SCHEMA,
+  MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
+} from '../../schemas/awala.schema.js';
 import { AwalaProblemType } from '../../AwalaProblemType.js';
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
+import { createMemberPublicKey } from '../../memberPublicKey.js';
+import { deleteMemberKeyImportToken, getMemberKeyImportToken } from '../../memberKeyImportToken.js';
 
 const ajv = addFormats(new Ajv());
 
@@ -39,8 +44,41 @@ async function processMemberBundleRequest(
   return undefined;
 }
 
+async function processMemberKeyImportRequest(
+  data: unknown,
+  options: ServiceOptions,
+): Promise<AwalaProblemType | undefined> {
+  const validData = validateType(data, MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
+  if (validData === undefined) {
+    return AwalaProblemType.MALFORMED_AWALA_MESSAGE_BODY;
+  }
+
+  const keyTokenData = await getMemberKeyImportToken(validData.publicKeyImportToken, options);
+  if (!keyTokenData.didSucceed) {
+    return AwalaProblemType.ERROR_COULD_BE_IGNORED;
+  }
+
+  const craetePublicKeyResult = await createMemberPublicKey(
+    keyTokenData.result.memberId,
+    {
+      publicKey: validData.publicKey,
+      serviceOid: keyTokenData.result.serviceOid,
+    },
+    options,
+  );
+
+  if (!craetePublicKeyResult.didSucceed) {
+    return AwalaProblemType.ERROR_COULD_BE_IGNORED;
+  }
+
+  await deleteMemberKeyImportToken(validData.publicKeyImportToken, options);
+
+  return undefined;
+}
+
 enum AwalaRequestMessageType {
   MEMBER_BUNDLE_REQUEST = 'application/vnd.veraid.member-bundle-request',
+  MEMBER_PUBLIC_KEY_IMPORT = 'application/vnd.veraid.member-public-key-import',
 }
 const awalaRequestMessageTypeList: AwalaRequestMessageType[] =
   Object.values(AwalaRequestMessageType);
@@ -73,6 +111,15 @@ export default function registerRoutes(
       if (contentType === AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST) {
         const result = await processMemberBundleRequest(request.body, serviceOptions);
         if (!result) {
+          await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
+          return;
+        }
+      }
+
+      if (contentType === AwalaRequestMessageType.MEMBER_PUBLIC_KEY_IMPORT) {
+        const result = await processMemberKeyImportRequest(request.body, serviceOptions);
+        if (!result) {
+          // throw event here!
           await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
           return;
         }
