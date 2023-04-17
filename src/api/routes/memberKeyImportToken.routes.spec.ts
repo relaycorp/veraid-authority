@@ -3,26 +3,25 @@ import { jest } from '@jest/globals';
 
 import {
   MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY_MONGO_ID,
+  MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
-import type { SuccessfulResult } from '../../utilities/result.js';
+import type { SuccessfulResult, type Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import type { MemberKeyImportTokenCreationResult } from '../../memberKeyImportTokenTypes.js';
+import type {
+  MemberKeyImportTokenCreationResult,
+  MemberKeyImportTokenGetResult,
+} from '../../memberKeyImportTokenTypes.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { MemberKeyImportTokenSchema } from '../../schemas/memberKeyImportToken.schema.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import { Result } from '../../utilities/result.js';
-import { MemberKeyImportTokenGetResult } from '../../memberKeyImportTokenTypes.js';
-import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
+import type { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
 
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
 );
-const mockGetMemberKeyImportToken = mockSpy(
-  jest.fn<() => Promise<SuccessfulResult<undefined>>>(),
-);
+const mockGetMemberKeyImportToken = mockSpy(jest.fn<() => Promise<SuccessfulResult<undefined>>>());
 const mockDeleteMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<MemberKeyImportTokenGetResult, MemberPublicKeyImportProblemType>>>(),
 );
@@ -55,7 +54,7 @@ describe('member key import token routes', () => {
         didSucceed: true,
 
         result: {
-          id: MEMBER_PUBLIC_KEY_MONGO_ID,
+          id: MEMBER_KEY_IMPORT_TOKEN,
         },
       });
 
@@ -74,7 +73,7 @@ describe('member key import token routes', () => {
       );
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        token: MEMBER_PUBLIC_KEY_MONGO_ID,
+        token: MEMBER_KEY_IMPORT_TOKEN,
       });
     });
 

@@ -5,7 +5,6 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY_IMPORT_TOKEN,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
@@ -95,7 +94,7 @@ describe('member key import token', () => {
     });
 
     test('Non existing token should return non existing error', async () => {
-      const result = await getMemberKeyImportToken(MEMBER_PUBLIC_KEY_IMPORT_TOKEN, serviceOptions);
+      const result = await getMemberKeyImportToken(, serviceOptions);
 
       requireFailureResult(result);
 
