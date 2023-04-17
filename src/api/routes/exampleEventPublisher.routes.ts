@@ -4,7 +4,7 @@ import { CloudEvent } from 'cloudevents';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
-import { type ExampleEventPayload, EXAMPLE_EVENT_TYPE } from '../../internalEvents/example.js';
+import { type ExampleEventPayload, EXAMPLE_TYPE } from '../../events/example.event.js';
 
 export default function registerRoutes(
   fastify: FastifyInstance,
@@ -32,7 +32,7 @@ export default function registerRoutes(
         subject: 'bbc.com',
 
         // The type is what we'd use for routing purposes. This field is required.
-        type: EXAMPLE_EVENT_TYPE,
+        type: EXAMPLE_TYPE,
 
         // The data is the actual payload. This field is required.
         data: { foo: 'bar' },
