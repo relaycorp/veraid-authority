@@ -87,11 +87,10 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog(
-          'info',
-          'data/memberBundleStartDate must match format "date-time"',
-          methodPayload,
-        ),
+        partialPinoLog('info', 'Refused invalid member bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          reason: 'data/memberBundleStartDate must match format "date-time"',
+        }),
       );
     });
 
@@ -110,11 +109,10 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog(
-          'info',
-          `data/signature must match pattern "${BASE_64_REGEX}"`,
-          methodPayload,
-        ),
+        partialPinoLog('info', 'Refused invalid member bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          reason: `data/signature must match pattern "${BASE_64_REGEX}"`,
+        }),
       );
     });
 
@@ -133,11 +131,10 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog(
-          'info',
-          `data/awalaPda must match pattern "${BASE_64_REGEX}"`,
-          methodPayload,
-        ),
+        partialPinoLog('info', 'Refused invalid member bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          reason: `data/awalaPda must match pattern "${BASE_64_REGEX}"`,
+        }),
       );
     });
   });
