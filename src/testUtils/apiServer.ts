@@ -1,3 +1,5 @@
+import type { BaseLogger } from 'pino';
+
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { makeApiServer } from '../api/server.js';
 
@@ -12,7 +14,7 @@ export const REQUIRED_API_ENV_VARS = {
   OAUTH2_TOKEN_ISSUER,
 };
 
-export function makeTestApiServer(): () => FastifyTypedInstance {
+export function makeTestApiServer(logger?: BaseLogger): () => FastifyTypedInstance {
   configureMockEnvVars(REQUIRED_API_ENV_VARS);
-  return makeTestServer(makeApiServer);
+  return makeTestServer(makeApiServer, logger);
 }

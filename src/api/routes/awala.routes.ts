@@ -13,35 +13,45 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 
 const ajv = addFormats(new Ajv());
 
-type ValidateTypeResult<Schema extends JSONSchema> = FromSchema<Schema> | undefined;
+type ValidationResult<Schema extends JSONSchema> = FromSchema<Schema> | string;
 
-function validateType<Schema extends JSONSchema>(
+function validateMessage<Schema extends JSONSchema>(
   value: unknown,
   schema: Schema,
-): ValidateTypeResult<Schema> {
+): ValidationResult<Schema> {
   if (!ajv.validate(schema, value)) {
-    return undefined;
+    return ajv.errorsText(ajv.errors);
   }
 
-  return value as ValidateTypeResult<Schema>;
+  return value as ValidationResult<Schema>;
 }
 
 async function processMemberBundleRequest(
   data: unknown,
   options: ServiceOptions,
 ): Promise<AwalaProblemType | undefined> {
-  const validData = validateType(data, MEMBER_BUNDLE_REQUEST_SCHEMA);
-  if (validData === undefined) {
+  const validationResult = validateMessage(data, MEMBER_BUNDLE_REQUEST_SCHEMA);
+  if (typeof validationResult === 'string') {
+    options.logger.info(data, validationResult);
     return AwalaProblemType.MALFORMED_AWALA_MESSAGE_BODY;
   }
 
-  await createMemberBundleRequest(validData, options);
+  await createMemberBundleRequest(validationResult, options);
   return undefined;
 }
 
 enum AwalaRequestMessageType {
   MEMBER_BUNDLE_REQUEST = 'application/vnd.veraid.member-bundle-request',
 }
+
+const awalaEventToProcessor: {
+  [key in AwalaRequestMessageType]: (
+    data: unknown,
+    options: ServiceOptions,
+  ) => Promise<AwalaProblemType | undefined>;
+} = {
+  [AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST]: processMemberBundleRequest,
+};
 const awalaRequestMessageTypeList: AwalaRequestMessageType[] =
   Object.values(AwalaRequestMessageType);
 
@@ -66,16 +76,17 @@ export default function registerRoutes(
       const contentType = awalaRequestMessageTypeList.find(
         (messageType) => messageType === request.headers['content-type'],
       );
+
       const serviceOptions = {
         logger: this.log,
         dbConnection: this.mongoose,
       };
-      if (contentType === AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST) {
-        const result = await processMemberBundleRequest(request.body, serviceOptions);
-        if (!result) {
-          await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
-          return;
-        }
+
+      const result = await awalaEventToProcessor[contentType!](request.body, serviceOptions);
+
+      if (!result) {
+        await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
+        return;
       }
 
       await reply.code(HTTP_STATUS_CODES.BAD_REQUEST).send();

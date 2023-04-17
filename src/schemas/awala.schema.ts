@@ -1,6 +1,6 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
-import { BASE_64 } from './validation.js';
+import { BASE_64_REGEX } from './validation.js';
 
 export const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   type: 'object',
@@ -8,8 +8,8 @@ export const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   properties: {
     publicKeyId: { type: 'string' },
     memberBundleStartDate: { type: 'string', format: 'date-time' },
-    signature: { type: 'string', pattern: BASE_64 },
-    awalaPda: { type: 'string', pattern: BASE_64 },
+    signature: { type: 'string', pattern: BASE_64_REGEX },
+    awalaPda: { type: 'string', pattern: BASE_64_REGEX },
   },
 
   required: ['publicKeyId', 'memberBundleStartDate', 'signature', 'awalaPda'],
