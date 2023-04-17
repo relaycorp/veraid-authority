@@ -7,7 +7,7 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import { CE_ID, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
-import { EXAMPLE_EVENT_TYPE, type ExampleEventPayload } from '../../internalEvents/example.js';
+import { EXAMPLE_TYPE, type ExampleEventPayload } from '../../events/example.event.js';
 
 describe('example event publisher routes', () => {
   configureMockEnvVars(REQUIRED_QUEUE_ENV_VARS);
@@ -23,7 +23,7 @@ describe('example event publisher routes', () => {
     const event = new CloudEvent<ExampleEventPayload>({
       id: CE_ID,
       source: CE_SOURCE,
-      type: EXAMPLE_EVENT_TYPE,
+      type: EXAMPLE_TYPE,
       data: { foo: 'bar' },
     });
 

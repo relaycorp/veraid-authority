@@ -139,25 +139,25 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 
 The frequency is to be determined by the operator of the app.
 
-- Member bundle scheduler (e.g., every 24 hours). Retrieves all the bundles that should be issued in the next 24 hours, and does the following:
+- Member bundle scheduler (every minute in development). Retrieves all the bundles that should be issued in the next 24 hours, and does the following:
   1. Checks the signature, and ignores the request if the signature is invalid.
-  2. publishes a `member-bundle-issuance-request` event for each entry (deleting the DB record upon publishing the event).
+  2. Publishes a `member-bundle-request` event for each entry (deleting the DB record upon publishing the event).
 
 ## Events
 
 All events are JSON-serialised.
 
-- `member-bundle-issuance-request`: A member bundle has been requested. Payload:
+- `member-bundle-request`: A member bundle has been requested. Payload:
   - Globally-unique id for the public key.
   - Awala PDA.
-- `member-public-key-import`: A member public key has just been imported. Payload: Same as `member-bundle-issuance-request` (coincidentally; they could diverge in the future).
+- `member-public-key-import`: A member public key has just been imported. Payload: Same as `member-bundle-request` (coincidentally; they could diverge in the future).
 
 ## Event consumers
 
 The events above are consumed by the following Knative Eventing sinks:
 
 - `member-bundle-issuer`:
-  - Event triggers: `member-bundle-issuance-request`.
+  - Event triggers: `member-bundle-request`.
   - Outcome:
     1. Post Awala PDA to Awala Endpoint Middleware, and extract the Awala recipient address from the response (to be used later).
     2. Generate VeraId Member Bundle.

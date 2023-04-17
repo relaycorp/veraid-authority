@@ -50,6 +50,21 @@ spec:
             - name: AWS_KMS_REGION
               value: eu-west-2
 ---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  name: veraid-authority-queue-sink-binding
+spec:
+  subject:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: veraid-authority-queue
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: authority-broker
+---
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
