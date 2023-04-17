@@ -55,7 +55,7 @@ async function processMemberKeyImportRequest(
 
   const keyTokenData = await getMemberKeyImportToken(validData.publicKeyImportToken, options);
   if (!keyTokenData.didSucceed) {
-    return AwalaProblemType.ERROR_COULD_BE_IGNORED;
+    return undefined;
   }
 
   const craetePublicKeyResult = await createMemberPublicKey(
@@ -68,9 +68,9 @@ async function processMemberKeyImportRequest(
   );
 
   if (!craetePublicKeyResult.didSucceed) {
-    return AwalaProblemType.ERROR_COULD_BE_IGNORED;
+    return undefined;
   }
-
+  // trigger event
   await deleteMemberKeyImportToken(validData.publicKeyImportToken, options);
 
   return undefined;
