@@ -33,9 +33,12 @@ async function processMemberBundleRequest(
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
-        publicKeyId: (data as {
-          publicKeyId: string
-        }).publicKeyId,
+        publicKeyId: (
+          data as {
+            publicKeyId: string;
+          }
+        ).publicKeyId,
+
         reason: validationResult,
       },
       'Refused invalid member bundle request',
