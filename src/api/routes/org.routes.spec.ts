@@ -32,7 +32,7 @@ jest.unstable_mockModule('../../org.js', () => ({
   deleteOrg: mockDeleteOrg,
 }));
 
-const { makeTestApiServer, testOrgAuth } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('org routes', () => {
   const getTestServerFixture = makeTestApiServer();
@@ -50,7 +50,7 @@ describe('org routes', () => {
 
     describe('Auth', () => {
       const payload: OrgSchema = { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' };
-      testOrgAuth('SUPER_ADMIN', { ...injectionOptions, payload }, getTestServerFixture, {
+      testOrgRouteAuth('ORG_BULK', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateOrg,
         result: { name: ORG_NAME },
       });
@@ -237,7 +237,7 @@ describe('org routes', () => {
         mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       });
 
-      testOrgAuth('ORG_ADMIN', { ...injectionOptions, payload: {} }, getTestServerFixture, {
+      testOrgRouteAuth('ORG', { ...injectionOptions, payload: {} }, getTestServerFixture, {
         spy: mockUpdateOrg,
         result: undefined,
       });
@@ -358,8 +358,8 @@ describe('org routes', () => {
     };
 
     describe('Auth', () => {
-      testOrgAuth(
-        'ORG_ADMIN',
+      testOrgRouteAuth(
+        'ORG',
         { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
         getTestServerFixture,
         { spy: mockGetOrg, result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' } },
@@ -428,8 +428,8 @@ describe('org routes', () => {
         });
       });
 
-      testOrgAuth(
-        'ORG_ADMIN',
+      testOrgRouteAuth(
+        'ORG',
         { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
         getTestServerFixture,
         { spy: mockDeleteOrg, result: undefined },

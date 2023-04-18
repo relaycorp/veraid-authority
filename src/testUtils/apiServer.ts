@@ -20,7 +20,7 @@ import type { Result, SuccessfulResult } from '../utilities/result.js';
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
 import { type EnvVarMocker, REQUIRED_ENV_VARS } from './envVars.js';
-import { MEMBER_NAME, ORG_NAME } from './stubs.js';
+import { MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 import { mockSpy } from './jest.js';
 import { type MockLogSet, partialPinoLog } from './logging.js';
 
@@ -66,7 +66,7 @@ function unsetAuthUser() {
   });
 }
 
-type OrgUserRole = 'ORG_ADMIN' | 'ORG_MEMBER' | 'SUPER_ADMIN';
+type RouteLevel = 'ORG_BULK' | 'ORG_MEMBERSHIP_RESTRICTED' | 'ORG_MEMBERSHIP' | 'ORG';
 
 interface Processor<ProcessorResolvedValue> {
   readonly spy: jest.Mock<() => Promise<Result<ProcessorResolvedValue, any>>>;
@@ -93,8 +93,8 @@ export function makeTestApiServer(): () => TestServerFixture {
   return getFixture;
 }
 
-export function testOrgAuth<ProcessorResolvedValue>(
-  minRole: OrgUserRole,
+export function testOrgRouteAuth<ProcessorResolvedValue>(
+  routeLevel: RouteLevel,
   injectionOptions: InjectOptions,
   fixtureGetter: () => TestServerFixture,
   processor: Processor<ProcessorResolvedValue>,
@@ -114,8 +114,8 @@ export function testOrgAuth<ProcessorResolvedValue>(
     const result = {
       didSucceed: true,
       result: processor.result,
-    } as SuccessfulResult<ProcessorResolvedValue>;
-    processor.spy.mockResolvedValue(result);
+    };
+    processor.spy.mockResolvedValue(result as SuccessfulResult<ProcessorResolvedValue>);
   });
 
   function expectAccessToBeGranted(response: LightMyRequestResponse, reason: string) {
@@ -151,8 +151,8 @@ export function testOrgAuth<ProcessorResolvedValue>(
     expectAccessToBeGranted(response, 'User is super admin');
   });
 
-  if (minRole === 'SUPER_ADMIN') {
-    test('Org admin should be denied access', async () => {
+  if (routeLevel === 'ORG_BULK') {
+    test('Any org admin should be denied access', async () => {
       await memberModel.create(STUB_ORG_ADMIN);
       setAuthUser(USER_EMAIL);
       envVarMocker(REQUIRED_API_ENV_VARS);
@@ -161,9 +161,7 @@ export function testOrgAuth<ProcessorResolvedValue>(
 
       expectAccessToBeDenied(response, 'Non-super admin tries to access bulk org endpoint');
     });
-  }
-
-  if (minRole === 'ORG_ADMIN') {
+  } else {
     test('Org admin should be granted access', async () => {
       await memberModel.create({ ...STUB_ORG_ADMIN, role: Role.ORG_ADMIN });
       setAuthUser(USER_EMAIL);
@@ -173,7 +171,9 @@ export function testOrgAuth<ProcessorResolvedValue>(
 
       expectAccessToBeGranted(response, 'User is org admin');
     });
+  }
 
+  if (routeLevel === 'ORG') {
     test('Admin from different org should be denied access', async () => {
       await memberModel.create({ ...STUB_ORG_ADMIN, orgName: `not-${STUB_ORG_ADMIN.orgName}` });
       setAuthUser(USER_EMAIL);
@@ -185,9 +185,10 @@ export function testOrgAuth<ProcessorResolvedValue>(
     });
   }
 
-  if (minRole === 'ORG_MEMBER') {
+  if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      await memberModel.create(STUB_ORG_MEMBER);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      await memberModel.create({ ...STUB_ORG_MEMBER, _id: MEMBER_MONGO_ID });
       setAuthUser(USER_EMAIL);
       envVarMocker(REQUIRED_API_ENV_VARS);
 
@@ -207,16 +208,28 @@ export function testOrgAuth<ProcessorResolvedValue>(
     });
   } else {
     test('Org member should be denied access', async () => {
-      await memberModel.create(STUB_ORG_MEMBER);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      await memberModel.create({ ...STUB_ORG_MEMBER, _id: MEMBER_MONGO_ID });
       setAuthUser(USER_EMAIL);
       envVarMocker(REQUIRED_API_ENV_VARS);
 
       const response = await server.inject(injectionOptions);
 
-      const reason =
-        minRole === 'SUPER_ADMIN'
-          ? 'Non-super admin tries to access bulk org endpoint'
-          : 'User is not accessing their own membership';
+      let reason: string;
+      switch (routeLevel) {
+        case 'ORG_MEMBERSHIP_RESTRICTED': {
+          reason = 'User is not an admin';
+          break;
+        }
+        case 'ORG_BULK': {
+          reason = 'Non-super admin tries to access bulk org endpoint';
+          break;
+        }
+        default: {
+          reason = 'User is not accessing their own membership';
+          break;
+        }
+      }
       expectAccessToBeDenied(response, reason);
     });
   }

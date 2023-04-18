@@ -1,6 +1,6 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import envVar from 'env-var';
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import type { Connection } from 'mongoose';
 
@@ -14,7 +14,17 @@ interface OrgRequestParams {
   readonly memberId?: string;
 }
 
-type AuthorisationDecision = Result<string, string>;
+interface AuthorisationGrant {
+  readonly isAdmin: boolean;
+  readonly reason: string;
+}
+
+type AuthorisationDecision = Result<AuthorisationGrant, string>;
+
+interface FastifyAuthAwareRequest extends FastifyRequest {
+  user: { sub: string };
+  isUserAdmin: boolean;
+}
 
 async function decideAuthorisation(
   userEmail: string,
@@ -23,7 +33,7 @@ async function decideAuthorisation(
   superAdmin?: string,
 ): Promise<AuthorisationDecision> {
   if (superAdmin === userEmail) {
-    return { didSucceed: true, result: 'User is super admin' };
+    return { didSucceed: true, result: { reason: 'User is super admin', isAdmin: true } };
   }
 
   const { orgName, memberId } = request.params as OrgRequestParams;
@@ -35,12 +45,12 @@ async function decideAuthorisation(
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: dbConnection,
   });
-  const member = await memberModel.findOne({ orgName, memberId }).select('role');
+  const member = await memberModel.findOne({ orgName, memberId }).select(['role', 'email']);
   if (member === null) {
     return { didSucceed: false, reason: 'User is not a member of the org' };
   }
   if (member.role === Role.ORG_ADMIN) {
-    return { didSucceed: true, result: 'User is org admin' };
+    return { didSucceed: true, result: { reason: 'User is org admin', isAdmin: true } };
   }
 
   if (memberId === undefined) {
@@ -48,10 +58,23 @@ async function decideAuthorisation(
   }
 
   if (member.email === userEmail) {
-    return { didSucceed: true, result: 'User is accessing their own membership' };
+    return {
+      didSucceed: true,
+      result: { reason: 'User is accessing their own membership', isAdmin: false },
+    };
   }
 
   return { didSucceed: false, reason: 'User is accessing different membership' };
+}
+
+async function denyAuthorisation(
+  reason: string,
+  reply: FastifyReply,
+  request: FastifyAuthAwareRequest,
+) {
+  const userEmail = request.user.sub;
+  request.log.info({ userEmail, reason }, 'Authorisation denied');
+  await reply.code(HTTP_STATUS_CODES.FORBIDDEN).send();
 }
 
 async function registerOrgAuth(fastify: FastifyInstance): Promise<void> {
@@ -59,19 +82,29 @@ async function registerOrgAuth(fastify: FastifyInstance): Promise<void> {
 
   fastify.addHook('onRequest', fastify.authenticate);
 
+  fastify.decorateRequest('isUserAdmin', false);
+
   fastify.addHook('onRequest', async (request, reply) => {
     const superAdmin = envVar.get('AUTHORITY_SUPERADMIN').asString();
-    const userEmail = (request.user as { sub: string }).sub;
+    const userEmail = (request as FastifyAuthAwareRequest).user.sub;
     const decision = await decideAuthorisation(userEmail, request, fastify.mongoose, superAdmin);
-    const reason = decision.didSucceed ? decision.result : decision.reason;
-    const contextAwareLogger = request.log.child({ userEmail, reason });
+    const reason = decision.didSucceed ? decision.result.reason : decision.reason;
     if (decision.didSucceed) {
-      contextAwareLogger.debug('Authorisation granted');
+      (request as FastifyAuthAwareRequest).isUserAdmin = decision.result.isAdmin;
+      request.log.debug({ userEmail, reason }, 'Authorisation granted');
     } else {
-      contextAwareLogger.info('Authorisation denied');
-      await reply.code(HTTP_STATUS_CODES.FORBIDDEN).send();
+      await denyAuthorisation(reason, reply, request as FastifyAuthAwareRequest);
     }
   });
+
+  fastify.decorate(
+    'requireUserToBeAdmin',
+    async (request: FastifyAuthAwareRequest, reply: FastifyReply) => {
+      if (!request.isUserAdmin) {
+        await denyAuthorisation('User is not an admin', reply, request);
+      }
+    },
+  );
 }
 
 const orgAuthPlugin = fastifyPlugin(registerOrgAuth, { name: 'org-auth' });

@@ -120,6 +120,7 @@ export default async function registerRoutes(
   fastify.route({
     method: ['DELETE'],
     url: '/:memberId',
+    preParsing: fastify.requireUserToBeAdmin,
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
@@ -149,6 +150,7 @@ export default async function registerRoutes(
   fastify.route({
     method: ['PATCH'],
     url: '/:memberId',
+    preParsing: fastify.requireUserToBeAdmin,
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
