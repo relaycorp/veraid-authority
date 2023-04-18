@@ -35,10 +35,10 @@ const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 describe('member routes', () => {
   const mongoId = '6424ad273f75645b35f9ee79';
   const testMemberId = 'TEST_ID';
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {

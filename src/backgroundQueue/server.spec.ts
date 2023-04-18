@@ -1,21 +1,18 @@
 import { CloudEvent } from 'cloudevents';
 import type { FastifyInstance } from 'fastify';
 
-import { configureMockEnvVars } from '../testUtils/envVars.js';
-import { REQUIRED_QUEUE_ENV_VARS, setUpTestQueueServer } from '../testUtils/queueServer.js';
+import { setUpTestQueueServer } from '../testUtils/queueServer.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
 
 import { QueueProblemType } from './QueueProblemType.js';
 
-configureMockEnvVars(REQUIRED_QUEUE_ENV_VARS);
-
 describe('makeQueueServer', () => {
-  const getServer = setUpTestQueueServer();
+  const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyInstance;
   beforeEach(() => {
-    server = getServer();
+    ({ server } = getTestServerFixture());
   });
 
   describe('GET', () => {

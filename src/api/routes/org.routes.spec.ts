@@ -32,13 +32,14 @@ jest.unstable_mockModule('../../org.js', () => ({
   deleteOrg: mockDeleteOrg,
 }));
 
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgAuth } = await import('../../testUtils/apiServer.js');
 
 describe('org routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    const fixture = getTestServerFixture();
+    serverInstance = fixture.server;
   });
 
   describe('creation', () => {
@@ -46,6 +47,20 @@ describe('org routes', () => {
       method: 'POST',
       url: '/orgs',
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockCreateOrg.mockResolvedValueOnce({ didSucceed: true, result: { name: ORG_NAME } });
+      });
+
+      const payload: OrgSchema = { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' };
+      testOrgAuth(
+        'SUPER_ADMIN',
+        { ...injectionOptions, payload },
+        getTestServerFixture,
+        mockCreateOrg,
+      );
+    });
 
     test.each([
       ['ASCII', ORG_NAME],

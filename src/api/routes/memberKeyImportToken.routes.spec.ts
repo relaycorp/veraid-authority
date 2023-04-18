@@ -24,10 +24,10 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
 const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
 describe('member key import token routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {

@@ -2,10 +2,10 @@ import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedI
 import { makeTestApiServer } from '../../testUtils/apiServer.js';
 
 describe('healthcheck routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   test('A plain simple HEAD request should provide some diagnostic information', async () => {

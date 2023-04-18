@@ -1,3 +1,4 @@
+import fastifyRoutes from '@fastify/routes';
 import {
   fastify,
   type FastifyInstance,
@@ -12,6 +13,7 @@ import { makeLogger } from '../logging.js';
 import { configureExitHandling } from '../exitHandling.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
+import notFoundHandler from './plugins/notFoundHandler.js';
 
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -48,6 +50,9 @@ export async function makeFastify(
   });
 
   await server.register(fastifyMongoose);
+
+  await server.register(fastifyRoutes);
+  await server.register(notFoundHandler);
 
   await server.register(appPlugin);
 

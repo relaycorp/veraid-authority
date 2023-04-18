@@ -13,12 +13,14 @@ All processes require the following variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
   - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
 
-The API server additionally requires the following variables:
+The API server additionally uses the following variables:
 
 - Authentication-related variables:
   - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
   - Either `OAUTH2_TOKEN_ISSUER` or `OAUTH2_TOKEN_ISSUER_REGEX` (required). The (URL of the) authorisation server.
   - `OAUTH2_TOKEN_AUDIENC[example.sink.spec.ts](src%2FbackgroundQueue%2Fsinks%2Fexample.sink.spec.ts)E` (required). The identifier of the current instance of this server (typically its public URL).
+- Authorisation-related variables:
+  - `AUTHORITY_SUPERADMIN` (optional): The JWT _subject id_ of the super admin (e.g., their email address).
 
 ## Development
 
@@ -53,7 +55,7 @@ We use OAuth2 with JWKS to delegate authentication to an external identity provi
 
 The API employs the following roles:
 
-- Admin. They can do absolutely anything on any organisation.
+- Super admin. They can do absolutely anything on any organisation.
 - Org admin. They can do anything within their own organisation.
 - Org member. They can manage much of their own membership in their respective organisation.
 

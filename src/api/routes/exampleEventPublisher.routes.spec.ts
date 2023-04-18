@@ -8,10 +8,10 @@ import { type ExampleEventPayload, EXAMPLE_TYPE } from '../../events/example.eve
 describe('example event publisher routes', () => {
   const getEvents = mockEmitter();
 
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   test('Event should be published', async () => {

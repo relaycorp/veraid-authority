@@ -38,10 +38,10 @@ const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 describe('member public keys routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {
