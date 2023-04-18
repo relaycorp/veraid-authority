@@ -9,9 +9,7 @@ import {
 } from '../../testUtils/stubs.js';
 import type { SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import type {
-  MemberKeyImportTokenCreationResult,
-} from '../../memberKeyImportTokenTypes.js';
+import type { MemberKeyImportTokenCreationResult } from '../../memberKeyImportTokenTypes.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { MemberKeyImportTokenSchema } from '../../schemas/memberKeyImportToken.schema.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
