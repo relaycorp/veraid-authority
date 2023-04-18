@@ -10,12 +10,9 @@ import {
   MEMBER_BUNDLE_REQUEST_SCHEMA,
   MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
 } from '../../schemas/awala.schema.js';
-import { AwalaProblemType } from '../../AwalaProblemType.js';
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { createMemberPublicKey } from '../../memberPublicKey.js';
-import { deleteMemberKeyImportToken, getMemberKeyImportToken } from '../../memberKeyImportToken.js';
-
+import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
 const ajv = addFormats(new Ajv());
 
 type ValidationResult<Schema extends JSONSchema> = FromSchema<Schema> | string;
@@ -34,49 +31,57 @@ function validateMessage<Schema extends JSONSchema>(
 async function processMemberBundleRequest(
   data: unknown,
   options: ServiceOptions,
-): Promise<AwalaProblemType | undefined> {
+): Promise<boolean> {
   const validationResult = validateMessage(data, MEMBER_BUNDLE_REQUEST_SCHEMA);
   if (typeof validationResult === 'string') {
-    options.logger.info(data, validationResult);
-    return AwalaProblemType.MALFORMED_AWALA_MESSAGE_BODY;
+    options.logger.info(
+      {
+        publicKeyId: (
+          data as {
+            publicKeyId: string;
+          }
+        ).publicKeyId,
+
+        reason: validationResult,
+      },
+      'Refused invalid member bundle request',
+    );
+    return false;
   }
 
   await createMemberBundleRequest(validationResult, options);
-  return undefined;
+  return true;
 }
 
 async function processMemberKeyImportRequest(
   data: unknown,
   options: ServiceOptions,
-): Promise<AwalaProblemType | undefined> {
+): Promise<boolean> {
   const validationResult = validateMessage(data, MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
   if (typeof validationResult === 'string') {
-    options.logger.info(data, validationResult);
-    return AwalaProblemType.MALFORMED_AWALA_MESSAGE_BODY;
+    options.logger.info(
+      {
+        publicKeyId: (
+          data as {
+            publicKeyId: string;
+          }
+        ).publicKeyId,
+
+        reason: validationResult,
+      },
+      'Refused invalid member bundle request',
+    );
+    return false;
   }
 
-  const keyTokenData = await getMemberKeyImportToken(validationResult.publicKeyImportToken, options);
-  if (!keyTokenData.didSucceed) {
-    return undefined;
-  }
+  const result = await processMemberKeyImportToken({
+    publicKey: validationResult.publicKey,
+    publicKeyImportToken: validationResult.publicKeyImportToken,
+    awalaPda: validationResult.awalaPda
+  }, options)
 
-  const createPublicKeyResult = await createMemberPublicKey(
-    keyTokenData.result.memberId,
-    {
-      publicKey: validationResult.publicKey,
-      serviceOid: keyTokenData.result.serviceOid,
-    },
-    options,
-  );
+  return result.didSucceed;
 
-  if (!craetePublicKeyResult.didSucceed) {
-    return undefined;
-  }
-
-  // trigger event
-  await deleteMemberKeyImportToken(validationResult.publicKeyImportToken, options);
-
-  return undefined;
 }
 
 enum AwalaRequestMessageType {
@@ -88,7 +93,7 @@ const awalaEventToProcessor: {
   [key in AwalaRequestMessageType]: (
     data: unknown,
     options: ServiceOptions,
-  ) => Promise<AwalaProblemType | undefined>;
+  ) => Promise<boolean>;
 } = {
   [AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST]: processMemberBundleRequest,
   [AwalaRequestMessageType.MEMBER_PUBLIC_KEY_IMPORT]: processMemberKeyImportRequest,
@@ -123,9 +128,10 @@ export default function registerRoutes(
         dbConnection: this.mongoose,
       };
 
-      const result = await awalaEventToProcessor[contentType!](request.body, serviceOptions);
+      const processor = awalaEventToProcessor[contentType!];
+      const didSucceed = await processor(request.body, serviceOptions);
 
-      if (!result) {
+      if (didSucceed) {
         await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
         return;
       }
