@@ -1,3 +1,5 @@
+// Import Jest, not because we need it, but to work around bug in unstable_mockModule()
+import { describe } from '@jest/globals';
 import type { CloudEventV1 } from 'cloudevents';
 
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
