@@ -2,8 +2,8 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import {
-  MEMBER_KEY_IMPORT_TOKEN,
   MEMBER_MONGO_ID,
+  MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
