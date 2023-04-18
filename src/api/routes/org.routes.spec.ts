@@ -10,9 +10,9 @@ import {
 } from '../../testUtils/stubs.js';
 import {
   type OrgSchema,
-  type OrgSchemaPatch,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
+  type OrgSchemaPatch,
 } from '../../schemas/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
@@ -49,17 +49,11 @@ describe('org routes', () => {
     };
 
     describe('Auth', () => {
-      beforeEach(() => {
-        mockCreateOrg.mockResolvedValueOnce({ didSucceed: true, result: { name: ORG_NAME } });
-      });
-
       const payload: OrgSchema = { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' };
-      testOrgAuth(
-        'SUPER_ADMIN',
-        { ...injectionOptions, payload },
-        getTestServerFixture,
-        mockCreateOrg,
-      );
+      testOrgAuth('SUPER_ADMIN', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateOrg,
+        result: { name: ORG_NAME },
+      });
     });
 
     test.each([
@@ -241,15 +235,12 @@ describe('org routes', () => {
     describe('Auth', () => {
       beforeEach(() => {
         mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
-        mockUpdateOrg.mockResolvedValueOnce({ didSucceed: true });
       });
 
-      testOrgAuth(
-        'ORG_ADMIN',
-        { ...injectionOptions, payload: {} },
-        getTestServerFixture,
-        mockUpdateOrg,
-      );
+      testOrgAuth('ORG_ADMIN', { ...injectionOptions, payload: {} }, getTestServerFixture, {
+        spy: mockUpdateOrg,
+        result: undefined,
+      });
     });
 
     test('Empty parameters should be accepted', async () => {
@@ -366,6 +357,15 @@ describe('org routes', () => {
       method: 'GET',
     };
 
+    describe('Auth', () => {
+      testOrgAuth(
+        'ORG_ADMIN',
+        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        getTestServerFixture,
+        { spy: mockGetOrg, result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' } },
+      );
+    });
+
     test.each([
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
@@ -419,6 +419,22 @@ describe('org routes', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetOrg.mockResolvedValueOnce({
+          didSucceed: true,
+          result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' },
+        });
+      });
+
+      testOrgAuth(
+        'ORG_ADMIN',
+        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        getTestServerFixture,
+        { spy: mockDeleteOrg, result: undefined },
+      );
+    });
 
     test('Valid name should be accepted', async () => {
       mockGetOrg.mockResolvedValueOnce({

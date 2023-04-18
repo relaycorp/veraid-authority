@@ -15,6 +15,7 @@ import type { Connection } from 'mongoose';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { MemberModelSchema, Role } from '../models/Member.model.js';
+import type { Result, SuccessfulResult } from '../utilities/result.js';
 
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
@@ -67,6 +68,11 @@ function unsetAuthUser() {
 
 type OrgUserRole = 'ORG_ADMIN' | 'ORG_MEMBER' | 'SUPER_ADMIN';
 
+interface Processor<ProcessorResolvedValue> {
+  readonly spy: jest.Mock<() => Promise<Result<ProcessorResolvedValue, any>>>;
+  readonly result: ProcessorResolvedValue;
+}
+
 export const REQUIRED_API_ENV_VARS = {
   ...REQUIRED_ENV_VARS,
   OAUTH2_JWKS_URL,
@@ -87,11 +93,11 @@ export function makeTestApiServer(): () => TestServerFixture {
   return getFixture;
 }
 
-export function testOrgAuth(
+export function testOrgAuth<ProcessorResolvedValue>(
   minRole: OrgUserRole,
   injectionOptions: InjectOptions,
   fixtureGetter: () => TestServerFixture,
-  processorSpy: jest.Mock<any>,
+  processor: Processor<ProcessorResolvedValue>,
 ): void {
   let server: FastifyInstance;
   let logs: MockLogSet;
@@ -104,9 +110,17 @@ export function testOrgAuth(
     memberModel = getModelForClass(MemberModelSchema, { existingConnection: dbConnection });
   });
 
+  beforeEach(() => {
+    const result = {
+      didSucceed: true,
+      result: processor.result,
+    } as SuccessfulResult<ProcessorResolvedValue>;
+    processor.spy.mockResolvedValue(result);
+  });
+
   function expectAccessToBeGranted(response: LightMyRequestResponse, reason: string) {
     expect(response.statusCode).toBeWithin(HTTP_STATUS_CODES.OK, MAX_SUCCESSFUL_STATUS);
-    expect(processorSpy).toHaveBeenCalled();
+    expect(processor.spy).toHaveBeenCalled();
     expect(logs).toContainEqual(
       partialPinoLog('debug', 'Authorisation granted', { userEmail: USER_EMAIL, reason }),
     );
@@ -114,7 +128,7 @@ export function testOrgAuth(
 
   function expectAccessToBeDenied(response: LightMyRequestResponse, reason: string) {
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.FORBIDDEN);
-    expect(processorSpy).not.toHaveBeenCalled();
+    expect(processor.spy).not.toHaveBeenCalled();
     expect(logs).toContainEqual(
       partialPinoLog('info', 'Authorisation denied', { userEmail: USER_EMAIL, reason }),
     );
@@ -126,7 +140,7 @@ export function testOrgAuth(
     const response = await server.inject(injectionOptions);
 
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.UNAUTHORIZED);
-    expect(processorSpy).not.toHaveBeenCalled();
+    expect(processor.spy).not.toHaveBeenCalled();
   });
 
   test('Super admin should be granted access', async () => {
