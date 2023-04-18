@@ -104,17 +104,20 @@ export function testOrgAuth(
     memberModel = getModelForClass(MemberModelSchema, { existingConnection: dbConnection });
   });
 
-  function expectAccessToBeGranted(response: LightMyRequestResponse) {
+  function expectAccessToBeGranted(response: LightMyRequestResponse, reason: string) {
     expect(response.statusCode).toBeWithin(HTTP_STATUS_CODES.OK, MAX_SUCCESSFUL_STATUS);
     expect(processorSpy).toHaveBeenCalled();
+    expect(logs).toContainEqual(
+      partialPinoLog('debug', 'Authorisation granted', { userEmail: USER_EMAIL, reason }),
+    );
   }
 
-  function expectAccessToBeDenied(
-    response: LightMyRequestResponse,
-    expectedStatusCode: number = HTTP_STATUS_CODES.FORBIDDEN,
-  ) {
-    expect(response.statusCode).toBe(expectedStatusCode);
+  function expectAccessToBeDenied(response: LightMyRequestResponse, reason: string) {
+    expect(response.statusCode).toBe(HTTP_STATUS_CODES.FORBIDDEN);
     expect(processorSpy).not.toHaveBeenCalled();
+    expect(logs).toContainEqual(
+      partialPinoLog('info', 'Authorisation denied', { userEmail: USER_EMAIL, reason }),
+    );
   }
 
   test('Anonymous access should be denied', async () => {
@@ -122,7 +125,8 @@ export function testOrgAuth(
 
     const response = await server.inject(injectionOptions);
 
-    expectAccessToBeDenied(response, HTTP_STATUS_CODES.UNAUTHORIZED);
+    expect(response.statusCode).toBe(HTTP_STATUS_CODES.UNAUTHORIZED);
+    expect(processorSpy).not.toHaveBeenCalled();
   });
 
   test('Super admin should be granted access', async () => {
@@ -130,10 +134,7 @@ export function testOrgAuth(
 
     const response = await server.inject(injectionOptions);
 
-    expectAccessToBeGranted(response);
-    expect(logs).toContainEqual(
-      partialPinoLog('debug', 'Authorisation granted to super admin', { user: USER_EMAIL }),
-    );
+    expectAccessToBeGranted(response, 'User is super admin');
   });
 
   if (minRole === 'SUPER_ADMIN') {
@@ -144,7 +145,7 @@ export function testOrgAuth(
 
       const response = await server.inject(injectionOptions);
 
-      expectAccessToBeDenied(response);
+      expectAccessToBeDenied(response, 'Non-super admin tries to access bulk org endpoint');
     });
   }
 
@@ -156,25 +157,19 @@ export function testOrgAuth(
 
       const response = await server.inject(injectionOptions);
 
-      expectAccessToBeGranted(response);
-      expect(logs).toContainEqual(
-        partialPinoLog('debug', 'Authorisation granted to org admin', { user: USER_EMAIL }),
-      );
+      expectAccessToBeGranted(response, 'User is org admin');
+    });
+
+    test('Admin from different org should be denied access', async () => {
+      await memberModel.create({ ...STUB_ORG_ADMIN, orgName: `not-${STUB_ORG_ADMIN.orgName}` });
+      setAuthUser(USER_EMAIL);
+      envVarMocker(REQUIRED_API_ENV_VARS);
+
+      const response = await server.inject(injectionOptions);
+
+      expectAccessToBeDenied(response, 'User is not a member of the org');
     });
   }
-
-  test('Admin from different org should be denied access', async () => {
-    await memberModel.create({ ...STUB_ORG_ADMIN, orgName: `not-${STUB_ORG_ADMIN.orgName}` });
-    setAuthUser(USER_EMAIL);
-    envVarMocker(REQUIRED_API_ENV_VARS);
-
-    const response = await server.inject(injectionOptions);
-
-    expectAccessToBeDenied(response);
-    expect(logs).toContainEqual(
-      partialPinoLog('debug', 'Authorisation denied to non-org member', { user: USER_EMAIL }),
-    );
-  });
 
   if (minRole === 'ORG_MEMBER') {
     test('Org member should be granted access', async () => {
@@ -184,10 +179,17 @@ export function testOrgAuth(
 
       const response = await server.inject(injectionOptions);
 
-      expectAccessToBeGranted(response);
-      expect(logs).toContainEqual(
-        partialPinoLog('debug', 'Authorisation granted to org member', { user: USER_EMAIL }),
-      );
+      expectAccessToBeGranted(response, 'User is accessing their own membership');
+    });
+
+    test('Another member from same org should be denied access', async () => {
+      await memberModel.create({ ...STUB_ORG_MEMBER, email: `not-${USER_EMAIL}` });
+      setAuthUser(USER_EMAIL);
+      envVarMocker(REQUIRED_API_ENV_VARS);
+
+      const response = await server.inject(injectionOptions);
+
+      expectAccessToBeDenied(response, 'User is accessing different membership');
     });
   } else {
     test('Org member should be denied access', async () => {
@@ -197,20 +199,11 @@ export function testOrgAuth(
 
       const response = await server.inject(injectionOptions);
 
-      expectAccessToBeDenied(response);
+      const reason =
+        minRole === 'SUPER_ADMIN'
+          ? 'Non-super admin tries to access bulk org endpoint'
+          : 'User is not accessing their own membership';
+      expectAccessToBeDenied(response, reason);
     });
   }
-
-  test('Member from different org should be denied access', async () => {
-    await memberModel.create({ ...STUB_ORG_MEMBER, orgName: `not-${STUB_ORG_MEMBER.orgName}` });
-    setAuthUser(USER_EMAIL);
-    envVarMocker(REQUIRED_API_ENV_VARS);
-
-    const response = await server.inject(injectionOptions);
-
-    expectAccessToBeDenied(response);
-    expect(logs).toContainEqual(
-      partialPinoLog('debug', 'Authorisation denied to non-org member', { user: USER_EMAIL }),
-    );
-  });
 }

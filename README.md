@@ -51,13 +51,15 @@ This multi-tenant server will allow one or more organisations to manage their Ve
 
 ### Authentication and authorisation
 
-We use OAuth2 with JWKS to delegate authentication to an external identity provider.
+We use OAuth2 with JWKS to delegate authentication to an external identity provider. We require the JWT token's `sub` claim to be the email address of the user.
 
 The API employs the following roles:
 
 - Super admin. They can do absolutely anything on any organisation.
 - Org admin. They can do anything within their own organisation.
 - Org member. They can manage much of their own membership in their respective organisation.
+
+Authorisation grant logs use the level `DEBUG` to minimise PII transmission and storage for legal/privacy reasons, whilst denial logs use the level `INFO` for auditing purposes.
 
 ### HTTP Endpoints
 

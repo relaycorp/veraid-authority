@@ -238,6 +238,20 @@ describe('org routes', () => {
       },
     } as const;
 
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+        mockUpdateOrg.mockResolvedValueOnce({ didSucceed: true });
+      });
+
+      testOrgAuth(
+        'ORG_ADMIN',
+        { ...injectionOptions, payload: {} },
+        getTestServerFixture,
+        mockUpdateOrg,
+      );
+    });
+
     test('Empty parameters should be accepted', async () => {
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
