@@ -1,3 +1,6 @@
+// Import Jest, not because we need it, but to work around bug in unstable_mockModule()
+import { describe } from '@jest/globals';
+
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import { makeTestApiServer } from '../../testUtils/apiServer.js';
 
