@@ -13,6 +13,7 @@ import {
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
+
 const ajv = addFormats(new Ajv());
 
 type ValidationResult<Schema extends JSONSchema> = FromSchema<Schema> | string;
@@ -61,11 +62,11 @@ async function processMemberKeyImportRequest(
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
-        publicKeyId: (
+        publicKeyImportToken: (
           data as {
-            publicKeyId: string;
+            publicKeyImportToken: string;
           }
-        ).publicKeyId,
+        ).publicKeyImportToken,
 
         reason: validationResult,
       },
@@ -74,14 +75,15 @@ async function processMemberKeyImportRequest(
     return false;
   }
 
-  const result = await processMemberKeyImportToken({
-    publicKey: validationResult.publicKey,
-    publicKeyImportToken: validationResult.publicKeyImportToken,
-    awalaPda: validationResult.awalaPda
-  }, options)
-
+  const result = await processMemberKeyImportToken(
+    {
+      publicKey: validationResult.publicKey,
+      publicKeyImportToken: validationResult.publicKeyImportToken,
+      awalaPda: validationResult.awalaPda,
+    },
+    options,
+  );
   return result.didSucceed;
-
 }
 
 enum AwalaRequestMessageType {
@@ -90,10 +92,7 @@ enum AwalaRequestMessageType {
 }
 
 const awalaEventToProcessor: {
-  [key in AwalaRequestMessageType]: (
-    data: unknown,
-    options: ServiceOptions,
-  ) => Promise<boolean>;
+  [key in AwalaRequestMessageType]: (data: unknown, options: ServiceOptions) => Promise<boolean>;
 } = {
   [AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST]: processMemberBundleRequest,
   [AwalaRequestMessageType.MEMBER_PUBLIC_KEY_IMPORT]: processMemberKeyImportRequest,

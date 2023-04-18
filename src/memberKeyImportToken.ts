@@ -1,17 +1,18 @@
 import { getModelForClass } from '@typegoose/typegoose';
+import { CloudEvent } from 'cloudevents';
 
 import type { Result, SuccessfulResult } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
-import type {
-  MemberKeyImportTokenCreationResult,
-} from './memberKeyImportTokenTypes.js';
+import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { createMemberPublicKey } from './memberPublicKey.js';
-import { MemberKeyImportRequest } from './schemas/awala.schema.js';
+import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { Emitter } from './utilities/eventing/Emitter.js';
-import { CloudEvent } from 'cloudevents';
-import { BUNDLE_REQUEST_TYPE, MemberBundleRequestPayload } from './events/bundleRequest.event.js';
+import {
+  BUNDLE_REQUEST_TYPE,
+  type MemberBundleRequestPayload,
+} from './events/bundleRequest.event.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -40,13 +41,14 @@ export async function createMemberKeyImportToken(
 export async function processMemberKeyImportToken(
   keyImportData: MemberKeyImportRequest,
   options: ServiceOptions,
-): Promise<Result<undefined, MemberPublicKeyImportProblemType>>{
+): Promise<Result<undefined, MemberPublicKeyImportProblemType>> {
   const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
-    existingConnection:
-    options.dbConnection,
+    existingConnection: options.dbConnection,
   });
 
-  const memberKeyImportToken = await memberKeyImportTokenModel.findById(keyImportData.publicKeyImportToken);
+  const memberKeyImportToken = await memberKeyImportTokenModel.findById(
+    keyImportData.publicKeyImportToken,
+  );
   if (!memberKeyImportToken) {
     return {
       didSucceed: false,
@@ -63,27 +65,31 @@ export async function processMemberKeyImportToken(
     options,
   );
 
-  if(!craetePublicKeyResult.didSucceed){
+  if (!craetePublicKeyResult.didSucceed) {
     return {
       didSucceed: false,
-      reason: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR
+      reason: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
     };
   }
 
   const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
   const event = new CloudEvent({
     id: memberKeyImportToken.memberId,
-    source: "https://veraid.net/authority/awala-member-key-import",
+    source: 'https://veraid.net/authority/awala-member-key-import',
     type: BUNDLE_REQUEST_TYPE,
+
     data: {
       publicKeyId: craetePublicKeyResult.result.id,
-      awalaPda: keyImportData.awalaPda
-    }
+      awalaPda: keyImportData.awalaPda,
+    },
   });
   await emitter.emit(event);
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportData.publicKeyImportToken);
-  options.logger.info({ id: keyImportData.publicKeyImportToken }, 'Member public key import token deleted');
+  options.logger.info(
+    { id: keyImportData.publicKeyImportToken },
+    'Member public key import token deleted',
+  );
   return {
     didSucceed: true,
   };
