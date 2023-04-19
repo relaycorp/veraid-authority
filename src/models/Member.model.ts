@@ -1,4 +1,4 @@
-import { index, prop } from '@typegoose/typegoose';
+import { index, modelOptions, prop, Severity } from '@typegoose/typegoose';
 
 export enum Role {
   ORG_ADMIN = 'org_admin',

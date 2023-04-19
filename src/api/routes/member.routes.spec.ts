@@ -14,6 +14,7 @@ import {
   memberSchemaRoles,
   type PatchMemberSchema,
 } from '../../schemas/member.schema.js';
+import type { RequestOptionsGetter } from '../../testUtils/apiServer.js';
 
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),
@@ -31,6 +32,13 @@ jest.unstable_mockModule('../../member.js', () => ({
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
+function makeRequestOptionGetter(baseOptions: InjectOptions): RequestOptionsGetter {
+  return (orgName, memberId) => ({
+    ...baseOptions,
+    ...(memberId === undefined ? {} : { url: `/orgs/${orgName}/members/${memberId}` }),
+  });
+}
+
 describe('member routes', () => {
   const testMemberId = 'TEST_ID';
   const getTestServerFixture = makeTestApiServer();
@@ -47,10 +55,16 @@ describe('member routes', () => {
 
     describe('Auth', () => {
       const payload: MemberSchema = { role: 'REGULAR' };
-      testOrgRouteAuth('ORG', { ...injectionOptions, payload }, getTestServerFixture, {
-        spy: mockCreateMember,
-        result: { id: testMemberId },
-      });
+      testOrgRouteAuth(
+        'ORG',
+        (orgName) => ({
+          ...injectionOptions,
+          url: `/orgs/${orgName}/members`,
+          payload,
+        }),
+        getTestServerFixture,
+        { spy: mockCreateMember, result: { id: testMemberId } },
+      );
     });
 
     test.each(memberSchemaRoles)(
@@ -226,10 +240,12 @@ describe('member routes', () => {
     };
 
     describe('Auth', () => {
-      testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
-        spy: mockGetMember,
-        result: { role: 'REGULAR', name: MEMBER_NAME, email: MEMBER_EMAIL },
-      });
+      testOrgRouteAuth(
+        'ORG_MEMBERSHIP',
+        makeRequestOptionGetter(injectionOptions),
+        getTestServerFixture,
+        { spy: mockGetMember, result: { role: 'REGULAR', name: MEMBER_NAME, email: MEMBER_EMAIL } },
+      );
     });
 
     test('Existing member should be returned', async () => {
@@ -283,10 +299,12 @@ describe('member routes', () => {
         mockGetMember.mockResolvedValueOnce({ didSucceed: true, result: { role: 'REGULAR' } });
       });
 
-      testOrgRouteAuth('ORG_MEMBERSHIP_RESTRICTED', injectionOptions, getTestServerFixture, {
-        spy: mockDeleteMember,
-        result: undefined,
-      });
+      testOrgRouteAuth(
+        'ORG_MEMBERSHIP_RESTRICTED',
+        makeRequestOptionGetter(injectionOptions),
+        getTestServerFixture,
+        { spy: mockDeleteMember },
+      );
     });
 
     test('Valid org name and member id should be accepted', async () => {
@@ -346,12 +364,9 @@ describe('member routes', () => {
 
       testOrgRouteAuth(
         'ORG_MEMBERSHIP_RESTRICTED',
-        { ...injectionOptions, payload: {} },
+        makeRequestOptionGetter({ ...injectionOptions, payload: {} }),
         getTestServerFixture,
-        {
-          spy: mockUpdateMember,
-          result: undefined,
-        },
+        { spy: mockUpdateMember },
       );
     });
 

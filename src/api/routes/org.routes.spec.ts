@@ -20,6 +20,7 @@ import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import type { RequestOptionsGetter } from '../../testUtils/apiServer.js';
 
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
@@ -33,6 +34,10 @@ jest.unstable_mockModule('../../org.js', () => ({
 }));
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
+
+function makeRequestOptionGetter(baseOptions: InjectOptions): RequestOptionsGetter {
+  return (orgName) => ({ ...baseOptions, url: `/orgs/${orgName}` });
+}
 
 describe('org routes', () => {
   const getTestServerFixture = makeTestApiServer();
@@ -237,10 +242,12 @@ describe('org routes', () => {
         mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       });
 
-      testOrgRouteAuth('ORG', { ...injectionOptions, payload: {} }, getTestServerFixture, {
-        spy: mockUpdateOrg,
-        result: undefined,
-      });
+      testOrgRouteAuth(
+        'ORG',
+        makeRequestOptionGetter({ ...injectionOptions, payload: {} }),
+        getTestServerFixture,
+        { spy: mockUpdateOrg },
+      );
     });
 
     test('Empty parameters should be accepted', async () => {
@@ -360,7 +367,7 @@ describe('org routes', () => {
     describe('Auth', () => {
       testOrgRouteAuth(
         'ORG',
-        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        makeRequestOptionGetter({ ...injectionOptions, url: `/orgs/${ORG_NAME}` }),
         getTestServerFixture,
         { spy: mockGetOrg, result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' } },
       );
@@ -430,9 +437,9 @@ describe('org routes', () => {
 
       testOrgRouteAuth(
         'ORG',
-        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        makeRequestOptionGetter({ ...injectionOptions, url: `/orgs/${ORG_NAME}` }),
         getTestServerFixture,
-        { spy: mockDeleteOrg, result: undefined },
+        { spy: mockDeleteOrg },
       );
     });
 

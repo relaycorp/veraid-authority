@@ -14,16 +14,14 @@ interface OrgRequestParams {
   readonly memberId?: string;
 }
 
+interface AuthenticatedFastifyRequest extends FastifyRequest {
+  user: { sub: string };
+  isUserAdmin: boolean;
+}
+
 interface AuthorisationGrant {
   readonly isAdmin: boolean;
   readonly reason: string;
-}
-
-type AuthorisationDecision = Result<AuthorisationGrant, string>;
-
-interface FastifyAuthAwareRequest extends FastifyRequest {
-  user: { sub: string };
-  isUserAdmin: boolean;
 }
 
 async function decideAuthorisation(
@@ -31,7 +29,7 @@ async function decideAuthorisation(
   request: FastifyRequest,
   dbConnection: Connection,
   superAdmin?: string,
-): Promise<AuthorisationDecision> {
+): Promise<Result<AuthorisationGrant, string>> {
   if (superAdmin === userEmail) {
     return { didSucceed: true, result: { reason: 'User is super admin', isAdmin: true } };
   }
@@ -70,7 +68,7 @@ async function decideAuthorisation(
 async function denyAuthorisation(
   reason: string,
   reply: FastifyReply,
-  request: FastifyAuthAwareRequest,
+  request: AuthenticatedFastifyRequest,
 ) {
   const userEmail = request.user.sub;
   request.log.info({ userEmail, reason }, 'Authorisation denied');
@@ -86,20 +84,20 @@ async function registerOrgAuth(fastify: FastifyInstance): Promise<void> {
 
   fastify.addHook('onRequest', async (request, reply) => {
     const superAdmin = envVar.get('AUTHORITY_SUPERADMIN').asString();
-    const userEmail = (request as FastifyAuthAwareRequest).user.sub;
+    const userEmail = (request as AuthenticatedFastifyRequest).user.sub;
     const decision = await decideAuthorisation(userEmail, request, fastify.mongoose, superAdmin);
     const reason = decision.didSucceed ? decision.result.reason : decision.reason;
     if (decision.didSucceed) {
-      (request as FastifyAuthAwareRequest).isUserAdmin = decision.result.isAdmin;
+      (request as AuthenticatedFastifyRequest).isUserAdmin = decision.result.isAdmin;
       request.log.debug({ userEmail, reason }, 'Authorisation granted');
     } else {
-      await denyAuthorisation(reason, reply, request as FastifyAuthAwareRequest);
+      await denyAuthorisation(reason, reply, request as AuthenticatedFastifyRequest);
     }
   });
 
   fastify.decorate(
     'requireUserToBeAdmin',
-    async (request: FastifyAuthAwareRequest, reply: FastifyReply) => {
+    async (request: AuthenticatedFastifyRequest, reply: FastifyReply) => {
       if (!request.isUserAdmin) {
         await denyAuthorisation('User is not an admin', reply, request);
       }
