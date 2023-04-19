@@ -51,7 +51,7 @@ export async function processMemberKeyImportToken(
   );
   if (!memberKeyImportToken) {
     options.logger.info(
-      { id: keyImportData.publicKeyImportToken },
+      { token: keyImportData.publicKeyImportToken },
       'Member public key import token not found',
     );
     return {
@@ -91,7 +91,7 @@ export async function processMemberKeyImportToken(
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportData.publicKeyImportToken);
   options.logger.info(
-    { id: keyImportData.publicKeyImportToken },
+    { token: keyImportData.publicKeyImportToken },
     'Member public key import token deleted',
   );
   return {
