@@ -17,9 +17,9 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
 );
-
 jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
+  processMemberKeyImportToken: jest.fn(),
 }));
 const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
 
