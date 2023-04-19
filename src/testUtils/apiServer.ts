@@ -21,6 +21,13 @@ import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
 import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 
+const ORG_MEMBER: MemberModelSchema = {
+  orgName: ORG_NAME,
+  name: MEMBER_NAME,
+  role: Role.REGULAR,
+  email: MEMBER_EMAIL,
+};
+
 function mockJwksAuthentication(
   fastify: FastifyInstance,
   _opts: PluginMetadata,
@@ -40,11 +47,12 @@ jest.unstable_mockModule('../../utilities/fastify/plugins/jwksAuthentication.js'
 }));
 const { makeApiServer } = await import('../api/server.js');
 
-const MAX_SUCCESSFUL_STATUS = 399;
-
-// We should have the same super admin across all tests to avoid concurrency issues
 const SUPER_ADMIN_EMAIL = 'admin@veraid-authority.example';
 
+/**
+ * Extract the `authenticate` decorator from the child context of `fastify` where the JWKS plugin
+ * is registered.
+ */
 function getMockAuthenticateFromServer(fastify: FastifyInstance) {
   const childrenSymbol = Object.getOwnPropertySymbols(fastify).find(
     (symbol) => symbol.description === 'fastify.children',
@@ -84,7 +92,7 @@ interface Processor<ProcessorResolvedValue> {
   readonly result?: ProcessorResolvedValue;
 }
 
-export const REQUIRED_API_ENV_VARS = {
+const REQUIRED_API_ENV_VARS = {
   ...REQUIRED_ENV_VARS,
   OAUTH2_JWKS_URL,
   OAUTH2_TOKEN_AUDIENCE,
@@ -111,14 +119,6 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   fixtureGetter: () => TestServerFixture,
   processor: Processor<ProcessorResolvedValue>,
 ): void {
-  // Use unique values across test suites to avoid concurrency issues.
-  const orgMember: MemberModelSchema = {
-    orgName: ORG_NAME,
-    name: MEMBER_NAME,
-    role: Role.REGULAR,
-    email: MEMBER_EMAIL,
-  };
-
   let server: FastifyInstance;
   beforeEach(() => {
     ({ server } = fixtureGetter());
@@ -145,7 +145,8 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     reason: string,
     expectedUserEmail: string = MEMBER_EMAIL,
   ) {
-    expect(response.statusCode).toBeWithin(HTTP_STATUS_CODES.OK, MAX_SUCCESSFUL_STATUS);
+    expect(response.statusCode).toBeGreaterThanOrEqual(HTTP_STATUS_CODES.OK);
+    expect(response.statusCode).toBeLessThan(HTTP_STATUS_CODES.BAD_REQUEST);
     expect(processor.spy).toHaveBeenCalled();
     expect(fixtureGetter().logs).toContainEqual(
       partialPinoLog('debug', 'Authorisation granted', { userEmail: expectedUserEmail, reason }),
@@ -179,7 +180,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_BULK') {
     test('Any org admin should be denied access', async () => {
-      await createOrgMember({ ...orgMember, role: Role.ORG_ADMIN });
+      await createOrgMember({ ...ORG_MEMBER, role: Role.ORG_ADMIN });
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -188,7 +189,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
   } else {
     test('Org admin should be granted access', async () => {
-      await createOrgMember({ ...orgMember, role: Role.ORG_ADMIN });
+      await createOrgMember({ ...ORG_MEMBER, role: Role.ORG_ADMIN });
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -200,9 +201,9 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   if (routeLevel === 'ORG') {
     test('Admin from different org should be denied access', async () => {
       await createOrgMember({
-        ...orgMember,
+        ...ORG_MEMBER,
         role: Role.ORG_ADMIN,
-        orgName: `not-${orgMember.orgName}`,
+        orgName: `not-${ORG_MEMBER.orgName}`,
       });
       setAuthUser(server, MEMBER_EMAIL);
 
@@ -214,7 +215,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      await createOrgMember(orgMember);
+      await createOrgMember(ORG_MEMBER);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -223,7 +224,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
 
     test('Another member from same org should be denied access', async () => {
-      await createOrgMember({ ...orgMember, email: `not-${MEMBER_EMAIL}` });
+      await createOrgMember({ ...ORG_MEMBER, email: `not-${MEMBER_EMAIL}` });
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -232,7 +233,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
   } else {
     test('Org member should be denied access', async () => {
-      await createOrgMember(orgMember);
+      await createOrgMember(ORG_MEMBER);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
