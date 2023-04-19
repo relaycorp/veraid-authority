@@ -52,7 +52,7 @@ async function decideAuthorisation(
   }
 
   if (memberId === undefined) {
-    return { didSucceed: false, reason: 'User is not accessing their own membership' };
+    return { didSucceed: false, reason: 'User is not accessing a membership' };
   }
 
   if (member.email === userEmail) {

@@ -265,7 +265,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
           break;
         }
         default: {
-          reason = 'User is not accessing their own membership';
+          reason = 'User is not accessing a membership';
           break;
         }
       }
