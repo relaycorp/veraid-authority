@@ -84,7 +84,7 @@ interface Processor<ProcessorResolvedValue> {
   readonly result?: ProcessorResolvedValue;
 }
 
-export type RequestOptionsGetter = (orgName: string, memberId?: string) => InjectOptions;
+export type RequestOptionsGetter = (memberId?: string) => InjectOptions;
 
 export const REQUIRED_API_ENV_VARS = {
   ...REQUIRED_ENV_VARS,
@@ -137,7 +137,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   async function makeRequest(memberId?: string): Promise<LightMyRequestResponse> {
     const options =
       typeof requestOptionsOrGetter === 'function'
-        ? requestOptionsOrGetter(ORG_NAME, memberId)
+        ? requestOptionsOrGetter(memberId)
         : requestOptionsOrGetter;
     return server.inject(options);
   }

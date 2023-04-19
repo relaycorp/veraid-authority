@@ -33,9 +33,9 @@ jest.unstable_mockModule('../../member.js', () => ({
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 function makeRequestOptionGetter(baseOptions: InjectOptions): RequestOptionsGetter {
-  return (orgName, memberId) => ({
+  return (memberId) => ({
     ...baseOptions,
-    ...(memberId === undefined ? {} : { url: `/orgs/${orgName}/members/${memberId}` }),
+    ...(memberId === undefined ? {} : { url: `/orgs/${ORG_NAME}/members/${memberId}` }),
   });
 }
 
@@ -55,16 +55,10 @@ describe('member routes', () => {
 
     describe('Auth', () => {
       const payload: MemberSchema = { role: 'REGULAR' };
-      testOrgRouteAuth(
-        'ORG',
-        (orgName) => ({
-          ...injectionOptions,
-          url: `/orgs/${orgName}/members`,
-          payload,
-        }),
-        getTestServerFixture,
-        { spy: mockCreateMember, result: { id: testMemberId } },
-      );
+      testOrgRouteAuth('ORG', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMember,
+        result: { id: testMemberId },
+      });
     });
 
     test.each(memberSchemaRoles)(
