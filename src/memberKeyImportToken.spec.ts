@@ -22,10 +22,8 @@ import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { mockEmitter } from './testUtils/eventing/mockEmitter.js';
-import {
-  BUNDLE_REQUEST_TYPE,
-  type MemberBundleRequestPayload,
-} from './events/bundleRequest.event.js';
+import type { MemberBundleRequestPayload } from './events/bundleRequest.event.js';
+import { MEMBER_KEY_IMPORT_TYPE } from './events/memberPublicKeyImport.event.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -144,11 +142,36 @@ describe('member key import token', () => {
           id: keyImportToken._id.toString(),
         }),
       );
+    });
+
+    test('Valid data should emit a an event', async () => {
+      const keyImportToken = await memberKeyImportTokenModel.create({
+        memberId: MEMBER_MONGO_ID,
+        serviceOid: TEST_SERVICE_OID,
+      });
+      mockCreateMemberPublicKey.mockResolvedValueOnce({
+        didSucceed: true,
+
+        result: {
+          id: MEMBER_PUBLIC_KEY_MONGO_ID,
+        },
+      });
+
+      const result = await processMemberKeyImportToken(
+        {
+          publicKey: publicKeyBase64,
+          publicKeyImportToken: keyImportToken._id.toString(),
+          awalaPda: AWALA_PDA,
+        },
+        serviceOptions,
+      );
+
+      requireSuccessfulResult(result);
       expect(getEvents()).toContainEqual(
         expect.objectContaining<Partial<CloudEventV1<MemberBundleRequestPayload>>>({
           id: MEMBER_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
-          type: BUNDLE_REQUEST_TYPE,
+          type: MEMBER_KEY_IMPORT_TYPE,
 
           data: {
             publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -159,10 +182,12 @@ describe('member key import token', () => {
     });
 
     test('Non existing token should return error', async () => {
+      const invalidToken  = '111111111111111111111111';
+
       const result = await processMemberKeyImportToken(
         {
           publicKey: publicKeyBase64,
-          publicKeyImportToken: '111111111111111111111111',
+          publicKeyImportToken: invalidToken,
           awalaPda: AWALA_PDA,
         },
         serviceOptions,
@@ -170,6 +195,11 @@ describe('member key import token', () => {
 
       requireFailureResult(result);
       expect(result.reason).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member public key import token not found', {
+          id: invalidToken,
+        }),
+      );
     });
 
     test('Malformed public key should return error', async () => {

@@ -10,9 +10,9 @@ import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { Emitter } from './utilities/eventing/Emitter.js';
 import {
-  BUNDLE_REQUEST_TYPE,
-  type MemberBundleRequestPayload,
-} from './events/bundleRequest.event.js';
+  MEMBER_KEY_IMPORT_TYPE,
+  type MemberKeyImportPayload,
+} from './events/memberPublicKeyImport.event.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -50,13 +50,17 @@ export async function processMemberKeyImportToken(
     keyImportData.publicKeyImportToken,
   );
   if (!memberKeyImportToken) {
+    options.logger.info(
+      { id: keyImportData.publicKeyImportToken },
+      'Member public key import token not found',
+    );
     return {
       didSucceed: false,
       reason: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
     };
   }
 
-  const craetePublicKeyResult = await createMemberPublicKey(
+  const publicKeyCreationResult = await createMemberPublicKey(
     memberKeyImportToken.memberId,
     {
       publicKey: keyImportData.publicKey,
@@ -65,21 +69,21 @@ export async function processMemberKeyImportToken(
     options,
   );
 
-  if (!craetePublicKeyResult.didSucceed) {
+  if (!publicKeyCreationResult.didSucceed) {
     return {
       didSucceed: false,
       reason: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
     };
   }
 
-  const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
+  const emitter = Emitter.init() as Emitter<MemberKeyImportPayload>;
   const event = new CloudEvent({
     id: memberKeyImportToken.memberId,
     source: 'https://veraid.net/authority/awala-member-key-import',
-    type: BUNDLE_REQUEST_TYPE,
+    type: MEMBER_KEY_IMPORT_TYPE,
 
     data: {
-      publicKeyId: craetePublicKeyResult.result.id,
+      publicKeyId: publicKeyCreationResult.result.id,
       awalaPda: keyImportData.awalaPda,
     },
   });

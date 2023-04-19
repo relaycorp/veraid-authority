@@ -9,6 +9,7 @@ import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedI
 import {
   MEMBER_BUNDLE_REQUEST_SCHEMA,
   MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
+  type MemberBundleRequest, MemberKeyImportRequest,
 } from '../../schemas/awala.schema.js';
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
@@ -37,12 +38,7 @@ async function processMemberBundleRequest(
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
-        publicKeyId: (
-          data as {
-            publicKeyId: string;
-          }
-        ).publicKeyId,
-
+        publicKeyId: (data as MemberBundleRequest).publicKeyId,
         reason: validationResult,
       },
       'Refused invalid member bundle request',
@@ -62,11 +58,7 @@ async function processMemberKeyImportRequest(
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
-        publicKeyImportToken: (
-          data as {
-            publicKeyImportToken: string;
-          }
-        ).publicKeyImportToken,
+        publicKeyImportToken: (data as MemberKeyImportRequest).publicKeyImportToken,
 
         reason: validationResult,
       },
@@ -128,6 +120,7 @@ export default function registerRoutes(
       };
 
       const processor = awalaEventToProcessor[contentType!];
+
       const didSucceed = await processor(request.body, serviceOptions);
 
       if (didSucceed) {

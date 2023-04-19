@@ -11,11 +11,10 @@ import {
   SIGNATURE,
 } from '../../testUtils/stubs.js';
 import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
-import type { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
-import type { MemberPublicKeyCreationResult } from '../../memberPublicKeyTypes.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
+import type { MemberProblemType } from '../../MemberProblemType.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
@@ -26,7 +25,7 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
 }));
 
 const mockCreateMemberBundleRequest = mockSpy(
-  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
 );
 jest.unstable_mockModule('../../awala.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
@@ -81,10 +80,6 @@ describe('awala routes', () => {
       });
       mockCreateMemberBundleRequest.mockResolvedValueOnce({
         didSucceed: true,
-
-        result: {
-          id: MEMBER_PUBLIC_KEY_MONGO_ID,
-        },
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
@@ -116,7 +111,7 @@ describe('awala routes', () => {
       );
     });
 
-    test('Malformed Awala Pda should be refused', async () => {
+    test('Malformed Awala PDA should be refused', async () => {
       const methodPayload = {
         ...validPayload,
         awalaPda: 'INVALID_BASE_64',
@@ -134,6 +129,28 @@ describe('awala routes', () => {
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           reason: expect.stringContaining('awalaPda'),
+        }),
+      );
+    });
+
+    test('Malformed signature should be refused', async () => {
+      const methodPayload = {
+        ...validPayload,
+        signature: 'INVALID_BASE_64',
+      };
+
+      const response = await serverInstance.inject({
+        method: 'POST',
+        url: '/awala',
+        headers: validHeaders,
+        payload: methodPayload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Refused invalid member bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          reason: expect.stringContaining('signature'),
         }),
       );
     });
@@ -169,7 +186,7 @@ describe('awala routes', () => {
       });
     });
 
-    test('Malformed awala Pda should be refused', async () => {
+    test('Malformed awala PDA should be refused', async () => {
       const methodPayload = {
         ...validPayload,
         awalaPda: 'INVALID_BASE_64',
