@@ -32,7 +32,7 @@ jest.unstable_mockModule('../../memberPublicKey.js', () => ({
   getMemberPublicKey: mockGetMemberPublicKey,
   deleteMemberPublicKey: mockDeleteMemberPublicKey,
 }));
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
@@ -49,6 +49,23 @@ describe('member public keys routes', () => {
       method: 'POST',
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys`,
     };
+
+    describe('Auth', () => {
+      const payload: MemberPublicKeySchema = {
+        serviceOid: TEST_SERVICE_OID,
+        publicKey: publicKeyBase64,
+      };
+      testOrgRouteAuth(
+        'ORG_MEMBERSHIP',
+        (memberId) => ({
+          ...injectionOptions,
+          payload,
+          url: `/orgs/${ORG_NAME}/members/${memberId ?? MEMBER_MONGO_ID}/public-keys`,
+        }),
+        getTestServerFixture,
+        { spy: mockCreateMemberPublicKey, result: { id: PUBLIC_KEY_ID } },
+      );
+    });
 
     test('Valid data should be stored', async () => {
       const payload: MemberPublicKeySchema = {
@@ -114,6 +131,28 @@ describe('member public keys routes', () => {
       method: 'DELETE',
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetMemberPublicKey.mockResolvedValueOnce({
+          didSucceed: true,
+          result: { publicKey: publicKeyBase64, serviceOid: TEST_SERVICE_OID },
+        });
+      });
+
+      testOrgRouteAuth(
+        'ORG_MEMBERSHIP',
+        (memberId) => ({
+          ...injectionOptions,
+
+          url: `/orgs/${ORG_NAME}/members/${
+            memberId ?? MEMBER_MONGO_ID
+          }/public-keys/${PUBLIC_KEY_ID}`,
+        }),
+        getTestServerFixture,
+        { spy: mockDeleteMemberPublicKey },
+      );
+    });
 
     test('Valid id should be accepted', async () => {
       mockGetMemberPublicKey.mockResolvedValueOnce({
