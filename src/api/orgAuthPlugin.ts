@@ -93,17 +93,26 @@ function registerOrgAuth(fastify: FastifyInstance, _opts: PluginMetadata, done: 
     }
   });
 
-  fastify.decorate(
-    'requireUserToBeAdmin',
-    async (request: AuthenticatedFastifyRequest, reply: FastifyReply) => {
-      if (!request.isUserAdmin) {
-        await denyAuthorisation('User is not an admin', reply, request);
-      }
-    },
-  );
-
   done();
 }
 
+/**
+ * Require the current user to be a super admin or an admin of the current org.
+ *
+ * This is defined as type `any` instead of `preParsingHookHandler` because the latter would
+ * discard the types for all the request parameters (e.g., `request.params`) in the route, since
+ * `preParsingHookHandler` doesn't offer a generic parameter that honours such parameters.
+ */
+const requireUserToBeAdmin: any = async (
+  request: AuthenticatedFastifyRequest,
+  reply: FastifyReply,
+) => {
+  if (!request.isUserAdmin) {
+    await denyAuthorisation('User is not an admin', reply, request);
+  }
+};
+
 const orgAuthPlugin = fastifyPlugin(registerOrgAuth, { name: 'org-auth' });
 export default orgAuthPlugin;
+
+export { requireUserToBeAdmin };
