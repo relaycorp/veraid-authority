@@ -55,16 +55,10 @@ describe('member public keys routes', () => {
         serviceOid: TEST_SERVICE_OID,
         publicKey: publicKeyBase64,
       };
-      testOrgRouteAuth(
-        'ORG_MEMBERSHIP',
-        (memberId) => ({
-          ...injectionOptions,
-          payload,
-          url: `/orgs/${ORG_NAME}/members/${memberId ?? MEMBER_MONGO_ID}/public-keys`,
-        }),
-        getTestServerFixture,
-        { spy: mockCreateMemberPublicKey, result: { id: PUBLIC_KEY_ID } },
-      );
+      testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMemberPublicKey,
+        result: { id: PUBLIC_KEY_ID },
+      });
     });
 
     test('Valid data should be stored', async () => {
@@ -140,18 +134,9 @@ describe('member public keys routes', () => {
         });
       });
 
-      testOrgRouteAuth(
-        'ORG_MEMBERSHIP',
-        (memberId) => ({
-          ...injectionOptions,
-
-          url: `/orgs/${ORG_NAME}/members/${
-            memberId ?? MEMBER_MONGO_ID
-          }/public-keys/${PUBLIC_KEY_ID}`,
-        }),
-        getTestServerFixture,
-        { spy: mockDeleteMemberPublicKey },
-      );
+      testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
+        spy: mockDeleteMemberPublicKey,
+      });
     });
 
     test('Valid id should be accepted', async () => {

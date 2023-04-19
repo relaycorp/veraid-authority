@@ -19,7 +19,7 @@ import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './a
 import { REQUIRED_ENV_VARS } from './envVars.js';
 import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
-import { MEMBER_EMAIL, MEMBER_NAME, ORG_NAME } from './stubs.js';
+import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 
 function mockJwksAuthentication(
   fastify: FastifyInstance,
@@ -84,8 +84,6 @@ interface Processor<ProcessorResolvedValue> {
   readonly result?: ProcessorResolvedValue;
 }
 
-export type RequestOptionsGetter = (memberId?: string) => InjectOptions;
-
 export const REQUIRED_API_ENV_VARS = {
   ...REQUIRED_ENV_VARS,
   OAUTH2_JWKS_URL,
@@ -109,7 +107,7 @@ export function makeTestApiServer(): () => TestServerFixture {
 
 export function testOrgRouteAuth<ProcessorResolvedValue>(
   routeLevel: RouteLevel,
-  requestOptionsOrGetter: InjectOptions | RequestOptionsGetter,
+  requestOptions: InjectOptions,
   fixtureGetter: () => TestServerFixture,
   processor: Processor<ProcessorResolvedValue>,
 ): void {
@@ -134,21 +132,12 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     processor.spy.mockResolvedValue(result as SuccessfulResult<ProcessorResolvedValue>);
   });
 
-  async function makeRequest(memberId?: string): Promise<LightMyRequestResponse> {
-    const options =
-      typeof requestOptionsOrGetter === 'function'
-        ? requestOptionsOrGetter(memberId)
-        : requestOptionsOrGetter;
-    return server.inject(options);
-  }
-
-  async function createOrgMember(member: MemberModelSchema): Promise<string> {
+  async function createOrgMember(member: MemberModelSchema): Promise<void> {
     const { dbConnection } = fixtureGetter();
     const memberModel = getModelForClass(MemberModelSchema, {
       existingConnection: dbConnection,
     });
-    const { id } = await memberModel.create(member);
-    return id as string;
+    await memberModel.create({ ...member, id: MEMBER_MONGO_ID });
   }
 
   function expectAccessToBeGranted(
@@ -174,7 +163,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   test('Anonymous access should be denied', async () => {
     unsetAuthUser(server);
 
-    const response = await makeRequest();
+    const response = await server.inject(requestOptions);
 
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.UNAUTHORIZED);
     expect(processor.spy).not.toHaveBeenCalled();
@@ -183,32 +172,26 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   test('Super admin should be granted access', async () => {
     setAuthUser(server, SUPER_ADMIN_EMAIL);
 
-    const response = await makeRequest();
+    const response = await server.inject(requestOptions);
 
     expectAccessToBeGranted(response, 'User is super admin', SUPER_ADMIN_EMAIL);
   });
 
   if (routeLevel === 'ORG_BULK') {
     test('Any org admin should be denied access', async () => {
-      const memberId = await createOrgMember({
-        ...orgMember,
-        role: Role.ORG_ADMIN,
-      });
+      await createOrgMember({ ...orgMember, role: Role.ORG_ADMIN });
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       expectAccessToBeDenied(response, 'Non-super admin tries to access bulk org endpoint');
     });
   } else {
     test('Org admin should be granted access', async () => {
-      const memberId = await createOrgMember({
-        ...orgMember,
-        role: Role.ORG_ADMIN,
-      });
+      await createOrgMember({ ...orgMember, role: Role.ORG_ADMIN });
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       expectAccessToBeGranted(response, 'User is org admin');
     });
@@ -216,14 +199,14 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG') {
     test('Admin from different org should be denied access', async () => {
-      const memberId = await createOrgMember({
+      await createOrgMember({
         ...orgMember,
         role: Role.ORG_ADMIN,
         orgName: `not-${orgMember.orgName}`,
       });
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       expectAccessToBeDenied(response, 'User is not a member of the org');
     });
@@ -231,28 +214,28 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      const memberId = await createOrgMember(orgMember);
+      await createOrgMember(orgMember);
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       expectAccessToBeGranted(response, 'User is accessing their own membership');
     });
 
     test('Another member from same org should be denied access', async () => {
-      const memberId = await createOrgMember({ ...orgMember, email: `not-${MEMBER_EMAIL}` });
+      await createOrgMember({ ...orgMember, email: `not-${MEMBER_EMAIL}` });
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       expectAccessToBeDenied(response, 'User is accessing different membership');
     });
   } else {
     test('Org member should be denied access', async () => {
-      const memberId = await createOrgMember(orgMember);
+      await createOrgMember(orgMember);
       setAuthUser(server, MEMBER_EMAIL);
 
-      const response = await makeRequest(memberId);
+      const response = await server.inject(requestOptions);
 
       let reason: string;
       switch (routeLevel) {

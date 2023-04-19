@@ -14,7 +14,6 @@ import {
   memberSchemaRoles,
   type PatchMemberSchema,
 } from '../../schemas/member.schema.js';
-import type { RequestOptionsGetter } from '../../testUtils/apiServer.js';
 
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),
@@ -31,13 +30,6 @@ jest.unstable_mockModule('../../member.js', () => ({
 }));
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
-
-function makeRequestOptionGetter(baseOptions: InjectOptions): RequestOptionsGetter {
-  return (memberId) => ({
-    ...baseOptions,
-    ...(memberId === undefined ? {} : { url: `/orgs/${ORG_NAME}/members/${memberId}` }),
-  });
-}
 
 describe('member routes', () => {
   const testMemberId = 'TEST_ID';
@@ -234,12 +226,10 @@ describe('member routes', () => {
     };
 
     describe('Auth', () => {
-      testOrgRouteAuth(
-        'ORG_MEMBERSHIP',
-        makeRequestOptionGetter(injectionOptions),
-        getTestServerFixture,
-        { spy: mockGetMember, result: { role: 'REGULAR', name: MEMBER_NAME, email: MEMBER_EMAIL } },
-      );
+      testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
+        spy: mockGetMember,
+        result: { role: 'REGULAR', name: MEMBER_NAME, email: MEMBER_EMAIL },
+      });
     });
 
     test('Existing member should be returned', async () => {
@@ -293,12 +283,9 @@ describe('member routes', () => {
         mockGetMember.mockResolvedValueOnce({ didSucceed: true, result: { role: 'REGULAR' } });
       });
 
-      testOrgRouteAuth(
-        'ORG_MEMBERSHIP_RESTRICTED',
-        makeRequestOptionGetter(injectionOptions),
-        getTestServerFixture,
-        { spy: mockDeleteMember },
-      );
+      testOrgRouteAuth('ORG_MEMBERSHIP_RESTRICTED', injectionOptions, getTestServerFixture, {
+        spy: mockDeleteMember,
+      });
     });
 
     test('Valid org name and member id should be accepted', async () => {
@@ -358,7 +345,7 @@ describe('member routes', () => {
 
       testOrgRouteAuth(
         'ORG_MEMBERSHIP_RESTRICTED',
-        makeRequestOptionGetter({ ...injectionOptions, payload: {} }),
+        { ...injectionOptions, payload: {} },
         getTestServerFixture,
         { spy: mockUpdateMember },
       );

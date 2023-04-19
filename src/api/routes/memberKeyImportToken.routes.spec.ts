@@ -37,19 +37,11 @@ describe('member key import token routes', () => {
     };
 
     describe('Auth', () => {
-      const payload: MemberKeyImportTokenSchema = {
-        serviceOid: TEST_SERVICE_OID,
-      };
-      testOrgRouteAuth(
-        'ORG_MEMBERSHIP',
-        (memberId) => ({
-          ...injectionOptions,
-          url: `/orgs/${ORG_NAME}/members/${memberId ?? MEMBER_MONGO_ID}/public-key-import-tokens`,
-          payload,
-        }),
-        getTestServerFixture,
-        { spy: mockCreateMemberKeyImportToken, result: { id: MEMBER_KEY_IMPORT_TOKEN } },
-      );
+      const payload: MemberKeyImportTokenSchema = { serviceOid: TEST_SERVICE_OID };
+      testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMemberKeyImportToken,
+        result: { id: MEMBER_KEY_IMPORT_TOKEN },
+      });
     });
 
     test('Valid data should be stored', async () => {
