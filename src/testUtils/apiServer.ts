@@ -148,7 +148,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     );
   }
 
-  test.skip('Anonymous access should be denied', async () => {
+  test('Anonymous access should be denied', async () => {
     unsetAuthUser();
 
     const response = await makeRequest();
@@ -157,7 +157,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     expect(processor.spy).not.toHaveBeenCalled();
   });
 
-  test.skip('Super admin should be granted access', async () => {
+  test('Super admin should be granted access', async () => {
     setAuthUser(SUPER_ADMIN_EMAIL);
 
     const response = await makeRequest();
@@ -166,7 +166,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   });
 
   if (routeLevel === 'ORG_BULK') {
-    test.skip('Any org admin should be denied access', async () => {
+    test('Any org admin should be denied access', async () => {
       const memberId = await createOrgMember({
         ...orgMember,
         role: Role.ORG_ADMIN,
@@ -178,7 +178,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
       expectAccessToBeDenied(response, 'Non-super admin tries to access bulk org endpoint');
     });
   } else {
-    test.skip('Org admin should be granted access', async () => {
+    test('Org admin should be granted access', async () => {
       const memberId = await createOrgMember({
         ...orgMember,
         role: Role.ORG_ADMIN,
@@ -192,7 +192,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   }
 
   if (routeLevel === 'ORG') {
-    test.skip('Admin from different org should be denied access', async () => {
+    test('Admin from different org should be denied access', async () => {
       const memberId = await createOrgMember({
         ...orgMember,
         role: Role.ORG_ADMIN,
@@ -207,7 +207,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   }
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
-    test.skip('Org member should be granted access', async () => {
+    test('Org member should be granted access', async () => {
       const memberId = await createOrgMember(orgMember);
       setAuthUser(userEmail);
 
@@ -216,7 +216,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
       expectAccessToBeGranted(response, 'User is accessing their own membership');
     });
 
-    test.skip('Another member from same org should be denied access', async () => {
+    test('Another member from same org should be denied access', async () => {
       const memberId = await createOrgMember({ ...orgMember, email: `not-${userEmail}` });
       setAuthUser(userEmail);
 
@@ -225,7 +225,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
       expectAccessToBeDenied(response, 'User is accessing different membership');
     });
   } else {
-    test.skip('Org member should be denied access', async () => {
+    test('Org member should be denied access', async () => {
       const memberId = await createOrgMember(orgMember);
       setAuthUser(userEmail);
 
