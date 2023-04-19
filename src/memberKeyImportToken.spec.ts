@@ -182,7 +182,7 @@ describe('member key import token', () => {
     });
 
     test('Non existing token should return error', async () => {
-      const invalidToken  = '111111111111111111111111';
+      const invalidToken = '111111111111111111111111';
 
       const result = await processMemberKeyImportToken(
         {

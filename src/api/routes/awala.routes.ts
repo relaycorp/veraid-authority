@@ -9,7 +9,8 @@ import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedI
 import {
   MEMBER_BUNDLE_REQUEST_SCHEMA,
   MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
-  type MemberBundleRequest, MemberKeyImportRequest,
+  type MemberBundleRequest,
+  type MemberKeyImportRequest,
 } from '../../schemas/awala.schema.js';
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
