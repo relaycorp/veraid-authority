@@ -4,13 +4,11 @@ import type { BaseLogger } from 'pino';
 import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 
-import exampleEventPublisher from './routes/exampleEventPublisher.routes.js';
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import awalaRoutes from './routes/awala.routes.js';
 
 const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [
-  exampleEventPublisher,
   healthcheckRoutes,
   orgRoutes,
   awalaRoutes,
