@@ -1,4 +1,4 @@
-import { index, prop } from '@typegoose/typegoose';
+import { index, prop, Severity } from '@typegoose/typegoose';
 
 export enum Role {
   ORG_ADMIN = 'org_admin',
@@ -10,10 +10,10 @@ export enum Role {
   { unique: true, partialFilterExpression: { name: { $type: 'string' } } },
 )
 export class MemberModelSchema {
-  @prop({ default: null })
+  @prop({ default: null, allowMixed: Severity.ALLOW })
   public name!: string | null;
 
-  @prop({ default: null })
+  @prop({ default: null, allowMixed: Severity.ALLOW })
   public email!: string | null;
 
   @prop({ required: true, enum: Role })
