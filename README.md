@@ -37,11 +37,23 @@ To start the app, simply run:
 skaffold dev
 ```
 
-You can find the URL to the HTTP server by running:
+You can find the URL to the HTTP servers by running:
 
 ```
-kn service describe veraid-authority -o url
+kn service list
 ```
+
+To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin `admin@veraid.example`, run:
+
+```http
+### Authenticate with authorisation server (client credentials)
+POST http://mock-authz-server.default.10.103.177.106.sslip.io/default/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3t
+```
+
+You can then make authenticated requests to the API server by setting the `Authorization` header to `Bearer <access_token>`.
 
 ## Architecture
 
