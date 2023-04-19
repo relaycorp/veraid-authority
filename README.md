@@ -43,7 +43,7 @@ You can find the URL to the HTTP servers by running:
 kn service list
 ```
 
-To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin `admin@veraid.example`, run:
+To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`), run:
 
 ```http
 ### Authenticate with authorisation server (client credentials)
