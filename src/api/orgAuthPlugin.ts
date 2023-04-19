@@ -1,13 +1,13 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import envVar from 'env-var';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import fastifyPlugin from 'fastify-plugin';
+import fastifyPlugin, { type PluginMetadata } from 'fastify-plugin';
 import type { Connection } from 'mongoose';
 
-import jwksPlugin from '../utilities/fastify/plugins/jwksAuthentication.js';
 import { MemberModelSchema, Role } from '../models/Member.model.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { Result } from '../utilities/result.js';
+import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 
 interface OrgRequestParams {
   readonly orgName?: string;
@@ -75,9 +75,7 @@ async function denyAuthorisation(
   await reply.code(HTTP_STATUS_CODES.FORBIDDEN).send();
 }
 
-async function registerOrgAuth(fastify: FastifyInstance): Promise<void> {
-  await fastify.register(jwksPlugin);
-
+function registerOrgAuth(fastify: FastifyInstance, _opts: PluginMetadata, done: PluginDone): void {
   fastify.addHook('onRequest', fastify.authenticate);
 
   fastify.decorateRequest('isUserAdmin', false);
@@ -103,6 +101,8 @@ async function registerOrgAuth(fastify: FastifyInstance): Promise<void> {
       }
     },
   );
+
+  done();
 }
 
 const orgAuthPlugin = fastifyPlugin(registerOrgAuth, { name: 'org-auth' });

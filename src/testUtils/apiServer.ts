@@ -1,11 +1,7 @@
-import { randomUUID } from 'node:crypto';
-
 import { jest } from '@jest/globals';
 import { getModelForClass } from '@typegoose/typegoose';
 import type {
   FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
   InjectOptions,
   LightMyRequestResponse,
   onRequestAsyncHookHandler,
@@ -21,20 +17,26 @@ import type { Result, SuccessfulResult } from '../utilities/result.js';
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
 import { REQUIRED_ENV_VARS } from './envVars.js';
-import { mockSpy } from './jest.js';
+import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
+import { MEMBER_EMAIL, MEMBER_NAME, ORG_NAME } from './stubs.js';
 
-const mockAuthenticate = mockSpy(jest.fn<onRequestAsyncHookHandler | onRequestHookHandler>());
 function mockJwksAuthentication(
   fastify: FastifyInstance,
   _opts: PluginMetadata,
   done: PluginDone,
 ): void {
-  fastify.decorate('authenticate', mockAuthenticate);
+  fastify.decorate(
+    'authenticate',
+    jest.fn<onRequestHookHandler>().mockImplementation((_request, _reply, handlerDone) => {
+      handlerDone();
+    }),
+  );
+
   done();
 }
 jest.unstable_mockModule('../../utilities/fastify/plugins/jwksAuthentication.js', () => ({
-  default: fastifyPlugin(mockJwksAuthentication),
+  default: fastifyPlugin(mockJwksAuthentication, { name: 'mock-jwks-authentication' }),
 }));
 const { makeApiServer } = await import('../api/server.js');
 
@@ -43,15 +45,34 @@ const MAX_SUCCESSFUL_STATUS = 399;
 // We should have the same super admin across all tests to avoid concurrency issues
 const SUPER_ADMIN_EMAIL = 'admin@veraid-authority.example';
 
-function setAuthUser(sub: string) {
-  mockAuthenticate.mockImplementation((request, _reply, done) => {
-    request.user = { sub };
-    done();
+function getMockAuthenticateFromServer(fastify: FastifyInstance) {
+  const childrenSymbol = Object.getOwnPropertySymbols(fastify).find(
+    (symbol) => symbol.description === 'fastify.children',
+  );
+  if (childrenSymbol === undefined) {
+    throw new Error('Could not find children property');
+  }
+
+  // @ts-expect-error: Allow lookup by symbol
+  const children = fastify[childrenSymbol] as FastifyInstance[];
+
+  const childContext = Object.values(children).find((value) => 'authenticate' in value);
+  if (childContext === undefined) {
+    throw new Error('Could not find child context');
+  }
+  const { authenticate } = childContext;
+  return getMockInstance(authenticate) as jest.Mock<onRequestAsyncHookHandler>;
+}
+
+function setAuthUser(fastify: FastifyInstance, userEmail: string) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  getMockAuthenticateFromServer(fastify).mockImplementation(async (request) => {
+    (request as unknown as { user: { sub: string } }).user = { sub: userEmail };
   });
 }
 
-function unsetAuthUser() {
-  mockAuthenticate.mockImplementation(async (_request: FastifyRequest, reply: FastifyReply) => {
+function unsetAuthUser(fastify: FastifyInstance) {
+  getMockAuthenticateFromServer(fastify).mockImplementation(async (_request, reply) => {
     await reply.code(HTTP_STATUS_CODES.UNAUTHORIZED).send();
   });
 }
@@ -76,9 +97,10 @@ export function makeTestApiServer(): () => TestServerFixture {
   const getFixture = makeTestServer(makeApiServer, REQUIRED_API_ENV_VARS);
 
   beforeEach(() => {
-    setAuthUser(SUPER_ADMIN_EMAIL);
+    const { envVarMocker, server } = getFixture();
 
-    const { envVarMocker } = getFixture();
+    setAuthUser(server, SUPER_ADMIN_EMAIL);
+
     envVarMocker({ ...REQUIRED_API_ENV_VARS, AUTHORITY_SUPERADMIN: SUPER_ADMIN_EMAIL });
   });
 
@@ -92,15 +114,17 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   processor: Processor<ProcessorResolvedValue>,
 ): void {
   // Use unique values across test suites to avoid concurrency issues.
-  const userName = randomUUID();
-  const orgName = `${randomUUID()}.example`;
-  const userEmail = `${userName}@${orgName}`;
   const orgMember: MemberModelSchema = {
-    orgName,
-    name: userName,
+    orgName: ORG_NAME,
+    name: MEMBER_NAME,
     role: Role.REGULAR,
-    email: userEmail,
+    email: MEMBER_EMAIL,
   };
+
+  let server: FastifyInstance;
+  beforeEach(() => {
+    ({ server } = fixtureGetter());
+  });
 
   beforeEach(() => {
     const result = {
@@ -111,10 +135,9 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   });
 
   async function makeRequest(memberId?: string): Promise<LightMyRequestResponse> {
-    const { server } = fixtureGetter();
     const options =
       typeof requestOptionsOrGetter === 'function'
-        ? requestOptionsOrGetter(orgName, memberId)
+        ? requestOptionsOrGetter(ORG_NAME, memberId)
         : requestOptionsOrGetter;
     return server.inject(options);
   }
@@ -131,7 +154,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   function expectAccessToBeGranted(
     response: LightMyRequestResponse,
     reason: string,
-    expectedUserEmail: string = userEmail,
+    expectedUserEmail: string = MEMBER_EMAIL,
   ) {
     expect(response.statusCode).toBeWithin(HTTP_STATUS_CODES.OK, MAX_SUCCESSFUL_STATUS);
     expect(processor.spy).toHaveBeenCalled();
@@ -144,12 +167,12 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.FORBIDDEN);
     expect(processor.spy).not.toHaveBeenCalled();
     expect(fixtureGetter().logs).toContainEqual(
-      partialPinoLog('info', 'Authorisation denied', { userEmail, reason }),
+      partialPinoLog('info', 'Authorisation denied', { userEmail: MEMBER_EMAIL, reason }),
     );
   }
 
   test('Anonymous access should be denied', async () => {
-    unsetAuthUser();
+    unsetAuthUser(server);
 
     const response = await makeRequest();
 
@@ -158,7 +181,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   });
 
   test('Super admin should be granted access', async () => {
-    setAuthUser(SUPER_ADMIN_EMAIL);
+    setAuthUser(server, SUPER_ADMIN_EMAIL);
 
     const response = await makeRequest();
 
@@ -171,7 +194,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
         ...orgMember,
         role: Role.ORG_ADMIN,
       });
-      setAuthUser(userEmail);
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 
@@ -183,7 +206,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
         ...orgMember,
         role: Role.ORG_ADMIN,
       });
-      setAuthUser(userEmail);
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 
@@ -198,7 +221,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
         role: Role.ORG_ADMIN,
         orgName: `not-${orgMember.orgName}`,
       });
-      setAuthUser(userEmail);
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 
@@ -209,7 +232,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
       const memberId = await createOrgMember(orgMember);
-      setAuthUser(userEmail);
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 
@@ -217,8 +240,8 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
 
     test('Another member from same org should be denied access', async () => {
-      const memberId = await createOrgMember({ ...orgMember, email: `not-${userEmail}` });
-      setAuthUser(userEmail);
+      const memberId = await createOrgMember({ ...orgMember, email: `not-${MEMBER_EMAIL}` });
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 
@@ -227,7 +250,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
   } else {
     test('Org member should be denied access', async () => {
       const memberId = await createOrgMember(orgMember);
-      setAuthUser(userEmail);
+      setAuthUser(server, MEMBER_EMAIL);
 
       const response = await makeRequest(memberId);
 

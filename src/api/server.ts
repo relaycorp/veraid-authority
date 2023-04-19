@@ -3,6 +3,7 @@ import type { BaseLogger } from 'pino';
 
 import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
+import jwksPlugin from '../utilities/fastify/plugins/jwksAuthentication.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
@@ -15,6 +16,7 @@ const ROOT_ROUTES: FastifyPluginCallback<RouteOptions>[] = [
 ];
 
 async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
+  await server.register(jwksPlugin);
   await Promise.all(ROOT_ROUTES.map((route) => server.register(route)));
 }
 
