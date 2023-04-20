@@ -13,12 +13,14 @@ All processes require the following variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
   - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
 
-The API server additionally requires the following variables:
+The API server additionally uses the following variables:
 
 - Authentication-related variables:
   - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
   - Either `OAUTH2_TOKEN_ISSUER` or `OAUTH2_TOKEN_ISSUER_REGEX` (required). The (URL of the) authorisation server.
   - `OAUTH2_TOKEN_AUDIENC[example.sink.spec.ts](src%2FbackgroundQueue%2Fsinks%2Fexample.sink.spec.ts)E` (required). The identifier of the current instance of this server (typically its public URL).
+- Authorisation-related variables:
+  - `AUTHORITY_SUPERADMIN` (optional): The JWT _subject id_ of the super admin, which in this app we require it to be an email address. When unset, routes that require super admin role (e.g., `POST /orgs`) won't work by design. This is desirable in cases where an instance of this server will only ever support a handful of domain names (they could set the `AUTHORITY_SUPERADMIN`  to create the orgs, and then unset the super admin var).
 
 ## Development
 
@@ -35,11 +37,23 @@ To start the app, simply run:
 skaffold dev
 ```
 
-You can find the URL to the HTTP server by running:
+You can find the URL to the HTTP servers by running:
 
 ```
-kn service describe veraid-authority -o url
+kn service list
 ```
+
+To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`), run:
+
+```http
+### Authenticate with authorisation server (client credentials)
+POST http://mock-authz-server.default.10.103.177.106.sslip.io/default/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3t
+```
+
+You can then make authenticated requests to the API server by setting the `Authorization` header to `Bearer <access_token>`.
 
 ## Architecture
 
@@ -49,13 +63,15 @@ This multi-tenant server will allow one or more organisations to manage their Ve
 
 ### Authentication and authorisation
 
-We use OAuth2 with JWKS to delegate authentication to an external identity provider.
+We use OAuth2 with JWKS to delegate authentication to an external identity provider. We require the JWT token's `sub` claim to be the email address of the user.
 
 The API employs the following roles:
 
-- Admin. They can do absolutely anything on any organisation.
+- Super admin. They can do absolutely anything on any organisation.
 - Org admin. They can do anything within their own organisation.
 - Org member. They can manage much of their own membership in their respective organisation.
+
+Authorisation grant logs use the level `DEBUG` to minimise PII transmission and storage for legal/privacy reasons, whilst denial logs use the level `INFO` for auditing purposes.
 
 ### HTTP Endpoints
 

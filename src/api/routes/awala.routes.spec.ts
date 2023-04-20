@@ -1,20 +1,20 @@
 import { jest } from '@jest/globals';
+import type { FastifyInstance } from 'fastify';
 
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
-import {
-  AWALA_PDA,
-  MEMBER_KEY_IMPORT_TOKEN,
-  MEMBER_PUBLIC_KEY_MONGO_ID,
-  SIGNATURE,
-} from '../../testUtils/stubs.js';
-import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import { type MockLogSet, partialPinoLog } from '../../testUtils/logging.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
 import type { MemberProblemType } from '../../MemberProblemType.js';
+import {
+  AWALA_PDA,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
+  MEMBER_KEY_IMPORT_TOKEN,
+  SIGNATURE,
+} from '../../testUtils/stubs.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
@@ -38,16 +38,15 @@ const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 describe('awala routes', () => {
-  const mockLogging = makeMockLogging();
-  const getTestApiServer = makeTestApiServer(mockLogging.logger);
-  let serverInstance: FastifyTypedInstance;
-
+  const getTestServerFixture = makeTestApiServer();
+  let server: FastifyInstance;
+  let logs: MockLogSet;
   beforeEach(() => {
-    serverInstance = getTestApiServer();
+    ({ server, logs } = getTestServerFixture());
   });
 
   test('Invalid content type should resolve to unsupported media type error', async () => {
-    const response = await serverInstance.inject({
+    const response = await server.inject({
       method: 'POST',
       url: '/awala',
 
@@ -72,7 +71,7 @@ describe('awala routes', () => {
     };
 
     test('Valid data should be accepted', async () => {
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -84,8 +83,8 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
       expect(mockCreateMemberBundleRequest).toHaveBeenCalledOnceWith(validPayload, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
+        logger: server.log,
+        dbConnection: server.mongoose,
       });
     });
 
@@ -95,7 +94,7 @@ describe('awala routes', () => {
         memberBundleStartDate: 'INVALID_DATE',
       };
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -103,7 +102,7 @@ describe('awala routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockLogging.logs).toContainEqual(
+      expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           reason: expect.stringContaining('memberBundleStartDate'),
@@ -117,7 +116,7 @@ describe('awala routes', () => {
         awalaPda: 'INVALID_BASE_64',
       };
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -125,7 +124,7 @@ describe('awala routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockLogging.logs).toContainEqual(
+      expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           reason: expect.stringContaining('awalaPda'),
@@ -139,7 +138,7 @@ describe('awala routes', () => {
         signature: 'INVALID_BASE_64',
       };
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -147,7 +146,7 @@ describe('awala routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockLogging.logs).toContainEqual(
+      expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           reason: expect.stringContaining('signature'),
@@ -172,7 +171,7 @@ describe('awala routes', () => {
         didSucceed: true,
       });
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -181,8 +180,8 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(validPayload, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
+        logger: server.log,
+        dbConnection: server.mongoose,
       });
     });
 
@@ -192,7 +191,7 @@ describe('awala routes', () => {
         awalaPda: 'INVALID_BASE_64',
       };
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -200,7 +199,7 @@ describe('awala routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockLogging.logs).toContainEqual(
+      expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           reason: expect.stringContaining('awalaPda'),
         }),
@@ -213,7 +212,7 @@ describe('awala routes', () => {
         publicKeyImportToken: undefined,
       };
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -221,7 +220,7 @@ describe('awala routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockLogging.logs).toContainEqual(
+      expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           reason: expect.stringContaining('publicKeyImportToken'),
         }),
@@ -237,7 +236,7 @@ describe('awala routes', () => {
         reason,
       });
 
-      const response = await serverInstance.inject({
+      const response = await server.inject({
         method: 'POST',
         url: '/awala',
         headers: validHeaders,
@@ -246,8 +245,8 @@ describe('awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(validPayload, {
-        logger: serverInstance.log,
-        dbConnection: serverInstance.mongoose,
+        logger: server.log,
+        dbConnection: server.mongoose,
       });
     });
   });

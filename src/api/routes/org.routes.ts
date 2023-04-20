@@ -4,6 +4,7 @@ import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
+import orgAuthPlugin from '../orgAuthPlugin.js';
 
 import memberRoutes from './member.routes.js';
 
@@ -45,6 +46,8 @@ export default async function registerRoutes(
   fastify: FastifyTypedInstance,
   opts: RouteOptions,
 ): Promise<void> {
+  await fastify.register(orgAuthPlugin);
+
   fastify.route({
     method: ['POST'],
     url: '/orgs',

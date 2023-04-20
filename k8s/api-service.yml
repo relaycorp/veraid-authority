@@ -21,6 +21,9 @@ spec:
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
+            - name: AUTHORITY_SUPERADMIN
+              value: admin@veraid.example
+
             - name: MONGODB_USERNAME
               valueFrom:
                 configMapKeyRef:

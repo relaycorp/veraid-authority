@@ -1,9 +1,7 @@
 import { CloudEvent } from 'cloudevents';
 
-import { configureMockEnvVars } from '../../testUtils/envVars.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { REQUIRED_QUEUE_ENV_VARS, setUpTestQueueServer } from '../../testUtils/queueServer.js';
-import { makeMockLogging } from '../../testUtils/logging.js';
+import { setUpTestQueueServer } from '../../testUtils/queueServer.js';
 import { CE_ID, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import {
@@ -19,13 +17,10 @@ import {
 describe('triggerBundleRequest', () => {
   const getEvents = mockEmitter();
 
-  configureMockEnvVars(REQUIRED_QUEUE_ENV_VARS);
-
-  const mockLogging = makeMockLogging();
-  const getTestServer = setUpTestQueueServer(mockLogging.logger);
+  const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
   beforeEach(() => {
-    server = getTestServer();
+    ({ server } = getTestServerFixture());
   });
 
   test('New events should be fired', async () => {

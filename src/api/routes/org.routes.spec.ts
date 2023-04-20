@@ -10,9 +10,9 @@ import {
 } from '../../testUtils/stubs.js';
 import {
   type OrgSchema,
-  type OrgSchemaPatch,
   type OrgSchemaMemberAccessType,
   orgSchemaMemberAccessTypes,
+  type OrgSchemaPatch,
 } from '../../schemas/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
@@ -32,13 +32,14 @@ jest.unstable_mockModule('../../org.js', () => ({
   deleteOrg: mockDeleteOrg,
 }));
 
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('org routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    const fixture = getTestServerFixture();
+    serverInstance = fixture.server;
   });
 
   describe('creation', () => {
@@ -46,6 +47,14 @@ describe('org routes', () => {
       method: 'POST',
       url: '/orgs',
     };
+
+    describe('Auth', () => {
+      const payload: OrgSchema = { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' };
+      testOrgRouteAuth('ORG_BULK', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateOrg,
+        result: { name: ORG_NAME },
+      });
+    });
 
     test.each([
       ['ASCII', ORG_NAME],
@@ -223,6 +232,16 @@ describe('org routes', () => {
       },
     } as const;
 
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
+      });
+
+      testOrgRouteAuth('ORG', { ...injectionOptions, payload: {} }, getTestServerFixture, {
+        spy: mockUpdateOrg,
+      });
+    });
+
     test('Empty parameters should be accepted', async () => {
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
@@ -337,6 +356,15 @@ describe('org routes', () => {
       method: 'GET',
     };
 
+    describe('Auth', () => {
+      testOrgRouteAuth(
+        'ORG',
+        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        getTestServerFixture,
+        { spy: mockGetOrg, result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' } },
+      );
+    });
+
     test.each([
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
@@ -390,6 +418,22 @@ describe('org routes', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetOrg.mockResolvedValueOnce({
+          didSucceed: true,
+          result: { name: ORG_NAME, memberAccessType: 'INVITE_ONLY' },
+        });
+      });
+
+      testOrgRouteAuth(
+        'ORG',
+        { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
+        getTestServerFixture,
+        { spy: mockDeleteOrg },
+      );
+    });
 
     test('Valid name should be accepted', async () => {
       mockGetOrg.mockResolvedValueOnce({

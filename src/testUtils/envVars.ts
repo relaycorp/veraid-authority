@@ -4,7 +4,7 @@ import envVar from 'env-var';
 import { K_SINK } from './eventing/stubs.js';
 import { MONGODB_URI } from './db.js';
 
-interface EnvVarSet {
+export interface EnvVarSet {
   readonly [key: string]: string | undefined;
 }
 
@@ -14,7 +14,9 @@ export const REQUIRED_ENV_VARS = {
   MONGODB_URI,
 };
 
-export function configureMockEnvVars(envVars: EnvVarSet = {}): (envVars: EnvVarSet) => void {
+export type EnvVarMocker = (envVars: EnvVarSet) => void;
+
+export function configureMockEnvVars(envVars: EnvVarSet = {}): EnvVarMocker {
   const mockEnvVarGet = jest.spyOn(envVar, 'get');
   function setEnvironmentVariables(newEnvVars: EnvVarSet): void {
     mockEnvVarGet.mockReset();

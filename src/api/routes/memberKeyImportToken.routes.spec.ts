@@ -21,13 +21,13 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
   processMemberKeyImportToken: jest.fn(),
 }));
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('member key import token routes', () => {
-  const getTestServer = makeTestApiServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {
@@ -35,6 +35,14 @@ describe('member key import token routes', () => {
       method: 'POST',
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-key-import-tokens`,
     };
+
+    describe('Auth', () => {
+      const payload: MemberKeyImportTokenSchema = { serviceOid: TEST_SERVICE_OID };
+      testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMemberKeyImportToken,
+        result: { id: MEMBER_KEY_IMPORT_TOKEN },
+      });
+    });
 
     test('Valid data should be stored', async () => {
       const payload: MemberKeyImportTokenSchema = {

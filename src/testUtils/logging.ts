@@ -8,6 +8,8 @@ interface MockLogging {
   readonly logs: MockLogSet;
 }
 
+export type { MockLogSet };
+
 export function makeMockLogging(): MockLogging {
   const logs: any[] = [];
   const stream = split2((data) => {

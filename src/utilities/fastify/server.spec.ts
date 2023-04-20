@@ -6,6 +6,7 @@ import { configureMockEnvVars } from '../../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../../testUtils/jest.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
+import notFoundHandler from './plugins/notFoundHandler.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
@@ -99,10 +100,16 @@ describe('makeFastify', () => {
     expect(fastifyCallArguments).toHaveProperty('trustProxy', true);
   });
 
-  test('The fastifyMongoose plugin should be configured', async () => {
+  test('fastifyMongoose plugin should be configured', async () => {
     await makeFastify(mockPlugin);
 
     expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongoose);
+  });
+
+  test('notFoundHandler plugin should be configured', async () => {
+    await makeFastify(mockPlugin);
+
+    expect(mockFastify.register).toHaveBeenCalledWith(notFoundHandler);
   });
 });
 

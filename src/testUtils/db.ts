@@ -1,4 +1,7 @@
 /* eslint-disable require-atomic-updates */
+
+import { randomUUID } from 'node:crypto';
+
 import { createConnection, type Connection, type ConnectOptions } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
@@ -15,7 +18,10 @@ const MODEL_SCHEMAS = Object.values([
 ]).filter((schema) => typeof schema === 'function');
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,no-underscore-dangle
-export const MONGODB_URI = (global as any).__MONGO_URI__ as string;
+const BASE_MONGO_URI = (global as any).__MONGO_URI__ as string;
+
+// Ensure every Jest worker gets its own database.
+export const MONGODB_URI = `${BASE_MONGO_URI}${randomUUID()}`;
 
 export function setUpTestDbConnection(): () => Connection {
   let connection: Connection;

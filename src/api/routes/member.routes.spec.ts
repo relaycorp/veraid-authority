@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
-import type { InjectOptions } from 'fastify';
+import type { FastifyInstance, InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
@@ -14,7 +14,6 @@ import {
   memberSchemaRoles,
   type PatchMemberSchema,
 } from '../../schemas/member.schema.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const mockCreateMember = mockSpy(
   jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),
@@ -30,15 +29,14 @@ jest.unstable_mockModule('../../member.js', () => ({
   updateMember: mockUpdateMember,
 }));
 
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('member routes', () => {
-  const mongoId = '6424ad273f75645b35f9ee79';
   const testMemberId = 'TEST_ID';
-  const getTestServer = makeTestApiServer();
-  let serverInstance: FastifyTypedInstance;
+  const getTestServerFixture = makeTestApiServer();
+  let serverInstance: FastifyInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {
@@ -46,6 +44,14 @@ describe('member routes', () => {
       method: 'POST',
       url: `/orgs/${ORG_NAME}/members`,
     };
+
+    describe('Auth', () => {
+      const payload: MemberSchema = { role: 'REGULAR' };
+      testOrgRouteAuth('ORG', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMember,
+        result: { id: testMemberId },
+      });
+    });
 
     test.each(memberSchemaRoles)(
       'Minimum required data with role %s should be stored',
@@ -216,8 +222,15 @@ describe('member routes', () => {
   describe('get by org name and member id', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: `/orgs/${ORG_NAME}/members/${mongoId}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
     };
+
+    describe('Auth', () => {
+      testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
+        spy: mockGetMember,
+        result: { role: 'REGULAR', name: MEMBER_NAME, email: MEMBER_EMAIL },
+      });
+    });
 
     test('Existing member should be returned', async () => {
       const getMemberSuccessResponse: SuccessfulResult<MemberSchema> = {
@@ -233,7 +246,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, mongoId, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
@@ -250,7 +263,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, mongoId, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
         logger: serverInstance.log,
         dbConnection: serverInstance.mongoose,
       });
@@ -264,6 +277,16 @@ describe('member routes', () => {
       method: 'DELETE',
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetMember.mockResolvedValueOnce({ didSucceed: true, result: { role: 'REGULAR' } });
+      });
+
+      testOrgRouteAuth('ORG_MEMBERSHIP_RESTRICTED', injectionOptions, getTestServerFixture, {
+        spy: mockDeleteMember,
+      });
+    });
 
     test('Valid org name and member id should be accepted', async () => {
       mockGetMember.mockResolvedValueOnce({
@@ -314,6 +337,19 @@ describe('member routes', () => {
         role: 'ORG_ADMIN',
       },
     };
+
+    describe('Auth', () => {
+      beforeEach(() => {
+        mockGetMember.mockResolvedValueOnce({ didSucceed: true, result: { role: 'REGULAR' } });
+      });
+
+      testOrgRouteAuth(
+        'ORG_MEMBERSHIP_RESTRICTED',
+        { ...injectionOptions, payload: {} },
+        getTestServerFixture,
+        { spy: mockUpdateMember },
+      );
+    });
 
     test('Empty parameters should be allowed', async () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);

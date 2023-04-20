@@ -1,12 +1,10 @@
-import type { BaseLogger } from 'pino';
-
-import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { makeQueueServer } from '../backgroundQueue/server.js';
 
-import { makeTestServer } from './server.js';
+import { makeTestServer, type TestServerFixture } from './server.js';
+import { REQUIRED_ENV_VARS } from './envVars.js';
 
-export { REQUIRED_ENV_VARS as REQUIRED_QUEUE_ENV_VARS } from './envVars.js';
+const REQUIRED_QUEUE_ENV_VARS = REQUIRED_ENV_VARS;
 
-export function setUpTestQueueServer(logger?: BaseLogger): () => FastifyTypedInstance {
-  return makeTestServer(makeQueueServer, logger);
+export function setUpTestQueueServer(): () => TestServerFixture {
+  return makeTestServer(makeQueueServer, REQUIRED_QUEUE_ENV_VARS);
 }
