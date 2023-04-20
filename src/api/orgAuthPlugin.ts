@@ -46,7 +46,7 @@ async function decideAuthorisation(
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: dbConnection,
   });
-  const member = await memberModel.findOne({ orgName, memberId }).select(['role', 'email']);
+  const member = await memberModel.findOne({ orgName, email: userEmail }).select(['role']);
   if (member === null) {
     return { didSucceed: false, reason: 'User is not a member of the org' };
   }
@@ -54,18 +54,14 @@ async function decideAuthorisation(
     return { didSucceed: true, result: { reason: 'User is org admin', isAdmin: true } };
   }
 
-  if (memberId === undefined) {
-    return { didSucceed: false, reason: 'User is not accessing a membership' };
-  }
-
-  if (member.email === userEmail) {
+  if (member.id === memberId) {
     return {
       didSucceed: true,
       result: { reason: 'User is accessing their own membership', isAdmin: false },
     };
   }
 
-  return { didSucceed: false, reason: 'User is accessing different membership' };
+  return { didSucceed: false, reason: 'User is not accessing their membership' };
 }
 
 async function denyAuthorisation(reason: string, reply: FastifyReply, userEmail: string) {

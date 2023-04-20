@@ -28,6 +28,14 @@ const ORG_MEMBER: MemberModelSchema = {
   email: MEMBER_EMAIL,
 };
 
+const ORG_ADMIN_EMAIL = `admin@${ORG_NAME}`;
+const ORG_ADMIN = {
+  orgName: ORG_NAME,
+  name: 'admin',
+  role: Role.ORG_ADMIN,
+  email: ORG_ADMIN_EMAIL,
+};
+
 function mockJwksAuthentication(
   fastify: FastifyInstance,
   _opts: PluginMetadata,
@@ -132,12 +140,13 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     processor.spy.mockResolvedValue(result as SuccessfulResult<ProcessorResolvedValue>);
   });
 
-  async function createOrgMember(member: MemberModelSchema): Promise<void> {
+  async function createOrgMember(member: MemberModelSchema, id?: string): Promise<void> {
     const { dbConnection } = fixtureGetter();
     const memberModel = getModelForClass(MemberModelSchema, {
       existingConnection: dbConnection,
     });
-    await memberModel.create({ ...member, id: MEMBER_MONGO_ID });
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    await memberModel.create({ ...member, _id: id });
   }
 
   function expectAccessToBeGranted(
@@ -153,11 +162,15 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     );
   }
 
-  function expectAccessToBeDenied(response: LightMyRequestResponse, reason: string) {
+  function expectAccessToBeDenied(
+    response: LightMyRequestResponse,
+    reason: string,
+    expectedUserEmail: string = MEMBER_EMAIL,
+  ) {
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.FORBIDDEN);
     expect(processor.spy).not.toHaveBeenCalled();
     expect(fixtureGetter().logs).toContainEqual(
-      partialPinoLog('info', 'Authorisation denied', { userEmail: MEMBER_EMAIL, reason }),
+      partialPinoLog('info', 'Authorisation denied', { userEmail: expectedUserEmail, reason }),
     );
   }
 
@@ -180,42 +193,45 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_BULK') {
     test('Any org admin should be denied access', async () => {
-      await createOrgMember({ ...ORG_MEMBER, role: Role.ORG_ADMIN });
-      setAuthUser(server, MEMBER_EMAIL);
+      await createOrgMember(ORG_ADMIN);
+      setAuthUser(server, ORG_ADMIN_EMAIL);
 
       const response = await server.inject(requestOptions);
 
-      expectAccessToBeDenied(response, 'Non-super admin tries to access bulk org endpoint');
+      expectAccessToBeDenied(
+        response,
+        'Non-super admin tries to access bulk org endpoint',
+        ORG_ADMIN_EMAIL,
+      );
     });
   } else {
     test('Org admin should be granted access', async () => {
-      await createOrgMember({ ...ORG_MEMBER, role: Role.ORG_ADMIN });
-      setAuthUser(server, MEMBER_EMAIL);
+      await createOrgMember(ORG_ADMIN);
+      setAuthUser(server, ORG_ADMIN_EMAIL);
 
       const response = await server.inject(requestOptions);
 
-      expectAccessToBeGranted(response, 'User is org admin');
+      expectAccessToBeGranted(response, 'User is org admin', ORG_ADMIN_EMAIL);
     });
   }
 
   if (routeLevel === 'ORG') {
     test('Admin from different org should be denied access', async () => {
       await createOrgMember({
-        ...ORG_MEMBER,
-        role: Role.ORG_ADMIN,
+        ...ORG_ADMIN,
         orgName: `not-${ORG_MEMBER.orgName}`,
       });
-      setAuthUser(server, MEMBER_EMAIL);
+      setAuthUser(server, ORG_ADMIN_EMAIL);
 
       const response = await server.inject(requestOptions);
 
-      expectAccessToBeDenied(response, 'User is not a member of the org');
+      expectAccessToBeDenied(response, 'User is not a member of the org', ORG_ADMIN_EMAIL);
     });
   }
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      await createOrgMember(ORG_MEMBER);
+      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -229,11 +245,11 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
       const response = await server.inject(requestOptions);
 
-      expectAccessToBeDenied(response, 'User is accessing different membership');
+      expectAccessToBeDenied(response, 'User is not a member of the org');
     });
   } else {
     test('Org member should be denied access', async () => {
-      await createOrgMember(ORG_MEMBER);
+      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -249,7 +265,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
           break;
         }
         default: {
-          reason = 'User is not accessing a membership';
+          reason = 'User is not accessing their membership';
           break;
         }
       }
