@@ -1,12 +1,12 @@
 import type { CloudEvent } from 'cloudevents';
-import type { BaseLogger } from 'pino';
+import { ServiceOptions } from '../../serviceTypes.js';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export default async function processExample(
   event: CloudEvent<unknown>,
-  logger: BaseLogger,
+  options: ServiceOptions,
 ): Promise<void> {
   // NB: A production-worthy implementation would do schema validation on `event.data` here.
 
-  logger.info({ event: event.toJSON() }, 'Event processed');
+  options.logger.info({ event: event.toJSON() }, 'Event processed');
 }

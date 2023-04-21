@@ -12,6 +12,7 @@ import processExample from './sinks/example.sink.js';
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
 import triggerBundleRequest from './sinks/memberBundleRequestTrigger.sink.js';
+import { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
   [EXAMPLE_TYPE]: processExample,
@@ -19,7 +20,7 @@ const SINK_BY_TYPE: { [type: string]: Sink } = {
 };
 
 function makeQueueServerPlugin(
-  server: FastifyInstance,
+  server: FastifyTypedInstance,
   _opts: FastifyPluginOptions,
   done: PluginDone,
 ): void {
@@ -54,7 +55,10 @@ function makeQueueServerPlugin(
       return;
     }
 
-    await sink(event, request.log);
+    await sink(event, {
+      logger: server.log,
+      dbConnection: server.mongoose
+    });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });
 

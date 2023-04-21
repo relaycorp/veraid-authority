@@ -1,4 +1,4 @@
 import type { CloudEvent } from 'cloudevents';
-import type { BaseLogger } from 'pino';
+import { ServiceOptions } from '../serviceTypes.js';
 
-export type Sink = (event: CloudEvent<unknown>, logger: BaseLogger) => Promise<void>;
+export type Sink = (event: CloudEvent<unknown>, options: ServiceOptions) => Promise<void>;
