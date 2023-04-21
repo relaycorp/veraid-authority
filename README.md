@@ -83,7 +83,6 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Auth: Admin.
   - Input:
     - Name (e.g., `acme.com`).
-    - Member access type (`invite-only` or `open`).
     - [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) URL (optional).
   - Output:
     - VeraId TXT record.

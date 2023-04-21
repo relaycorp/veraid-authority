@@ -6,11 +6,7 @@ import { OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema, OrgSchemaPatch } from './schemas/org.schema.js';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import {
-  MEMBER_ACCESS_TYPE_MAPPING,
-  type OrgCreationResult,
-  REVERSE_MEMBER_ACCESS_MAPPING,
-} from './orgTypes.js';
+import type { OrgCreationResult } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
@@ -54,10 +50,8 @@ export async function createOrg(
 
   const kms = await Kms.init();
   const { privateKey, publicKey } = await kms.generateKeyPair();
-  const memberAccessType = MEMBER_ACCESS_TYPE_MAPPING[orgData.memberAccessType]!;
   const org: AnyKeys<DocumentType<OrgModelSchema>> = {
     ...orgData,
-    memberAccessType,
     privateKeyRef: await kms.getPrivateKeyRef(privateKey),
     publicKey: await derSerialisePublicKey(publicKey),
   };
@@ -103,19 +97,11 @@ export async function updateOrg(
     return { didSucceed: false, reason: validationFailure };
   }
 
-  const memberAccessType =
-    orgData.memberAccessType && MEMBER_ACCESS_TYPE_MAPPING[orgData.memberAccessType];
-
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
 
-  await orgModel.updateOne(
-    {
-      name,
-    },
-    { ...orgData, memberAccessType },
-  );
+  await orgModel.updateOne({ name }, orgData);
 
   options.logger.info({ name: orgData.name }, 'Org updated');
   return {
@@ -146,7 +132,6 @@ export async function getOrg(
 
     result: {
       name: org.name,
-      memberAccessType: REVERSE_MEMBER_ACCESS_MAPPING[org.memberAccessType],
       awalaEndpoint: org.awalaEndpoint,
     },
   };
