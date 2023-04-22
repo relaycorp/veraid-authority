@@ -1,6 +1,6 @@
 import { CloudEvent } from 'cloudevents';
-import { addDays } from 'date-fns'
-import { Types } from 'mongoose';
+import { addDays } from 'date-fns';
+import { getModelForClass } from '@typegoose/typegoose';
 
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 import {
@@ -8,59 +8,49 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
-import { getModelForClass } from '@typegoose/typegoose';
-import { ServiceOptions } from '../../serviceTypes.js';
+import type { ServiceOptions } from '../../serviceTypes.js';
 
+export const BUNDLE_REQUEST_DATE_RANGE = 3;
 export default async function triggerBundleRequest(
   event: CloudEvent<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
-  options.logger.info({ source: event.source }, 'Triggering bundle request');
+  options.logger.info({ eventId: event.id, eventType: event.type }, 'Triggering bundle request');
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
   const memberBundleRequests = await memberBundleRequestModel.find({
-      memberBundleStartDate: {
-        $lt: addDays(new Date(), 3)
-      }
-  })
+    memberBundleStartDate: {
+      $lt: addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE),
+    },
+  });
 
   const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
 
-  // implementation 1:
-  const promises = memberBundleRequests.map((memberBundleRequest) => async function(){
+  /* eslint-disable no-await-in-loop */
+  for (const memberBundleRequest of memberBundleRequests) {
     await emitter.emit(
       new CloudEvent<MemberBundleRequestPayload>({
         id: memberBundleRequest.publicKeyId,
         source: 'https://veraid.net/authority/bundle-request-trigger',
         type: BUNDLE_REQUEST_TYPE,
-        data: { awalaPda: memberBundleRequest.awalaPda.toString("base64"), publicKeyId: memberBundleRequest.publicKeyId },
+
+        data: {
+          awalaPda: memberBundleRequest.awalaPda.toString('base64'),
+          publicKeyId: memberBundleRequest.publicKeyId,
+        },
       }),
     );
     await memberBundleRequestModel.findByIdAndDelete(memberBundleRequest._id);
-  })
-  // instead Promise All we could use some external package
-  // that allows running the promises in batches instead of all at once
-  await Promise.all(promises);
-
-  // implementation 2:
-  const idsToDelete: Types.ObjectId[] = []
-  const emitPromises = memberBundleRequests.map((memberBundleRequest) => async function(){
-    await emitter.emit(
-      new CloudEvent<MemberBundleRequestPayload>({
-        id: memberBundleRequest.publicKeyId,
-        source: 'https://veraid.net/authority/bundle-request-trigger',
-        type: BUNDLE_REQUEST_TYPE,
-        data: { awalaPda: memberBundleRequest.awalaPda.toString("base64"), publicKeyId: memberBundleRequest.publicKeyId },
-      }),
+    options.logger.info(
+      {
+        eventId: event.id,
+        eventType: event.type,
+        memberBundleRequestId: memberBundleRequest._id.toString(),
+      },
+      'Emitted bundle request',
     );
-    idsToDelete.push(memberBundleRequest._id);
-  })
-  await Promise.all(emitPromises);
-  // This way we ensure just one call to the db
-  await memberBundleRequestModel.deleteMany({
-    _id: idsToDelete
-  });
-
+  }
+  /* eslint-enable no-await-in-loop */
 }

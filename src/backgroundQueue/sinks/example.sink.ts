@@ -1,5 +1,6 @@
 import type { CloudEvent } from 'cloudevents';
-import { ServiceOptions } from '../../serviceTypes.js';
+
+import type { ServiceOptions } from '../../serviceTypes.js';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export default async function processExample(
