@@ -1,29 +1,64 @@
 import { CloudEvent } from 'cloudevents';
-import type { BaseLogger } from 'pino';
+import { addDays } from 'date-fns';
+import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
+import type { HydratedDocument } from 'mongoose';
 
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
+import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import type { ServiceOptions } from '../../serviceTypes.js';
+
+const triggerMemberBundleIssuance = async (
+  memberBundleRequest: HydratedDocument<MemberBundleRequestModelSchema>,
+  emitter: Emitter<MemberBundleRequestPayload>,
+  memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>,
+) => {
+  await emitter.emit(
+    new CloudEvent<MemberBundleRequestPayload>({
+      id: memberBundleRequest.publicKeyId,
+      source: 'https://veraid.net/authority/bundle-request-trigger',
+      type: BUNDLE_REQUEST_TYPE,
+
+      data: {
+        awalaPda: memberBundleRequest.awalaPda.toString('base64'),
+        publicKeyId: memberBundleRequest.publicKeyId,
+      },
+    }),
+  );
+  await memberBundleRequestModel.findByIdAndDelete(memberBundleRequest._id);
+};
+export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
 export default async function triggerBundleRequest(
   event: CloudEvent<unknown>,
-  logger: BaseLogger,
+  options: ServiceOptions,
 ): Promise<void> {
-  logger.info({ source: event.source }, 'Triggering bundle request');
+  options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 
-  // Retrieve the requests that should be processed from the database
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberBundleRequests = await memberBundleRequestModel.find({
+    memberBundleStartDate: {
+      $lt: addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE),
+    },
+  });
 
   const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
 
-  // You'd emit one event per bundle request.
-  await emitter.emit(
-    new CloudEvent<MemberBundleRequestPayload>({
-      id: 'the public key id', // Really should be the key id to allow broker to dedupe requests
-      source: 'https://veraid.net/authority/bundle-request-trigger',
-      type: BUNDLE_REQUEST_TYPE,
-      data: { awalaPda: 'PDA, base64-encoded', publicKeyId: 'the public key id' },
-    }),
-  );
+  for (const memberBundleRequest of memberBundleRequests) {
+    // eslint-disable-next-line no-await-in-loop
+    await triggerMemberBundleIssuance(memberBundleRequest, emitter, memberBundleRequestModel);
+    options.logger.info(
+      {
+        eventId: event.id,
+        eventType: event.type,
+        memberBundleRequestId: memberBundleRequest._id.toString(),
+      },
+      'Emitted bundle request',
+    );
+  }
 }
