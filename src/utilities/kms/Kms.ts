@@ -4,6 +4,16 @@ import { bufferToArrayBuffer } from '../buffer.js';
 
 import { getKmsProvider } from './provider.js';
 import { KEY_USAGES, RSA_PSS_CREATION_ALGORITHM, RSA_PSS_IMPORT_ALGORITHM } from './keyParams.js';
+import { Crypto } from '@peculiar/webcrypto';
+import { CryptoEngine, setEngine } from 'pkijs';
+
+const crypto = new Crypto();
+const cryptoEngine = new CryptoEngine({
+  crypto,
+  name: 'nodeEngine',
+  subtle: crypto.subtle,
+});
+setEngine('nodeEngine', cryptoEngine);
 
 export class Kms {
   public static async init(): Promise<Kms> {

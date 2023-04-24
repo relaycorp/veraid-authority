@@ -4,7 +4,8 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { generateMemberBundle, postToAwala } from '../../awala.js';
+import { postToAwala } from '../../awala.js';
+import { generateMemberBundle } from '../../memberBundle.js';
 
 
 export default async function triggerBundleRequest(
