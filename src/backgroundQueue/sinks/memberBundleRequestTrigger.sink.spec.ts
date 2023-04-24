@@ -95,9 +95,7 @@ describe('triggerBundleRequest', () => {
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
     };
-
     const memberBundleRequest = await memberBundleRequestModel.create(requestData);
-
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
       id: CE_ID,
       source: CE_SOURCE,
@@ -112,6 +110,19 @@ describe('triggerBundleRequest', () => {
       memberBundleRequest._id,
     );
     expect(memberBundleRequestCheck).toBeNull();
+  });
+
+  test('Processing empty collection should not emit events', async () => {
+    const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
+      id: CE_ID,
+      source: CE_SOURCE,
+      type: BUNDLE_REQUEST_TRIGGER_TYPE,
+    });
+
+    await postEvent(triggerEvent, server);
+
+    const publishedEvents = getEvents();
+    expect(publishedEvents).toHaveLength(0);
   });
 
   test.each([
@@ -140,12 +151,11 @@ describe('triggerBundleRequest', () => {
   test('Bundle start date more then 3 days into the future should not be sent', async () => {
     const data = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      memberBundleStartDate: addSeconds(addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE), 1),
+      memberBundleStartDate: addSeconds(addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE), 20),
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
     };
-    await memberBundleRequestModel.create(data);
-
+    const futureBundleRequest = await memberBundleRequestModel.create(data);
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
       id: CE_ID,
       source: CE_SOURCE,
@@ -156,5 +166,7 @@ describe('triggerBundleRequest', () => {
 
     const publishedEvents = getEvents();
     expect(publishedEvents).toHaveLength(0);
+    const futureBundleRequestCheck = memberBundleRequestModel.findById(futureBundleRequest._id);
+    expect(futureBundleRequestCheck).not.toBeNull();
   });
 });
