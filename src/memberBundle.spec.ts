@@ -42,21 +42,14 @@ describe('memberBundle', () => {
   let orgPrivateKeyRef: Buffer;
   let orgPublicKey: Buffer;
 
-  let orgPublicCryptoKey: CryptoKey;
-  let orgPrivateCryptoKey: CryptoKey;
-  let memberPublicCryptoKey: CryptoKey;
-
   beforeEach(async () => {
     kmsForKeys = getMockKms();
-    const { publicKey, privateKey } = await kmsForKeys.generateKeyPair();
-    orgPublicCryptoKey = publicKey;
-    orgPrivateCryptoKey = privateKey;
+    const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } = await kmsForKeys.generateKeyPair();
 
     orgPrivateKeyRef = await kmsForKeys.getPrivateKeyRef(orgPrivateCryptoKey);
     orgPublicKey = await derSerialisePublicKey(orgPublicCryptoKey);
 
-    const { publicKey: memberCryptoKey } = await generateKeyPair();
-    memberPublicCryptoKey = memberCryptoKey;
+    const { publicKey: memberPublicCryptoKey} = await generateKeyPair();
     memberPublicKeyBuffer = await derSerialisePublicKey(memberPublicCryptoKey);
 
     connection = getConnection();

@@ -2,8 +2,6 @@ import { jest } from '@jest/globals';
 import { Kms } from '../../utilities/kms/Kms.js';
 import { MockKmsRsaPssProvider } from './MockKmsRsaPssProvider.js';
 
-
-
 interface KeyPairRef {
   privateKeyRef: Buffer;
   publicKey: CryptoKey;
