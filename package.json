@@ -31,7 +31,7 @@
     "fastify-auth0-verify": "github:relaycorp/fastify-auth0-verify#auth0-agnostic-generated",
     "fastify-plugin": "^4.5.0",
     "is-valid-domain": "^0.1.6",
-    "json-schema-to-ts": "^2.7.2",
+    "json-schema-to-ts": "^2.8.0",
     "mongoose": "^7.0.4",
     "pino": "^8.11.0"
   },
