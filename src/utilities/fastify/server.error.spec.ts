@@ -3,8 +3,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { errorAppPlugin } from '../../testUtils/errorRoutesApp.js';
 import { HTTP_STATUS_CODES } from '../http.js';
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 
 const { makeFastify } = await import('./server.js');
 
@@ -13,11 +12,9 @@ afterAll(() => {
 });
 
 describe('makeFastify - Error handling', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let serverInstance: FastifyInstance;
   beforeEach(async () => {
-    mockLogging = makeMockLogging();
     serverInstance = await makeFastify(errorAppPlugin, mockLogging.logger);
   });
 

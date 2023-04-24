@@ -1,10 +1,9 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
 import {
-  MEMBER_KEY_IMPORT_TOKEN,
   MEMBER_MONGO_ID,
+  MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
@@ -18,18 +17,17 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
 );
-
 jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
+  processMemberKeyImportToken: jest.fn(),
 }));
-const { setUpTestServer } = await import('../../testUtils/server.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('member key import token routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   describe('creation', () => {
@@ -37,6 +35,14 @@ describe('member key import token routes', () => {
       method: 'POST',
       url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-key-import-tokens`,
     };
+
+    describe('Auth', () => {
+      const payload: MemberKeyImportTokenSchema = { serviceOid: TEST_SERVICE_OID };
+      testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
+        spy: mockCreateMemberKeyImportToken,
+        result: { id: MEMBER_KEY_IMPORT_TOKEN },
+      });
+    });
 
     test('Valid data should be stored', async () => {
       const payload: MemberKeyImportTokenSchema = {

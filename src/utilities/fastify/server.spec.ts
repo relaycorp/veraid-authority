@@ -2,10 +2,11 @@ import { jest } from '@jest/globals';
 import type { FastifyInstance } from 'fastify';
 import pino from 'pino';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
+import { configureMockEnvVars } from '../../testUtils/envVars.js';
 import { getMockContext, getMockInstance, mockSpy } from '../../testUtils/jest.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
+import notFoundHandler from './plugins/notFoundHandler.js';
 
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
@@ -29,10 +30,10 @@ jest.unstable_mockModule('../../utilities/exitHandling.js', () => ({
   configureExitHandling: mockExitHandler,
 }));
 
-const mockEnvVars = configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-
 const { makeFastify, runFastify } = await import('./server.js');
 const { fastify } = await import('fastify');
+
+const mockEnvVars = configureMockEnvVars();
 
 afterAll(() => {
   jest.restoreAllMocks();
@@ -86,7 +87,7 @@ describe('makeFastify', () => {
 
   test('Custom request id header can be set via REQUEST_ID_HEADER variable', async () => {
     const requestIdHeader = 'X-Id';
-    mockEnvVars({ ...REQUIRED_SERVER_ENV_VARS, REQUEST_ID_HEADER: requestIdHeader });
+    mockEnvVars({ REQUEST_ID_HEADER: requestIdHeader });
 
     await makeFastify(mockPlugin);
 
@@ -101,10 +102,16 @@ describe('makeFastify', () => {
     expect(fastifyCallArguments).toHaveProperty('trustProxy', true);
   });
 
-  test('The fastifyMongoose plugin should be configured', async () => {
+  test('fastifyMongoose plugin should be configured', async () => {
     await makeFastify(mockPlugin);
 
     expect(mockFastify.register).toHaveBeenCalledWith(fastifyMongoose);
+  });
+
+  test('notFoundHandler plugin should be configured', async () => {
+    await makeFastify(mockPlugin);
+
+    expect(mockFastify.register).toHaveBeenCalledWith(notFoundHandler);
   });
 });
 

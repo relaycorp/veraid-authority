@@ -4,6 +4,7 @@ import { createMember, deleteMember, getMember, updateMember } from '../../membe
 import { MemberProblemType } from '../../MemberProblemType.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
+import { requireUserToBeAdmin } from '../orgAuthPlugin.js';
 
 import memberPublicKeyRoutes from './memberPublicKey.routes.js';
 import memberKeyImportToken from './memberKeyImportToken.routes.js';
@@ -120,6 +121,7 @@ export default async function registerRoutes(
   fastify.route({
     method: ['DELETE'],
     url: '/:memberId',
+    preParsing: requireUserToBeAdmin,
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,
@@ -149,6 +151,7 @@ export default async function registerRoutes(
   fastify.route({
     method: ['PATCH'],
     url: '/:memberId',
+    preParsing: requireUserToBeAdmin,
 
     schema: {
       params: MEMBER_ROUTE_PARAMS,

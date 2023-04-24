@@ -1,14 +1,14 @@
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../testUtils/envVars.js';
-import { setUpTestServer } from '../../testUtils/server.js';
+// Import Jest, not because we need it, but to work around bug in unstable_mockModule()
+import { describe } from '@jest/globals';
+
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { makeTestApiServer } from '../../testUtils/apiServer.js';
 
 describe('healthcheck routes', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-
-  const getTestServer = setUpTestServer();
+  const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
   test('A plain simple HEAD request should provide some diagnostic information', async () => {

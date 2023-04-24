@@ -1,31 +1,46 @@
 import type { HTTPMethods } from 'fastify';
 
-import { configureMockEnvVars, REQUIRED_SERVER_ENV_VARS } from '../../../testUtils/envVars.js';
+import { REQUIRED_ENV_VARS } from '../../../testUtils/envVars.js';
 import { HTTP_STATUS_CODES } from '../../http.js';
-import { setUpTestServer } from '../../../testUtils/server.js';
 import type { FastifyTypedInstance } from '../FastifyTypedInstance.js';
-import { HTTP_METHODS } from '../server.js';
+import { HTTP_METHODS, makeFastify } from '../server.js';
+import { makeTestServer } from '../../../testUtils/server.js';
 
 describe('notFoundHandler', () => {
-  configureMockEnvVars(REQUIRED_SERVER_ENV_VARS);
-  const getTestServer = setUpTestServer();
+  const endpointUrl = '/';
+  const allowedMethods: HTTPMethods[] = ['HEAD', 'GET'];
+
+  const getTestServerFixture = makeTestServer(
+    async () =>
+      makeFastify((fastify, _opts, done) => {
+        fastify.route({
+          method: allowedMethods,
+          url: endpointUrl,
+
+          async handler(_req, reply) {
+            await reply.code(HTTP_STATUS_CODES.OK).send();
+          },
+        });
+
+        done();
+      }),
+    REQUIRED_ENV_VARS,
+  );
+
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
-    serverInstance = getTestServer();
+    serverInstance = getTestServerFixture().server;
   });
 
-  const allowedMethods: HTTPMethods[] = ['HEAD', 'GET'];
   const allowedMethodsString = allowedMethods.join(', ');
   const disallowedMethods = HTTP_METHODS.filter(
     (method) => !allowedMethods.includes(method) && method !== 'OPTIONS',
   );
-  const endpointUrl = '/';
 
   test('An existing method should be routed to the handler', async () => {
     const response = await serverInstance.inject({ method: 'GET', url: endpointUrl });
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-    expect(response).toHaveProperty('headers.content-type', 'text/plain');
   });
 
   test.each(disallowedMethods)('%s requests should be refused', async (method) => {

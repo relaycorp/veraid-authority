@@ -4,6 +4,9 @@ metadata:
   name: mock-authz-server
 spec:
   template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
         - name: mock-oauth2-server

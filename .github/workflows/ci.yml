@@ -9,6 +9,7 @@ jobs:
     with:
       docker_image_local_name: dev.local/veraid-authority
       dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+      kubernetes_app_name: veraid-authority
     secrets:
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 

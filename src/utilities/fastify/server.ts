@@ -1,12 +1,20 @@
-import { fastify, type FastifyInstance, type FastifyPluginAsync, type HTTPMethods } from 'fastify';
+import fastifyRoutes from '@fastify/routes';
+import {
+  fastify,
+  type FastifyInstance,
+  type FastifyPluginAsync,
+  type FastifyPluginCallback,
+  type HTTPMethods,
+} from 'fastify';
 import env from 'env-var';
-import type { Logger } from 'pino';
+import type { BaseLogger } from 'pino';
 
 import { makeLogger } from '../logging.js';
 import { configureExitHandling } from '../exitHandling.js';
 import { HTTP_STATUS_CODES } from '../http.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
+import notFoundHandler from './plugins/notFoundHandler.js';
 
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -23,7 +31,10 @@ export const HTTP_METHODS: readonly HTTPMethods[] = [
   'OPTIONS',
 ];
 
-export async function makeFastify(appPlugin: FastifyPluginAsync, customLogger?: Logger) {
+export async function makeFastify(
+  appPlugin: FastifyPluginAsync | FastifyPluginCallback,
+  customLogger?: BaseLogger,
+) {
   const logger = customLogger ?? makeLogger();
   configureExitHandling(logger);
 
@@ -55,6 +66,9 @@ export async function makeFastify(appPlugin: FastifyPluginAsync, customLogger?: 
     logger.error(error, internalServerError);
     await reply.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).send(internalServerError);
   });
+
+  await server.register(fastifyRoutes);
+  await server.register(notFoundHandler);
 
   await server.register(appPlugin);
 

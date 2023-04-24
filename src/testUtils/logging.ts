@@ -1,12 +1,14 @@
-import pino, { type LogDescriptor, symbols as PinoSymbols } from 'pino';
+import pino, { type LogDescriptor } from 'pino';
 import split2 from 'split2';
 
 type MockLogSet = object[];
 
-export interface MockLogging {
+interface MockLogging {
   readonly logger: pino.Logger;
   readonly logs: MockLogSet;
 }
+
+export type { MockLogSet };
 
 export function makeMockLogging(): MockLogging {
   const logs: any[] = [];
@@ -14,14 +16,13 @@ export function makeMockLogging(): MockLogging {
     logs.push(JSON.parse(data));
   });
   const logger = pino({ level: 'debug' }, stream);
-  return { logger, logs };
-}
 
-// eslint-disable-next-line import/no-unused-modules
-export function partialPinoLogger(bindings: { readonly [key: string]: any }): any {
-  return expect.objectContaining({
-    [PinoSymbols.formattersSym]: { bindings },
+  beforeEach(() => {
+    // Clear the logs
+    logs.splice(0, logs.length);
   });
+
+  return { logger, logs };
 }
 
 export function partialPinoLog(

@@ -2,14 +2,10 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { MemberAccessType, OrgModelSchema } from './models/Org.model.js';
-import {
-  type OrgSchema,
-  type OrgSchemaMemberAccessType,
-  orgSchemaMemberAccessTypes,
-} from './schemas/org.schema.js';
+import { OrgModelSchema } from './models/Org.model.js';
+import type { OrgSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, type MockLogging, partialPinoLog } from './testUtils/logging.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import {
   AWALA_ENDPOINT,
@@ -20,7 +16,6 @@ import {
 import { getPromiseRejection } from './testUtils/jest.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
-import { MEMBER_ACCESS_TYPE_MAPPING } from './orgTypes.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
@@ -29,12 +24,11 @@ describe('org', () => {
   const getConnection = setUpTestDbConnection();
   const getMockKms = mockKms();
 
-  let mockLogging: MockLogging;
+  const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
   let orgModel: ReturnModelType<typeof OrgModelSchema>;
   beforeEach(() => {
-    mockLogging = makeMockLogging();
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
@@ -47,17 +41,11 @@ describe('org', () => {
 
   describe('createOrg', () => {
     test('Minimum required data should be stored', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
 
       await createOrg(orgData, serviceOptions);
 
-      const dbResult = await orgModel.exists({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
-      });
+      const dbResult = await orgModel.exists({ name: ORG_NAME });
       expect(dbResult).not.toBeNull();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Org created', { name: ORG_NAME }),
@@ -66,10 +54,7 @@ describe('org', () => {
 
     test('Non ASCII name should be allowed', async () => {
       const nonAsciiName = 'はじめよう.みんな';
-      const orgData: OrgSchema = {
-        name: nonAsciiName,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: nonAsciiName };
 
       const result = await createOrg(orgData, serviceOptions);
 
@@ -78,10 +63,7 @@ describe('org', () => {
 
     test('Malformed name should be refused', async () => {
       const malformedName = '192.168.0.0';
-      const orgData: OrgSchema = {
-        name: malformedName,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: malformedName };
 
       const result = await createOrg(orgData, serviceOptions);
 
@@ -95,17 +77,10 @@ describe('org', () => {
     });
 
     test('Clash with existing name should be refused', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
       await createOrg(orgData, serviceOptions);
 
-      // Use different data to make sure the creation operation isn't being deduped
-      const methodResult = await createOrg(
-        { ...orgData, memberAccessType: 'OPEN' },
-        serviceOptions,
-      );
+      const methodResult = await createOrg(orgData, serviceOptions);
 
       requireFailureResult(methodResult);
       expect(methodResult.reason).toBe(OrgProblemType.EXISTING_ORG_NAME);
@@ -116,33 +91,11 @@ describe('org', () => {
       );
     });
 
-    test.each(orgSchemaMemberAccessTypes)(
-      '%s access type should be allowed',
-      async (memberAccessType: OrgSchemaMemberAccessType) => {
-        const orgData: OrgSchema = {
-          name: ORG_NAME,
-          memberAccessType,
-        };
-
-        const methodResult = await createOrg(orgData, serviceOptions);
-
-        requireSuccessfulResult(methodResult);
-        const dbResult = await orgModel.findOne({
-          name: methodResult.result.name,
-        });
-        expect(dbResult?.memberAccessType).toBe(MEMBER_ACCESS_TYPE_MAPPING[memberAccessType]);
-      },
-    );
-
     test.each([
       ['ASCII', AWALA_ENDPOINT],
       ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
     ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-        awalaEndpoint,
-      };
+      const orgData: OrgSchema = { name: ORG_NAME, awalaEndpoint };
 
       const result = await createOrg(orgData, serviceOptions);
 
@@ -153,7 +106,6 @@ describe('org', () => {
       const malformedAwalaEndpoint = '192.168.0.0';
       const orgData: OrgSchema = {
         name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
         awalaEndpoint: malformedAwalaEndpoint,
       };
 
@@ -171,7 +123,6 @@ describe('org', () => {
     test('Returned id should match that of the database', async () => {
       const orgData: OrgSchema = {
         name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
         awalaEndpoint: AWALA_ENDPOINT,
       };
 
@@ -187,10 +138,7 @@ describe('org', () => {
 
     test('Record creation errors should be propagated', async () => {
       await connection.close();
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
 
       const error = await getPromiseRejection(
         async () => createOrg(orgData, serviceOptions),
@@ -201,10 +149,7 @@ describe('org', () => {
     });
 
     describe('Key pair', () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
 
       test('Key pair should be generated', async () => {
         const kms = getMockKms();
@@ -242,23 +187,13 @@ describe('org', () => {
     test('Valid data should be updated', async () => {
       await orgModel.create({
         name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
         awalaEndpoint: `a.${AWALA_ENDPOINT}`,
       });
 
-      await updateOrg(
-        ORG_NAME,
-        {
-          name: ORG_NAME,
-          memberAccessType: 'INVITE_ONLY',
-          awalaEndpoint: AWALA_ENDPOINT,
-        },
-        serviceOptions,
-      );
+      await updateOrg(ORG_NAME, { name: ORG_NAME, awalaEndpoint: AWALA_ENDPOINT }, serviceOptions);
 
       const dbResult = await orgModel.exists({
         name: ORG_NAME,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
         awalaEndpoint: AWALA_ENDPOINT,
       });
 
@@ -274,18 +209,9 @@ describe('org', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('Matching %s name should be allowed', async (_type, name: string) => {
-      await orgModel.create({
-        name,
-        memberAccessType: MemberAccessType.INVITE_ONLY,
-      });
+      await orgModel.create({ name });
 
-      const response = await updateOrg(
-        name,
-        {
-          name,
-        },
-        serviceOptions,
-      );
+      const response = await updateOrg(name, { name }, serviceOptions);
 
       expect(response.didSucceed).toBeTrue();
     });
@@ -336,35 +262,11 @@ describe('org', () => {
       );
     });
 
-    test.each(orgSchemaMemberAccessTypes)(
-      '%s access type should be allowed',
-      async (memberAccessType: OrgSchemaMemberAccessType) => {
-        await orgModel.create({
-          name: ORG_NAME,
-          memberAccessType: MEMBER_ACCESS_TYPE_MAPPING[memberAccessType],
-        });
-
-        const response = await updateOrg(
-          ORG_NAME,
-          {
-            memberAccessType,
-          },
-          serviceOptions,
-        );
-
-        expect(response.didSucceed).toBeTrue();
-      },
-    );
-
     test.each([
       ['ASCII', AWALA_ENDPOINT],
       ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
     ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      await orgModel.create({
-        name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
-        awalaEndpoint: AWALA_ENDPOINT,
-      });
+      await orgModel.create({ name: ORG_NAME, awalaEndpoint: AWALA_ENDPOINT });
 
       const response = await updateOrg(
         ORG_NAME,
@@ -381,11 +283,7 @@ describe('org', () => {
       const malformedAwalaEndpoint = 'MALFORMED_AWALA_ENDPOINT';
       const result = await updateOrg(
         ORG_NAME,
-        {
-          name: ORG_NAME,
-          memberAccessType: 'INVITE_ONLY',
-          awalaEndpoint: malformedAwalaEndpoint,
-        },
+        { name: ORG_NAME, awalaEndpoint: malformedAwalaEndpoint },
         serviceOptions,
       );
 
@@ -400,10 +298,7 @@ describe('org', () => {
 
     test('Record update errors should be propagated', async () => {
       await connection.close();
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        memberAccessType: 'INVITE_ONLY',
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
 
       const error = await getPromiseRejection(
         async () => updateOrg(ORG_NAME, orgData, serviceOptions),
@@ -418,7 +313,6 @@ describe('org', () => {
     test('Existing name should return the corresponding data', async () => {
       await orgModel.create({
         name: ORG_NAME,
-        memberAccessType: MemberAccessType.OPEN,
         awalaEndpoint: AWALA_ENDPOINT,
       });
 
@@ -427,7 +321,6 @@ describe('org', () => {
       requireSuccessfulResult(result);
       expect(result.result).toMatchObject({
         name: ORG_NAME,
-        memberAccessType: 'OPEN',
         awalaEndpoint: AWALA_ENDPOINT,
       });
     });
@@ -449,10 +342,7 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
-    const orgData: OrgSchema = {
-      name: ORG_NAME,
-      memberAccessType: 'INVITE_ONLY',
-    };
+    const orgData: OrgSchema = { name: ORG_NAME };
 
     test('Existing name should remove org', async () => {
       await createOrg(orgData, serviceOptions);
