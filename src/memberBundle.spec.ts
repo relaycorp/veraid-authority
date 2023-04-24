@@ -29,7 +29,7 @@ describe('memberBundle', () => {
 
   const getConnection = setUpTestDbConnection();
   const getMockKms = mockKms();
-  let kmsForKeys: MockKms;
+  let kms: MockKms;
 
   const mockLogging = makeMockLogging();
 
@@ -43,10 +43,10 @@ describe('memberBundle', () => {
   let orgPublicKey: Buffer;
 
   beforeEach(async () => {
-    kmsForKeys = getMockKms();
-    const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } = await kmsForKeys.generateKeyPair();
+    kms = getMockKms();
+    const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } = await kms.generateKeyPair();
 
-    orgPrivateKeyRef = await kmsForKeys.getPrivateKeyRef(orgPrivateCryptoKey);
+    orgPrivateKeyRef = await kms.getPrivateKeyRef(orgPrivateCryptoKey);
     orgPublicKey = await derSerialisePublicKey(orgPublicCryptoKey);
 
     const { publicKey: memberPublicCryptoKey} = await generateKeyPair();
@@ -108,7 +108,7 @@ describe('memberBundle', () => {
       const selfIssueOrganisationCertificateParameters = selfIssueOrganisationCertificate.mock.calls[0];
       expect(selfIssueOrganisationCertificateParameters[0]).toBe(ORG_NAME);
       const calledKeyPair = selfIssueOrganisationCertificateParameters[1];
-      const orgPrivateKeyBuffer = await kmsForKeys.getPrivateKeyRef(calledKeyPair.privateKey);
+      const orgPrivateKeyBuffer = await kms.getPrivateKeyRef(calledKeyPair.privateKey);
       const orgPublicKeyBuffer = await derSerialisePublicKey(calledKeyPair.publicKey);
       expect(orgPrivateKeyBuffer.toString()).toBe(orgPrivateKeyRef.toString())
       expect(orgPublicKeyBuffer.toString()).toBe(orgPublicKey.toString())
