@@ -2,12 +2,7 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import {
-  AWALA_ENDPOINT,
-  NON_ASCII_AWALA_ENDPOINT,
-  NON_ASCII_ORG_NAME,
-  ORG_NAME,
-} from '../../testUtils/stubs.js';
+import { NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { OrgSchema, OrgSchemaPatch } from '../../schemas/org.schema.js';
 import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
@@ -107,45 +102,6 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', OrgProblemType.MALFORMED_ORG_NAME);
     });
-
-    test.each([
-      ['ASCII', AWALA_ENDPOINT],
-      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
-    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const payload: OrgSchema = { name: ORG_NAME, awalaEndpoint };
-      mockCreateOrg.mockResolvedValueOnce({
-        didSucceed: true,
-
-        result: {
-          name: ORG_NAME,
-        },
-      });
-
-      const response = await serverInstance.inject({
-        ...injectionOptions,
-        payload,
-      });
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-    });
-
-    test('Malformed awala endpoint should be refused', async () => {
-      const payload: OrgSchema = {
-        name: ORG_NAME,
-        awalaEndpoint: 'MALFORMED_AWALA_ENDPOINT',
-      };
-      mockCreateOrg.mockResolvedValueOnce({
-        didSucceed: false,
-        reason: OrgProblemType.MALFORMED_AWALA_ENDPOINT,
-      });
-
-      const response = await serverInstance.inject({
-        ...injectionOptions,
-        payload,
-      });
-
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', OrgProblemType.MALFORMED_AWALA_ENDPOINT);
-    });
   });
 
   describe('update', () => {
@@ -234,26 +190,6 @@ describe('org routes', () => {
       expect(mockUpdateOrg).not.toHaveBeenCalled();
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
-    });
-
-    test.each([
-      ['ASCII', AWALA_ENDPOINT],
-      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
-    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const payload: OrgSchemaPatch = {
-        awalaEndpoint,
-      };
-      mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
-      mockUpdateOrg.mockResolvedValueOnce({
-        didSucceed: true,
-      });
-
-      const response = await serverInstance.inject({
-        ...injectionOptions,
-        payload,
-      });
-
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
     });
   });
 

@@ -5,9 +5,6 @@ export class OrgModelSchema {
   public name!: string;
 
   @prop()
-  public awalaEndpoint?: string;
-
-  @prop()
   public privateKeyRef!: Buffer;
 
   @prop()

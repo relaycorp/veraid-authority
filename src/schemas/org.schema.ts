@@ -5,7 +5,6 @@ export const ORG_SCHEMA = {
 
   properties: {
     name: { type: 'string' },
-    awalaEndpoint: { type: 'string' },
   },
 
   required: ['name'],
