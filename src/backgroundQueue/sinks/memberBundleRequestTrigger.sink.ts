@@ -9,7 +9,8 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
-import type { ServiceOptions } from '../../serviceTypes.js';
+
+import type { SinkOptions } from './sinkTypes.js';
 
 const triggerMemberBundleIssuance = async (
   memberBundleRequest: HydratedDocument<MemberBundleRequestModelSchema>,
@@ -32,7 +33,7 @@ export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
 export default async function triggerBundleRequest(
   event: CloudEvent<unknown>,
-  options: ServiceOptions,
+  options: SinkOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 

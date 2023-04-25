@@ -17,7 +17,7 @@ import type { Result, SuccessfulResult } from '../utilities/result.js';
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
 import { REQUIRED_ENV_VARS } from './envVars.js';
-import { getMockInstance } from './expect/jest.js';
+import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
 import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 

@@ -1,10 +1,7 @@
 import type { CloudEvent } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
 
-import {
-  type MemberBundleRequestPayload,
-  MEMBER_BUNDLE_REQUEST_PAYLOAD,
-} from '../../events/bundleRequest.event.js';
+import { MEMBER_BUNDLE_REQUEST_PAYLOAD } from '../../events/bundleRequest.event.js';
 import { postToAwala } from '../../awala.js';
 import { generateMemberBundle } from '../../memberBundle.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
@@ -12,8 +9,8 @@ import { validateMessage } from '../../utilities/validateMessage.js';
 
 import type { SinkOptions } from './sinkTypes.js';
 
-export default async function memberBundleIssueRequest(
-  event: CloudEvent<MemberBundleRequestPayload>,
+export default async function memberBundleIssuance(
+  event: CloudEvent<unknown>,
   options: SinkOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');

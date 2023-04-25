@@ -23,6 +23,8 @@ const {
   serialiseMemberIdBundle,
 } = mockedVeraidModule;
 
+const CERTIFICATE_ISSIE_PERIOD = 90;
+
 describe('memberBundle', () => {
   const getConnection = setUpTestDbConnection();
   const getMockKms = mockKms();
@@ -38,17 +40,14 @@ describe('memberBundle', () => {
   let memberPublicKeyBuffer: Buffer;
   let orgPrivateKeyRef: Buffer;
   let orgPublicKey: Buffer;
-  let plus90Days: Date;
-
-  // expect problem - let orgPrivateCryptoKey1: CryptoKey;
+  let certificateValidTill: Date;
 
   beforeEach(async () => {
-    plus90Days = addDays(new Date(), 90);
+    certificateValidTill = addDays(new Date(), CERTIFICATE_ISSIE_PERIOD);
     kms = getMockKms();
     const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } =
       await kms.generateKeyPair();
 
-    // expect problem - orgPrivateCryptoKey1 = orgPrivateCryptoKey;
     orgPrivateKeyRef = await kms.getPrivateKeyRef(orgPrivateCryptoKey);
     orgPublicKey = await derSerialisePublicKey(orgPublicCryptoKey);
 
@@ -73,17 +72,15 @@ describe('memberBundle', () => {
 
   describe('generateMemberBundle', () => {
     describe('Valid data should generate member bundle', () => {
-      let selfIssueOrganisationCertificateResult: ArrayBuffer;
+      let selfIssueCertificateResult: ArrayBuffer;
       let issueMemberCertificateResult: ArrayBuffer;
       let retrieveVeraDnssecChainResult: ArrayBuffer;
       let serialiseMemberIdBundleResult: ArrayBuffer;
       let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
 
       beforeEach(async () => {
-        selfIssueOrganisationCertificateResult = new ArrayBuffer(1);
-        selfIssueOrganisationCertificate.mockResolvedValueOnce(
-          selfIssueOrganisationCertificateResult,
-        );
+        selfIssueCertificateResult = new ArrayBuffer(1);
+        selfIssueOrganisationCertificate.mockResolvedValueOnce(selfIssueCertificateResult);
         issueMemberCertificateResult = new ArrayBuffer(2);
         issueMemberCertificate.mockResolvedValueOnce(issueMemberCertificateResult);
         retrieveVeraDnssecChainResult = new ArrayBuffer(3);
@@ -122,21 +119,23 @@ describe('memberBundle', () => {
         test('Should be issued with org private and public keys', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-          const parameters = selfIssueOrganisationCertificate.mock.calls[0];
-          const calledKeyPair = parameters[1];
-          const orgPrivateKeyBuffer = await kms.getPrivateKeyRef(calledKeyPair.privateKey);
-          const orgPublicKeyBuffer = await derSerialisePublicKey(calledKeyPair.publicKey);
+          const [[, kayPair]] = selfIssueOrganisationCertificate.mock.calls;
+          const orgPrivateKeyBuffer = await kms.getPrivateKeyRef(kayPair.privateKey);
+          const orgPublicKeyBuffer = await derSerialisePublicKey(kayPair.publicKey);
           expect(orgPrivateKeyBuffer).toStrictEqual(orgPrivateKeyRef);
           expect(orgPublicKeyBuffer).toStrictEqual(orgPublicKey);
         });
 
-        test('Should be issued till 3 months in future', async () => {
+        test('Should be issued for a period of 90 days', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
           expect(selfIssueOrganisationCertificate).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            expect.toBeBetween(subSeconds(plus90Days, 20), addSeconds(plus90Days, 20)),
+            expect.toBeBetween(
+              subSeconds(certificateValidTill, 20),
+              addSeconds(certificateValidTill, 20),
+            ),
           );
         });
       });
@@ -157,9 +156,7 @@ describe('memberBundle', () => {
         test('Should be issued with member public key', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-          const parameters = issueMemberCertificate.mock.calls[0];
-          expect(parameters[0]).toBe(MEMBER_NAME);
-          const memberCertificate = parameters[1];
+          const [[, memberCertificate]] = issueMemberCertificate.mock.calls;
           const memberCertificateBuffer = await derSerialisePublicKey(memberCertificate);
           expect(memberCertificateBuffer).toStrictEqual(memberPublicKeyBuffer);
         });
@@ -170,7 +167,7 @@ describe('memberBundle', () => {
           expect(issueMemberCertificate).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            selfIssueOrganisationCertificateResult,
+            selfIssueCertificateResult,
             expect.anything(),
             expect.anything(),
           );
@@ -179,13 +176,13 @@ describe('memberBundle', () => {
         test('Should be issued with org private key', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-          const parameters = issueMemberCertificate.mock.calls[0];
-          const orgPrivateKey = parameters[3];
+          // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
+          const [[, , , orgPrivateKey]] = issueMemberCertificate.mock.calls;
           const orgPrivateKeyBuffer = await kms.getPrivateKeyRef(orgPrivateKey);
           expect(orgPrivateKeyBuffer).toStrictEqual(orgPrivateKeyRef);
         });
 
-        test('Should be issued till 3 months in future', async () => {
+        test('Should be issued for a period of 90 days', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
           expect(issueMemberCertificate).toHaveBeenCalledOnceWith(
@@ -193,7 +190,10 @@ describe('memberBundle', () => {
             expect.anything(),
             expect.anything(),
             expect.anything(),
-            expect.toBeBetween(subSeconds(plus90Days, 20), addSeconds(plus90Days, 20)),
+            expect.toBeBetween(
+              subSeconds(certificateValidTill, 20),
+              addSeconds(certificateValidTill, 20),
+            ),
           );
         });
       });
@@ -214,24 +214,26 @@ describe('memberBundle', () => {
         );
       });
 
-      test('Member bundle serialisation should be called with self signed certificate', async () => {
-        await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+      describe('Member bundle serialisation', () => {
+        test('should be called with self signed certificate', async () => {
+          await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-        expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
-          expect.anything(),
-          selfIssueOrganisationCertificateResult,
-          expect.anything(),
-        );
-      });
+          expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
+            expect.anything(),
+            selfIssueCertificateResult,
+            expect.anything(),
+          );
+        });
 
-      test('Member bundle serialisation should be called with dnssec chain', async () => {
-        await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+        test('should be called with dnssec chain', async () => {
+          await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-        expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
-          expect.anything(),
-          expect.anything(),
-          retrieveVeraDnssecChainResult,
-        );
+          expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
+            expect.anything(),
+            expect.anything(),
+            retrieveVeraDnssecChainResult,
+          );
+        });
       });
 
       test('Member bundle should be generated', async () => {

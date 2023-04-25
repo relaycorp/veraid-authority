@@ -1,13 +1,11 @@
 import { jest } from '@jest/globals';
-import type { CertificateIssuanceOptions } from '@relaycorp/veraid/build/lib/lib/pki/CertificateIssuanceOptions.js';
 import type { Resolver, TrustAnchor } from '@relaycorp/dnssec';
+import type { CertificateIssuanceOptions } from '@relaycorp/veraid';
 
 import { mockSpy } from './jest.js';
 
-
-
 const mockedModule = {
-  issueMemberCertificate:  mockSpy(
+  issueMemberCertificate: mockSpy(
     jest.fn<
       (
         memberName: string | undefined,
@@ -19,7 +17,8 @@ const mockedModule = {
       ) => Promise<ArrayBuffer>
     >(),
   ),
-  retrieveVeraDnssecChain:  mockSpy(
+
+  retrieveVeraDnssecChain: mockSpy(
     jest.fn<
       (
         domainName: string,
@@ -28,6 +27,7 @@ const mockedModule = {
       ) => Promise<ArrayBuffer>
     >(),
   ),
+
   selfIssueOrganisationCertificate: mockSpy(
     jest.fn<
       (
@@ -38,6 +38,7 @@ const mockedModule = {
       ) => Promise<ArrayBuffer>
     >(),
   ),
+
   serialiseMemberIdBundle: mockSpy(
     jest.fn<
       (
