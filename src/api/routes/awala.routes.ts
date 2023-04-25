@@ -1,7 +1,4 @@
 import type { RouteOptions } from 'fastify';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import type { JSONSchema, FromSchema } from 'json-schema-to-ts';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
@@ -15,21 +12,7 @@ import {
 import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
-
-const ajv = addFormats(new Ajv());
-
-type ValidationResult<Schema extends JSONSchema> = FromSchema<Schema> | string;
-
-function validateMessage<Schema extends JSONSchema>(
-  value: unknown,
-  schema: Schema,
-): ValidationResult<Schema> {
-  if (!ajv.validate(schema, value)) {
-    return ajv.errorsText(ajv.errors);
-  }
-
-  return value as ValidationResult<Schema>;
-}
+import { validateMessage } from '../../utilities/validateMessage.js';
 
 async function processMemberBundleRequest(
   data: unknown,

@@ -1,6 +1,6 @@
 import { CloudEvent } from 'cloudevents';
 import { addDays } from 'date-fns';
-import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
+import { getModelForClass } from '@typegoose/typegoose';
 import type { HydratedDocument } from 'mongoose';
 
 import { Emitter } from '../../utilities/eventing/Emitter.js';
@@ -14,7 +14,6 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 const triggerMemberBundleIssuance = async (
   memberBundleRequest: HydratedDocument<MemberBundleRequestModelSchema>,
   emitter: Emitter<MemberBundleRequestPayload>,
-  memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>,
 ) => {
   await emitter.emit(
     new CloudEvent<MemberBundleRequestPayload>({
@@ -28,7 +27,6 @@ const triggerMemberBundleIssuance = async (
       },
     }),
   );
-  await memberBundleRequestModel.findByIdAndDelete(memberBundleRequest._id);
 };
 export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
@@ -51,7 +49,7 @@ export default async function triggerBundleRequest(
 
   for (const memberBundleRequest of memberBundleRequests) {
     // eslint-disable-next-line no-await-in-loop
-    await triggerMemberBundleIssuance(memberBundleRequest, emitter, memberBundleRequestModel);
+    await triggerMemberBundleIssuance(memberBundleRequest, emitter);
     options.logger.info(
       {
         eventId: event.id,

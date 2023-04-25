@@ -6,27 +6,29 @@ import { generateMemberBundle } from '../../memberBundle.js';
 import { SinkOptions } from './sinkTypes.js';
 import { getModelForClass } from '@typegoose/typegoose';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { validateMessage } from '../../utilities/validateMessage.js';
+import { MEMBER_BUNDLE_REQUEST_PAYLOAD_SCHEMA } from '../../events/bundleRequest.event.js';
 
-export default async function triggerBundleRequest(
+export default async function memberBundleIssueRequest(
   event: CloudEvent<MemberBundleRequestPayload>,
   options: SinkOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 
-  // use json schema to validate
-  if (!event.data?.publicKeyId) {
-    options.logger.debug({ eventId: event.id }, 'Empty event data in member bundle issuer trigger');
+
+  const validatedMessage = validateMessage(event.data, MEMBER_BUNDLE_REQUEST_PAYLOAD_SCHEMA)
+  if(typeof validatedMessage == 'string'){
+
     return;
   }
 
-
-  const memberBundle = await generateMemberBundle(event.data.publicKeyId, options);
+  const memberBundle = await generateMemberBundle(validatedMessage.publicKeyId, options);
   if(!memberBundle.didSucceed && memberBundle.reason.shouldRetry){
     return;
   }
 
   if (memberBundle.didSucceed) {
-    await postToAwala(memberBundle.result, event.data.awalaPda,  options.awalaMiddlewareEndpoint);
+    await postToAwala(memberBundle.result, validatedMessage.awalaPda,  options.awalaMiddlewareEndpoint);
   }
 
 
@@ -34,5 +36,5 @@ export default async function triggerBundleRequest(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  await memberBundleRequestModel.findByIdAndDelete(event.data.publicKeyId);
+  await memberBundleRequestModel.findByIdAndDelete(validatedMessage.publicKeyId);
 }

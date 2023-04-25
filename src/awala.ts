@@ -35,9 +35,9 @@ export async function createMemberBundleRequest(
 }
 
 export async function postToAwala(
-  data: string,
+  data: BodyInit,
   awalaPda: string,
-  awalaMiddlewareUrl: string
+  awalaMiddlewareUrl: URL
 ): Promise<Result<undefined, string>> {
   const pdaResponse = await fetch(awalaMiddlewareUrl, {
     method: 'POST',

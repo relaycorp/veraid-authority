@@ -30,6 +30,7 @@ function makeQueueServerPlugin(
 
   const awalaMiddlewareEndpoint = env.get('AWALA_MIDDLEWARE_ENDPOINT').required().asUrlString();
 
+
   server.get('/', async (_request, reply) => {
     await reply.status(HTTP_STATUS_CODES.OK).send('It works');
   });
@@ -58,7 +59,7 @@ function makeQueueServerPlugin(
     await sink(event, {
       logger: server.log,
       dbConnection: server.mongoose,
-      awalaMiddlewareEndpoint
+      awalaMiddlewareEndpoint: new URL(awalaMiddlewareEndpoint)
     });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });

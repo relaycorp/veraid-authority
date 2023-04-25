@@ -1,5 +1,5 @@
 import type { CloudEvent } from 'cloudevents';
 
-import type { ServiceOptions } from '../serviceTypes.js';
+import { SinkOptions } from './sinks/sinkTypes.js';
 
-export type Sink = (event: CloudEvent<unknown>, options: ServiceOptions) => Promise<void>;
+export type Sink = (event: CloudEvent<unknown>, options: SinkOptions) => Promise<void>;
