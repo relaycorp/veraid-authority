@@ -56,7 +56,7 @@ export async function postToAwala(
   await fetch(awalaMiddlewareUrl, {
     body: data,
     headers: {
-      'Content-Type': 'application/awala-parcel',
+      'Content-Type': 'application/vnd.veraid.member-bundle',
       'X-Awala-Recipient': recipientId,
     },
   });
