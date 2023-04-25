@@ -1,5 +1,5 @@
-import { ServiceOptions } from '../../serviceTypes.js';
+import type { ServiceOptions } from '../../serviceTypes.js';
 
-export interface SinkOptions extends ServiceOptions{
+export interface SinkOptions extends ServiceOptions {
   readonly awalaMiddlewareEndpoint: URL;
 }
