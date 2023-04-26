@@ -81,6 +81,8 @@ export default function registerRoutes(
   _opts: RouteOptions,
   done: PluginDone,
 ): void {
+  fastify.removeAllContentTypeParsers();
+
   fastify.addContentTypeParser(
     awalaRequestMessageTypeList,
     {

@@ -74,9 +74,11 @@ describe('member routes', () => {
 
         expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
         expect(response.headers['content-type']).toStartWith('application/json');
+        const memberPath = `/orgs/${ORG_NAME}/members/${testMemberId}`;
         expect(response.json()).toStrictEqual({
-          self: `/orgs/${ORG_NAME}/members/${testMemberId}`,
-          publicKeys: `/orgs/${ORG_NAME}/members/${testMemberId}/public-keys`,
+          self: memberPath,
+          publicKeys: `${memberPath}/public-keys`,
+          publicKeyImportTokens: `${memberPath}/public-key-import-tokens`,
         });
       },
     );
