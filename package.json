@@ -40,6 +40,7 @@
     "@jest/globals": "^29.5.0",
     "@relaycorp/eslint-config": "^1.1.85",
     "@relaycorp/shared-config": "^1.9.1",
+    "@relaycorp/veraid-authority": "^1.6.4",
     "@shelf/jest-mongodb": "^4.1.7",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.16.0",
