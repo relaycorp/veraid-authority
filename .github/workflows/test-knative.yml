@@ -34,7 +34,7 @@ jobs:
         with:
           minikube-version: '1.28.0'
           kubernetes-version: 'v1.25.3'
-        timeout-minutes: 2
+        timeout-minutes: 5
       - name: Setup Knative
         run: |-
           set -o nounset
