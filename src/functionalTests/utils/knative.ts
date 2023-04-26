@@ -9,7 +9,6 @@ const execFileAsync = promisify(execFile);
  * @throws {Error} if the service is not found or `kn` is not installed.
  */
 export async function getServiceUrl(serviceName: string): Promise<string> {
-  // Run `kn service describe` and parse the output
   const { stdout } = await execFileAsync('kn', ['service', 'describe', serviceName, '-o', 'url']);
   return stdout.trim();
 }
