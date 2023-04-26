@@ -105,6 +105,9 @@ jobs:
 
           # Main
 
+          print_header "Listening ports"
+          sudo netstat -tnlp
+
           print_header "Images"
           docker images
 
