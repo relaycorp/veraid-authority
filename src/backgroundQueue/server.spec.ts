@@ -67,44 +67,36 @@ describe('makeQueueServer', () => {
       } as any;
       const mockDone = mockSpy(jest.fn());
 
-      test('Valid Awala middleware endpoint in env should call done', async () => {
-        await makeQueueServerPlugin(mockFastify, {}, mockDone);
+      test('Valid Awala middleware endpoint in env should call done', () => {
+        makeQueueServerPlugin(mockFastify, {}, mockDone);
 
         expect(mockDone).toHaveBeenCalledOnce();
       });
 
-      test('Missing Awala middleware endpoint in env should throw error', async () => {
+      test('Missing Awala middleware endpoint in env should throw error', () => {
         setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
 
         expect(() => {
-          makeQueueServerPlugin(mockFastify, {}, mockDone)}
-        ).toThrowWithMessage(
-          envVar.EnvVarError,
-          /AWALA_MIDDLEWARE_ENDPOINT/u,
-        );
+          makeQueueServerPlugin(mockFastify, {}, mockDone);
+        }).toThrowWithMessage(envVar.EnvVarError, /AWALA_MIDDLEWARE_ENDPOINT/u);
       });
 
-      test('Malformed Awala middleware endpoint in env should throw error', async () => {
+      test('Malformed Awala middleware endpoint in env should throw error', () => {
         setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: 'INVALID_URL' });
 
         expect(() => {
-          makeQueueServerPlugin(mockFastify, {}, mockDone)}
-        ).toThrowWithMessage(
-          envVar.EnvVarError,
-          /AWALA_MIDDLEWARE_ENDPOINT/u,
-        );
+          makeQueueServerPlugin(mockFastify, {}, mockDone);
+        }).toThrowWithMessage(envVar.EnvVarError, /AWALA_MIDDLEWARE_ENDPOINT/u);
       });
 
-      test('Awala middleware error should not call done', async () => {
+      test('Awala middleware error should not call done', () => {
         setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
 
         expect(() => {
-          makeQueueServerPlugin(mockFastify, {}, mockDone)}
-        ).toThrow();
+          makeQueueServerPlugin(mockFastify, {}, mockDone);
+        }).toThrow(envVar.EnvVarError);
         expect(mockDone).not.toHaveBeenCalled();
       });
-
-
     });
   });
 });

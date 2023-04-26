@@ -115,13 +115,16 @@ describe('memberBundleIssuance', () => {
         );
       });
 
-      test('Should be called with member bundle', async () => {
+      test('Should be called with member bundle and member public key id', async () => {
+        const requestBody = JSON.stringify({
+          memberBundle: Buffer.from(memberBundle).toString('base64'),
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        });
+
         await postEvent(triggerEvent, server);
 
         expect(mockPostToAwala).toHaveBeenCalledOnceWith(
-          expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
-            Buffer.from(memberBundle).equals(Buffer.from(arrayBuffer)),
-          ),
+          requestBody,
           expect.anything(),
           expect.anything(),
         );
@@ -267,7 +270,7 @@ describe('memberBundleIssuance', () => {
     });
   });
 
-  test('Failed posting to awala should not remove member bundle request', async () => {
+  test('Failed posting to Awala should not remove member bundle request', async () => {
     const memberBundleRequest = await memberBundleRequestModel.create({
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),

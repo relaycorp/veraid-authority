@@ -34,8 +34,14 @@ export default async function memberBundleIssuance(
       { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
       'Sending member bundle to Awala',
     );
+
+    const requestBody = JSON.stringify({
+      memberBundle: Buffer.from(memberBundle.result).toString('base64'),
+      memberPublicKeyId: validatedData.publicKeyId,
+    });
+
     const awalaResponse = await postToAwala(
-      memberBundle.result,
+      requestBody,
       validatedData.awalaPda,
       options.awalaMiddlewareEndpoint,
     );
