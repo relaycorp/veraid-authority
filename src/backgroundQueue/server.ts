@@ -1,22 +1,26 @@
 import { type CloudEvent, type CloudEventV1, HTTP, type Message } from 'cloudevents';
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import type { BaseLogger } from 'pino';
+import env from 'env-var';
 
 import { makeFastify } from '../utilities/fastify/server.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
 
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
 import triggerBundleRequest from './sinks/memberBundleRequestTrigger.sink.js';
+import memberBundleRequest from './sinks/memberBundleRequest.sink.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
   [BUNDLE_REQUEST_TRIGGER_TYPE]: triggerBundleRequest,
+  [BUNDLE_REQUEST_TYPE]: memberBundleRequest,
 };
 
-function makeQueueServerPlugin(
+export function makeQueueServerPlugin(
   server: FastifyTypedInstance,
   _opts: FastifyPluginOptions,
   done: PluginDone,
@@ -26,6 +30,8 @@ function makeQueueServerPlugin(
     { parseAs: 'string' },
     server.getDefaultJsonParser('ignore', 'ignore'),
   );
+
+  const awalaMiddlewareEndpoint = env.get('AWALA_MIDDLEWARE_ENDPOINT').required().asUrlObject();
 
   server.get('/', async (_request, reply) => {
     await reply.status(HTTP_STATUS_CODES.OK).send('It works');
@@ -55,6 +61,7 @@ function makeQueueServerPlugin(
     await sink(event, {
       logger: server.log,
       dbConnection: server.mongoose,
+      awalaMiddlewareEndpoint,
     });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });

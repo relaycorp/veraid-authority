@@ -58,6 +58,19 @@ describe('awala routes', () => {
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
   });
 
+  test('Content type application/json should resolve to unsupported media type error', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/awala',
+
+      headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'content-type': 'application/json',
+      },
+    });
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
+  });
+
   describe('Member bundle request', () => {
     const validPayload = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -185,7 +198,7 @@ describe('awala routes', () => {
       });
     });
 
-    test('Malformed awala PDA should be refused', async () => {
+    test('Malformed Awala PDA should be refused', async () => {
       const methodPayload = {
         ...validPayload,
         awalaPda: 'INVALID_BASE_64',

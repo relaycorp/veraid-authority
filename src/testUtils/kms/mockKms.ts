@@ -9,7 +9,7 @@ interface KeyPairRef {
   publicKey: CryptoKey;
 }
 
-class MockKms extends Kms {
+export class MockKms extends Kms {
   public readonly generatedKeyPairRefs: KeyPairRef[] = [];
 
   public readonly destroyedPrivateKeyRefs: Buffer[] = [];
@@ -35,7 +35,7 @@ class MockKms extends Kms {
   }
 }
 
-export function mockKms(): () => MockKms {
+export function mockKms() {
   const initMock = jest.spyOn(Kms, 'init');
 
   let mock: MockKms;
@@ -48,5 +48,8 @@ export function mockKms(): () => MockKms {
     initMock.mockRestore();
   });
 
-  return () => mock;
+  return () => ({
+    kms: mock,
+    kmsInitMock: initMock,
+  });
 }

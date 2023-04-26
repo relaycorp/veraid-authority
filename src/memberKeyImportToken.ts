@@ -10,9 +10,9 @@ import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { Emitter } from './utilities/eventing/Emitter.js';
 import {
-  MEMBER_KEY_IMPORT_TYPE,
-  type MemberKeyImportPayload,
-} from './events/memberPublicKeyImport.event.js';
+  BUNDLE_REQUEST_TYPE,
+  type MemberBundleRequestPayload,
+} from './events/bundleRequest.event.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -76,11 +76,11 @@ export async function processMemberKeyImportToken(
     };
   }
 
-  const emitter = Emitter.init() as Emitter<MemberKeyImportPayload>;
+  const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
   const event = new CloudEvent({
     id: memberKeyImportToken.memberId,
     source: 'https://veraid.net/authority/awala-member-key-import',
-    type: MEMBER_KEY_IMPORT_TYPE,
+    type: BUNDLE_REQUEST_TYPE,
 
     data: {
       publicKeyId: publicKeyCreationResult.result.id,
