@@ -110,30 +110,41 @@ describe('awala', () => {
     const awalaRecipientHeaderName = 'X-Awala-Recipient';
     const awalaPostData = 'Test data';
 
-    test('Should send data to Awala', async () => {
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: testRecipientId })));
 
-      const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
+    describe("Success path", () => {
+      test('Should make authorization request to Awala', async () => {
+        mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: testRecipientId })));
 
-      expect(awalaResponse.didSucceed).toBeTrue();
-      expect(mockFetch).toHaveBeenNthCalledWith(1, testAwalaEndpoint, {
-        method: 'POST',
-        headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
-        body: AWALA_PDA,
+        const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
+
+        expect(awalaResponse.didSucceed).toBeTrue();
+        expect(mockFetch).toHaveBeenNthCalledWith(1, testAwalaEndpoint, {
+          method: 'POST',
+          headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+          body: AWALA_PDA,
+        });
       });
-      expect(mockFetch).toHaveBeenNthCalledWith(2, testAwalaEndpoint, {
-        method: 'POST',
 
-        headers: {
-          [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
-          [awalaRecipientHeaderName]: testRecipientId,
-        },
+      test('Should send data request to Awala', async () => {
+        mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: testRecipientId })));
 
-        body: awalaPostData,
+        const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
+
+        expect(awalaResponse.didSucceed).toBeTrue();
+        expect(mockFetch).toHaveBeenNthCalledWith(2, testAwalaEndpoint, {
+          method: 'POST',
+
+          headers: {
+            [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+            [awalaRecipientHeaderName]: testRecipientId,
+          },
+
+          body: awalaPostData,
+        });
       });
-    });
+    })
 
-    test('Missing recipient id from Awala response should not make second request', async () => {
+    test('Missing recipient id from Awala response should not post data', async () => {
       mockFetch.mockResolvedValue(new Response(JSON.stringify({})));
 
       const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
