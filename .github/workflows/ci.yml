@@ -1,6 +1,6 @@
 name: CI and automated releases
 on:
-  pull_request:
+#  pull_request:
   push:
     branches: [main]
 jobs:

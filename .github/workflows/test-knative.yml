@@ -29,11 +29,12 @@ jobs:
         timeout-minutes: 5
 
       # Functional tests
-      - name: Create Kind cluster
-        uses: helm/kind-action@v1.5.0
+      - name: Create cluster
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
-          cluster_name: default
-          kubectl_version: "v1.25.3"
+          minikube version: 'v1.28.0'
+          kubernetes version: 'v1.25.3'
+          github token: ${{ secrets.GITHUB_TOKEN }}
         timeout-minutes: 2
       - name: Setup Knative
         run: |-
@@ -53,7 +54,7 @@ jobs:
             https://github.com/knative-sandbox/kn-plugin-quickstart/releases/download/knative-v${KN_VERSION}/kn-quickstart-linux-amd64
           chmod +x /usr/local/bin/kn-quickstart
 
-          kn quickstart kind \
+          kn quickstart minikube \
             --name=default \
             --kubernetes-version=${KUBERNETES_VERSION} \
             --install-serving \
