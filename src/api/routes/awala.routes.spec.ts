@@ -62,12 +62,7 @@ describe('awala routes', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/awala',
-      payload: {
-        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        memberBundleStartDate: '2023-04-13T20:05:38.285Z',
-        awalaPda: AWALA_PDA,
-        signature: SIGNATURE,
-      },
+
       headers: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'content-type': 'application/json',
