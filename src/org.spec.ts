@@ -7,12 +7,7 @@ import type { OrgSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import {
-  AWALA_ENDPOINT,
-  NON_ASCII_AWALA_ENDPOINT,
-  NON_ASCII_ORG_NAME,
-  ORG_NAME,
-} from './testUtils/stubs.js';
+import { NON_ASCII_ORG_NAME, ORG_NAME } from './testUtils/stubs.js';
 import { getPromiseRejection } from './testUtils/jest.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
@@ -91,40 +86,8 @@ describe('org', () => {
       );
     });
 
-    test.each([
-      ['ASCII', AWALA_ENDPOINT],
-      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
-    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      const orgData: OrgSchema = { name: ORG_NAME, awalaEndpoint };
-
-      const result = await createOrg(orgData, serviceOptions);
-
-      expect(result.didSucceed).toBeTrue();
-    });
-
-    test('Malformed Awala endpoint should be refused', async () => {
-      const malformedAwalaEndpoint = '192.168.0.0';
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        awalaEndpoint: malformedAwalaEndpoint,
-      };
-
-      const result = await createOrg(orgData, serviceOptions);
-
-      requireFailureResult(result);
-      expect(result.reason).toBe(OrgProblemType.MALFORMED_AWALA_ENDPOINT);
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed Awala endpoint', {
-          awalaEndpoint: malformedAwalaEndpoint,
-        }),
-      );
-    });
-
     test('Returned id should match that of the database', async () => {
-      const orgData: OrgSchema = {
-        name: ORG_NAME,
-        awalaEndpoint: AWALA_ENDPOINT,
-      };
+      const orgData: OrgSchema = { name: ORG_NAME };
 
       const methodResult = await createOrg(orgData, serviceOptions);
 
@@ -184,27 +147,6 @@ describe('org', () => {
   });
 
   describe('updateOrg', () => {
-    test('Valid data should be updated', async () => {
-      await orgModel.create({
-        name: ORG_NAME,
-        awalaEndpoint: `a.${AWALA_ENDPOINT}`,
-      });
-
-      await updateOrg(ORG_NAME, { name: ORG_NAME, awalaEndpoint: AWALA_ENDPOINT }, serviceOptions);
-
-      const dbResult = await orgModel.exists({
-        name: ORG_NAME,
-        awalaEndpoint: AWALA_ENDPOINT,
-      });
-
-      expect(dbResult).not.toBeNull();
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Org updated', {
-          name: ORG_NAME,
-        }),
-      );
-    });
-
     test.each([
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
@@ -262,40 +204,6 @@ describe('org', () => {
       );
     });
 
-    test.each([
-      ['ASCII', AWALA_ENDPOINT],
-      ['Non ASCII', NON_ASCII_AWALA_ENDPOINT],
-    ])('%s Awala endpoint should be allowed', async (_type, awalaEndpoint: string) => {
-      await orgModel.create({ name: ORG_NAME, awalaEndpoint: AWALA_ENDPOINT });
-
-      const response = await updateOrg(
-        ORG_NAME,
-        {
-          awalaEndpoint,
-        },
-        serviceOptions,
-      );
-
-      expect(response.didSucceed).toBeTrue();
-    });
-
-    test('Malformed Awala endpoint should be refused', async () => {
-      const malformedAwalaEndpoint = 'MALFORMED_AWALA_ENDPOINT';
-      const result = await updateOrg(
-        ORG_NAME,
-        { name: ORG_NAME, awalaEndpoint: malformedAwalaEndpoint },
-        serviceOptions,
-      );
-
-      requireFailureResult(result);
-      expect(result.reason).toBe(OrgProblemType.MALFORMED_AWALA_ENDPOINT);
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused malformed Awala endpoint', {
-          awalaEndpoint: malformedAwalaEndpoint,
-        }),
-      );
-    });
-
     test('Record update errors should be propagated', async () => {
       await connection.close();
       const orgData: OrgSchema = { name: ORG_NAME };
@@ -311,18 +219,12 @@ describe('org', () => {
 
   describe('getOrg', () => {
     test('Existing name should return the corresponding data', async () => {
-      await orgModel.create({
-        name: ORG_NAME,
-        awalaEndpoint: AWALA_ENDPOINT,
-      });
+      await orgModel.create({ name: ORG_NAME });
 
       const result = await getOrg(ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
-      expect(result.result).toMatchObject({
-        name: ORG_NAME,
-        awalaEndpoint: AWALA_ENDPOINT,
-      });
+      expect(result.result).toMatchObject({ name: ORG_NAME });
     });
 
     test('Invalid name should return non existing error', async () => {

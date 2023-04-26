@@ -24,14 +24,6 @@ function validateOrgData(
     return OrgProblemType.MALFORMED_ORG_NAME;
   }
 
-  if (orgData.awalaEndpoint !== undefined && !isValidUtf8Domain(orgData.awalaEndpoint)) {
-    options.logger.info(
-      { awalaEndpoint: orgData.awalaEndpoint },
-      'Refused malformed Awala endpoint',
-    );
-    return OrgProblemType.MALFORMED_AWALA_ENDPOINT;
-  }
-
   return undefined;
 }
 
@@ -129,11 +121,7 @@ export async function getOrg(
 
   return {
     didSucceed: true,
-
-    result: {
-      name: org.name,
-      awalaEndpoint: org.awalaEndpoint,
-    },
+    result: { name: org.name },
   };
 }
 

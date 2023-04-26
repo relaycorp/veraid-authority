@@ -5,21 +5,19 @@ import type { BaseLogger } from 'pino';
 import { makeFastify } from '../utilities/fastify/server.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
-import { EXAMPLE_TYPE } from '../events/example.event.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 
-import processExample from './sinks/example.sink.js';
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
 import triggerBundleRequest from './sinks/memberBundleRequestTrigger.sink.js';
 
 const SINK_BY_TYPE: { [type: string]: Sink } = {
-  [EXAMPLE_TYPE]: processExample,
   [BUNDLE_REQUEST_TRIGGER_TYPE]: triggerBundleRequest,
 };
 
 function makeQueueServerPlugin(
-  server: FastifyInstance,
+  server: FastifyTypedInstance,
   _opts: FastifyPluginOptions,
   done: PluginDone,
 ): void {
@@ -54,7 +52,10 @@ function makeQueueServerPlugin(
       return;
     }
 
-    await sink(event, request.log);
+    await sink(event, {
+      logger: server.log,
+      dbConnection: server.mongoose,
+    });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });
 
