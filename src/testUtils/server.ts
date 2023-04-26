@@ -12,7 +12,6 @@ export interface TestServerFixture {
   readonly dbConnection: Connection;
   readonly logs: MockLogSet;
   readonly envVarMocker: EnvVarMocker;
-  readonly envVars: EnvVarSet;
 }
 
 export function makeTestServer(
@@ -37,6 +36,5 @@ export function makeTestServer(
     dbConnection: getConnection(),
     logs: mockLogging.logs,
     envVarMocker,
-    envVars,
   });
 }

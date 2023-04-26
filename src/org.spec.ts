@@ -115,7 +115,7 @@ describe('org', () => {
       const orgData: OrgSchema = { name: ORG_NAME };
 
       test('Key pair should be generated', async () => {
-        const kms = getMockKms();
+        const { kms } = getMockKms();
         expect(kms.generatedKeyPairRefs).toHaveLength(0);
 
         await createOrg(orgData, serviceOptions);
@@ -128,7 +128,7 @@ describe('org', () => {
 
         requireSuccessfulResult(result);
         const dbResult = await orgModel.findOne({ name: result.result.name });
-        const kms = getMockKms();
+        const { kms } = getMockKms();
         const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
         expect(Buffer.from(dbResult!.privateKeyRef)).toStrictEqual(privateKeyRef);
       });
@@ -138,7 +138,7 @@ describe('org', () => {
 
         requireSuccessfulResult(result);
         const dbResult = await orgModel.findOne({ name: result.result.name });
-        const kms = getMockKms();
+        const { kms } = getMockKms();
         const [{ publicKey: generatedPublicKey }] = kms.generatedKeyPairRefs;
         const expectedPublicKey = await derSerialisePublicKey(generatedPublicKey);
         expect(Buffer.from(dbResult!.publicKey)).toStrictEqual(expectedPublicKey);
@@ -281,7 +281,7 @@ describe('org', () => {
 
       await deleteOrg(ORG_NAME, serviceOptions);
 
-      const kms = getMockKms();
+      const { kms } = getMockKms();
       const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
       expect(kms.destroyedPrivateKeyRefs).toContainEqual(privateKeyRef);
     });

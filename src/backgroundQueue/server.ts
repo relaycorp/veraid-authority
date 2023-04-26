@@ -20,7 +20,7 @@ const SINK_BY_TYPE: { [type: string]: Sink } = {
   [BUNDLE_REQUEST_TYPE]: memberBundleRequest,
 };
 
-function makeQueueServerPlugin(
+export function makeQueueServerPlugin(
   server: FastifyTypedInstance,
   _opts: FastifyPluginOptions,
   done: PluginDone,

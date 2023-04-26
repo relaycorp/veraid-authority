@@ -1,7 +1,9 @@
+import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection, HydratedDocument } from 'mongoose';
 import { addDays, addSeconds, subSeconds } from 'date-fns';
 
+import type { Kms } from './utilities/kms/Kms.js';
 import { mockedVeraidModule } from './testUtils/veraid.mock.js';
 import { OrgModelSchema } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
@@ -20,6 +22,9 @@ import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
+import { stringToArrayBuffer } from './testUtils/buffer.js';
+
+import SpiedFunction = jest.SpiedFunction;
 
 const { generateMemberBundle } = await import('./memberBundle.js');
 const {
@@ -35,6 +40,7 @@ describe('memberBundle', () => {
   const getConnection = setUpTestDbConnection();
   const getMockKms = mockKms();
   let kms: MockKms;
+  let kmsInitMock: SpiedFunction<() => Promise<Kms>>;
 
   const mockLogging = makeMockLogging();
 
@@ -50,7 +56,7 @@ describe('memberBundle', () => {
 
   beforeEach(async () => {
     certificateValidTill = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
-    kms = getMockKms();
+    ({ kms, kmsInitMock } = getMockKms());
     const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } =
       await kms.generateKeyPair();
 
@@ -85,13 +91,13 @@ describe('memberBundle', () => {
       let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
 
       beforeEach(async () => {
-        selfIssueCertificateResult = new ArrayBuffer(1);
+        selfIssueCertificateResult = stringToArrayBuffer('selfIssueCertificateResult');
         selfIssueOrganisationCertificate.mockResolvedValueOnce(selfIssueCertificateResult);
-        issueMemberCertificateResult = new ArrayBuffer(2);
+        issueMemberCertificateResult = stringToArrayBuffer('issueMemberCertificateResult');
         issueMemberCertificate.mockResolvedValueOnce(issueMemberCertificateResult);
-        retrieveVeraDnssecChainResult = new ArrayBuffer(3);
+        retrieveVeraDnssecChainResult = stringToArrayBuffer('retrieveVeraDnssecChainResult');
         retrieveVeraDnssecChain.mockResolvedValueOnce(retrieveVeraDnssecChainResult);
-        serialiseMemberIdBundleResult = new ArrayBuffer(4);
+        serialiseMemberIdBundleResult = stringToArrayBuffer('serialiseMemberIdBundleResult');
         serialiseMemberIdBundle.mockReturnValueOnce(serialiseMemberIdBundleResult);
 
         await orgModel.create({
@@ -109,6 +115,12 @@ describe('memberBundle', () => {
           publicKey: memberPublicKeyBuffer,
           serviceOid: TEST_SERVICE_OID,
         });
+      });
+
+      test('KMS should be initialised', async () => {
+        await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+        expect(kmsInitMock).toHaveBeenCalledOnce();
       });
 
       describe('Self issued organisation certificate', () => {
@@ -322,35 +334,51 @@ describe('memberBundle', () => {
       );
     });
 
-    test('Retrieving dnssec chain error should return positive shouldRetry', async () => {
-      await orgModel.create({
-        name: ORG_NAME,
-        privateKeyRef: orgPrivateKeyRef,
-        publicKey: orgPublicKey,
+    describe('Retrieving DNSSEC chain error', () => {
+      let memberPublicKeyId: string;
+      beforeEach(async () => {
+        await orgModel.create({
+          name: ORG_NAME,
+          privateKeyRef: orgPrivateKeyRef,
+          publicKey: orgPublicKey,
+        });
+        const member = await memberModel.create({
+          orgName: ORG_NAME,
+          name: MEMBER_NAME,
+          role: Role.REGULAR,
+        });
+        const memberPublicKey = await memberPublicKeyModel.create({
+          memberId: member.id,
+          publicKey: memberPublicKeyBuffer,
+          serviceOid: TEST_SERVICE_OID,
+        });
+        memberPublicKeyId = memberPublicKey._id.toString();
       });
-      const member = await memberModel.create({
-        orgName: ORG_NAME,
-        name: MEMBER_NAME,
-        role: Role.REGULAR,
-      });
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: member.id,
-        publicKey: memberPublicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
-      const error = new Error('Oh noes');
-      retrieveVeraDnssecChain.mockRejectedValueOnce(error);
 
-      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+      test('Should return positive shouldRetry', async () => {
+        const error = new Error('Oh noes');
+        retrieveVeraDnssecChain.mockRejectedValueOnce(error);
 
-      requireFailureResult(result);
-      expect(result.reason.shouldRetry).toBeTrue();
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('warn', 'Failed to retrieve dnssec chain', {
-          memberPublicKeyId: memberPublicKey._id.toString(),
-          err: expect.objectContaining({ message: error.message }),
-        }),
-      );
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        requireFailureResult(result);
+        expect(result.reason.shouldRetry).toBeTrue();
+        expect(mockLogging.logs).toContainEqual(
+          partialPinoLog('warn', 'Failed to retrieve DNSSEC chain', {
+            memberPublicKeyId,
+            err: expect.objectContaining({ message: error.message }),
+          }),
+        );
+      });
+
+      test('Should not initialise KMS', async () => {
+        const error = new Error('Oh noes');
+        retrieveVeraDnssecChain.mockRejectedValueOnce(error);
+
+        await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        expect(kmsInitMock).not.toHaveBeenCalled();
+      });
     });
   });
 });

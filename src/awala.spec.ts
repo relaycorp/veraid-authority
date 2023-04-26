@@ -192,7 +192,7 @@ describe('awala', () => {
           );
         });
 
-        test('Content type should be application/vnd+relaycorp.awala.pda-path', async () => {
+        test('Headers should include X-Awala-Recipient with recipient id', async () => {
           await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
           expect(mockFetch).toHaveBeenNthCalledWith(

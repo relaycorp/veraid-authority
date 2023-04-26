@@ -43,7 +43,7 @@ export default async function memberBundleIssuance(
     if (!awalaResponse.didSucceed) {
       options.logger.info(
         { eventId: event.id, reason: awalaResponse.reason },
-        'Posting to awala failed',
+        'Failed to post member bundle to Awala',
       );
       return;
     }

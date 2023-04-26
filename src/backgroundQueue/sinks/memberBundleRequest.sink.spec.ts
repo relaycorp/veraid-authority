@@ -13,10 +13,11 @@ import {
 import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from '../../testUtils/stubs.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
-import type { EnvVarSet } from '../../testUtils/envVars.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
+import { stringToArrayBuffer } from '../../testUtils/buffer.js';
+import { REQUIRED_ENV_VARS } from '../../testUtils/envVars.js';
 
 const mockPostToAwala = mockSpy(jest.fn<() => Promise<Result<undefined, string>>>());
 jest.unstable_mockModule('../../awala.js', () => ({
@@ -24,7 +25,7 @@ jest.unstable_mockModule('../../awala.js', () => ({
   createMemberBundleRequest: jest.fn(),
 }));
 
-const mockgGenerateMemberBundle = mockSpy(
+const mockGenerateMemberBundle = mockSpy(
   jest.fn<
     () => Promise<
       Result<
@@ -38,7 +39,7 @@ const mockgGenerateMemberBundle = mockSpy(
 );
 
 jest.unstable_mockModule('../../memberBundle.js', () => ({
-  generateMemberBundle: mockgGenerateMemberBundle,
+  generateMemberBundle: mockGenerateMemberBundle,
 }));
 
 const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
@@ -46,34 +47,32 @@ const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
 describe('memberBundleIssuance', () => {
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
-  let envVars: EnvVarSet;
   let logs: object[];
   let dbConnection: Connection;
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-  let triggerEvent: CloudEvent<MemberBundleRequestPayload>;
+  const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
+    id: MEMBER_PUBLIC_KEY_MONGO_ID,
+    source: CE_SOURCE,
+    type: BUNDLE_REQUEST_TYPE,
+
+    data: {
+      awalaPda: AWALA_PDA,
+      publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+    },
+  });
 
   beforeEach(() => {
-    ({ server, envVars, logs, dbConnection } = getTestServerFixture());
+    ({ server, logs, dbConnection } = getTestServerFixture());
     memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
       existingConnection: dbConnection,
-    });
-    triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
-      id: MEMBER_PUBLIC_KEY_MONGO_ID,
-      source: CE_SOURCE,
-      type: BUNDLE_REQUEST_TYPE,
-
-      data: {
-        awalaPda: AWALA_PDA,
-        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      },
     });
   });
 
   describe('Success path', () => {
-    const memberBundle = new ArrayBuffer(1);
+    const memberBundle = stringToArrayBuffer('memberBundle');
 
     beforeEach(() => {
-      mockgGenerateMemberBundle.mockResolvedValueOnce({
+      mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: true,
         result: memberBundle,
       });
@@ -95,7 +94,7 @@ describe('memberBundleIssuance', () => {
     test('Bundle should be generated', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(mockgGenerateMemberBundle).toHaveBeenCalledOnceWith(
+      expect(mockGenerateMemberBundle).toHaveBeenCalledOnceWith(
         MEMBER_PUBLIC_KEY_MONGO_ID,
         expect.objectContaining<ServiceOptions>({
           logger: server.log,
@@ -144,7 +143,7 @@ describe('memberBundleIssuance', () => {
         expect(mockPostToAwala).toHaveBeenCalledOnceWith(
           expect.anything(),
           expect.anything(),
-          new URL(envVars.AWALA_MIDDLEWARE_ENDPOINT!),
+          new URL(REQUIRED_ENV_VARS.AWALA_MIDDLEWARE_ENDPOINT),
         );
       });
     });
@@ -173,7 +172,7 @@ describe('memberBundleIssuance', () => {
   });
 
   test('Malformed event data should stop execution', async () => {
-    triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
+    const invalidTriggerEvent = new CloudEvent<MemberBundleRequestPayload>({
       id: MEMBER_PUBLIC_KEY_MONGO_ID,
       source: CE_SOURCE,
       type: BUNDLE_REQUEST_TYPE,
@@ -183,9 +182,9 @@ describe('memberBundleIssuance', () => {
       } as any,
     });
 
-    await postEvent(triggerEvent, server);
+    await postEvent(invalidTriggerEvent, server);
 
-    expect(mockgGenerateMemberBundle).not.toHaveBeenCalled();
+    expect(mockGenerateMemberBundle).not.toHaveBeenCalled();
     expect(logs).toContainEqual(
       partialPinoLog('info', 'Malformed event data', {
         eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -196,7 +195,7 @@ describe('memberBundleIssuance', () => {
 
   describe('Failed bundle generation with shouldRetry true', () => {
     beforeEach(() => {
-      mockgGenerateMemberBundle.mockResolvedValueOnce({
+      mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
         reason: {
@@ -230,7 +229,7 @@ describe('memberBundleIssuance', () => {
 
   describe('Failed bundle generation with shouldRetry false', () => {
     beforeEach(() => {
-      mockgGenerateMemberBundle.mockResolvedValueOnce({
+      mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
         reason: {
@@ -275,8 +274,8 @@ describe('memberBundleIssuance', () => {
       signature: Buffer.from(SIGNATURE, 'base64'),
       memberBundleStartDate: new Date(),
     });
-    const memberBundle = new ArrayBuffer(1);
-    mockgGenerateMemberBundle.mockResolvedValueOnce({
+    const memberBundle = stringToArrayBuffer('memberBundle');
+    mockGenerateMemberBundle.mockResolvedValueOnce({
       didSucceed: true,
       result: memberBundle,
     });
@@ -289,7 +288,7 @@ describe('memberBundleIssuance', () => {
     await postEvent(triggerEvent, server);
 
     expect(logs).toContainEqual(
-      partialPinoLog('info', 'Posting to awala failed', {
+      partialPinoLog('info', 'Failed to post member bundle to Awala', {
         eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
         reason: awalaReason,
       }),

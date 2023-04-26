@@ -17,7 +17,7 @@ import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
-interface CreateBundleInput {
+interface BundleCreationInput {
   orgPrivateKeyRefBuffer: Buffer;
   orgPublicKeyBuffer: Buffer;
   memberPublicKey: Buffer;
@@ -34,9 +34,23 @@ async function generateBundle(
     orgName,
     memberName,
     memberPublicKeyId,
-  }: CreateBundleInput,
+  }: BundleCreationInput,
   logger: BaseLogger,
 ): Promise<ArrayBuffer | undefined> {
+  let dnssecChain;
+  try {
+    dnssecChain = await retrieveVeraDnssecChain(orgName);
+  } catch (err) {
+    logger.warn(
+      {
+        memberPublicKeyId,
+        err,
+      },
+      'Failed to retrieve DNSSEC chain',
+    );
+    return undefined;
+  }
+
   const kms = await Kms.init();
   const orgPrivateKey = await kms.retrievePrivateKeyByRef(orgPrivateKeyRefBuffer);
   const orgPublicKey = await derDeserialisePublicKey(orgPublicKeyBuffer);
@@ -58,19 +72,6 @@ async function generateBundle(
     expiryDate,
   );
 
-  let dnssecChain;
-  try {
-    dnssecChain = await retrieveVeraDnssecChain(orgName);
-  } catch (err) {
-    logger.warn(
-      {
-        memberPublicKeyId,
-        err,
-      },
-      'Failed to retrieve dnssec chain',
-    );
-    return undefined;
-  }
   return serialiseMemberIdBundle(memberCertificate, orgCertificate, dnssecChain);
 }
 
