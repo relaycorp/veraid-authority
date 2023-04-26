@@ -101,7 +101,6 @@ describe('makeQueueServer', () => {
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone)}
         ).toThrow();
-
         expect(mockDone).not.toHaveBeenCalled();
       });
 
