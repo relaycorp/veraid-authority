@@ -1,0 +1,124 @@
+name: CI
+on:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v3
+        timeout-minutes: 2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+        timeout-minutes: 2
+      - name: Get npm cache directory
+        id: npm-cache
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+        timeout-minutes: 5
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-18-${{ hashFiles('**/package-lock.json') }}
+        timeout-minutes: 5
+      - name: Install dependencies
+        run: npm ci
+        timeout-minutes: 5
+
+      # Functional tests
+      - name: Create Kind cluster
+        uses: helm/kind-action@v1.5.0
+        with:
+          cluster_name: default
+          kubectl_version: "v1.25.3"
+        timeout-minutes: 2
+      - name: Setup Knative
+        run: |-
+          set -o nounset
+          set -o errexit
+          set -o pipefail
+
+          echo "Installing kn..."
+          curl -L \
+            -o /usr/local/bin/kn \
+            https://github.com/knative/client/releases/download/knative-v${KN_VERSION}/kn-linux-amd64
+          chmod +x /usr/local/bin/kn
+
+          echo "Installing kn-quickstart..."
+          curl -L \
+            -o /usr/local/bin/kn-quickstart \
+            https://github.com/knative-sandbox/kn-plugin-quickstart/releases/download/knative-v${KN_VERSION}/kn-quickstart-linux-amd64
+          chmod +x /usr/local/bin/kn-quickstart
+
+          kn quickstart kind \
+            --name=default \
+            --kubernetes-version=${KUBERNETES_VERSION} \
+            --install-serving \
+            --install-eventing
+
+          echo "Work around https://github.com/knative-sandbox/kn-plugin-quickstart/issues/104"
+          kubectl patch deployment/3scale-kourier-gateway \
+            --namespace kourier-system \
+            --type json \
+            -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources"}]'
+
+        env:
+          KN_VERSION: 1.9.0
+          KUBERNETES_VERSION: 1.25.3
+        timeout-minutes: 3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        timeout-minutes: 2
+      - name: Run Skaffold pipeline
+        uses: hiberbee/github-action-skaffold@1.24.0
+        with:
+          command: run
+          skaffold-version: 2.1.0
+          kubectl-version: 1.25.3
+        timeout-minutes: 5
+      - run: npm run test:functional
+        env:
+          IS_GITHUB: 'true'
+        timeout-minutes: 3
+
+      - name: Output diagnostic information upon failure
+        if: failure()
+        run: |-
+          set -o nounset
+          set -o errexit
+          set -o pipefail
+
+          # Functions
+
+          print_header() {
+            local title="$1"
+
+            printf '#%.0s' {1..50}
+            echo " ${title}"
+          }
+
+          # Main
+
+          print_header "Images"
+          docker images
+
+          print_header "Knative services"
+          kn service list
+
+          print_header "Kubernetes resources"
+          kubectl get all --all-namespaces
+
+          print_header "App pods"
+          kubectl describe pod -l "app.kubernetes.io/name=${KUBERNETES_APP_NAME}"
+
+          print_header "App logs"
+          kubectl logs --prefix --all-containers=true -l "app.kubernetes.io/name=${KUBERNETES_APP_NAME}"
+        env:
+          KUBERNETES_APP_NAME: veraid-authority
+        timeout-minutes: 2
