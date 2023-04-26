@@ -7,10 +7,7 @@ import { setUpTestQueueServer } from '../testUtils/queueServer.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
-import {
-  EnvVarMocker,
-  REQUIRED_ENV_VARS,
-} from '../testUtils/envVars.js';
+import { type EnvVarMocker, REQUIRED_ENV_VARS } from '../testUtils/envVars.js';
 import { mockSpy } from '../testUtils/jest.js';
 
 import { QueueProblemType } from './QueueProblemType.js';
@@ -19,7 +16,7 @@ import { makeQueueServerPlugin } from './server.js';
 describe('makeQueueServer', () => {
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyInstance;
-  let envVarMocker: EnvVarMocker
+  let envVarMocker: EnvVarMocker;
   beforeEach(() => {
     ({ server, envVarMocker } = getTestServerFixture());
   });
@@ -62,7 +59,6 @@ describe('makeQueueServer', () => {
     });
 
     describe('makeQueueServerPlugin', () => {
-      // const setEnvVars = configureMockEnvVars(REQUIRED_ENV_VARS);
       const mockFastify: FastifyInstance = {
         addContentTypeParser: jest.fn(),
         getDefaultJsonParser: jest.fn(),
