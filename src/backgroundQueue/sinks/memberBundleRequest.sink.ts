@@ -26,6 +26,7 @@ export default async function memberBundleIssuance(
   }
 
   if (memberBundle.didSucceed) {
+    options.logger.debug({ eventId: event.id, memberPublicKeyId: validatedMessage.publicKeyId }, 'Sending member bundle to Awala');
     await postToAwala(
       memberBundle.result,
       validatedMessage.awalaPda,
@@ -36,5 +37,9 @@ export default async function memberBundleIssuance(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  await memberBundleRequestModel.findByIdAndDelete(validatedMessage.publicKeyId);
+  await memberBundleRequestModel.deleteMany({
+    publicKeyId: validatedMessage.publicKeyId
+  });
+  options.logger.debug({ eventId: event.id, publicKeyId: validatedMessage.publicKeyId }, 'Removed Bundle Request');
+
 }

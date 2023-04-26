@@ -1,13 +1,17 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
+import { jest } from '@jest/globals';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
-import { createMemberBundleRequest } from './awala.js';
+import { createMemberBundleRequest, postToAwala } from './awala.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
+import { mockSpy } from './testUtils/jest.js';
+import { AWALA_MIDDLEWARE_ENDPOINT } from './testUtils/eventing/stubs.js';
+import { requireFailureResult } from './testUtils/result.js';
 
 function getTimestampWithOffset(miliSeconds: number) {
   const date = new Date(Date.now() + miliSeconds);
@@ -97,4 +101,45 @@ describe('awala', () => {
       expect(countResult).toBe(1);
     });
   });
+
+  describe('postToAwala', () => {
+    const mockFetch = mockSpy(jest.spyOn(global, 'fetch'));
+    const TEST_AWALA_ENDPOINT : URL = new URL(AWALA_MIDDLEWARE_ENDPOINT)
+    const TEST_RECIPIENT_ID : string = "TEST_RECIPIENT_ID"
+    const contentTypeHeaderName = 'content-type';
+    const awalaRecipientHeaderName = 'X-Awala-Recipient';
+    const awalaPostData = "Test data";
+
+    test("Should send data to Awala", async () => {
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: TEST_RECIPIENT_ID})));
+
+      const awalaResponse = await postToAwala(awalaPostData,AWALA_PDA,TEST_AWALA_ENDPOINT);
+
+      expect(awalaResponse.didSucceed).toBeTrue();
+      expect(mockFetch).toHaveBeenNthCalledWith(1, TEST_AWALA_ENDPOINT, {
+        method: 'POST',
+        headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+        body: AWALA_PDA,
+      })
+      expect(mockFetch).toHaveBeenNthCalledWith(2, TEST_AWALA_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+          [awalaRecipientHeaderName]: TEST_RECIPIENT_ID
+        },
+        body: awalaPostData,
+      })
+    })
+
+    test("Missing recipient id from Awala response should fail", async () => {
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ })));
+
+      const awalaResponse = await postToAwala(awalaPostData,AWALA_PDA,TEST_AWALA_ENDPOINT);
+
+      requireFailureResult(awalaResponse);
+      expect(awalaResponse.reason).toBe("Recipient id was missing from Awala PDA import response");
+
+    })
+
+  })
 });

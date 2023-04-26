@@ -5,15 +5,21 @@ import { addDays, addSeconds, subSeconds } from 'date-fns';
 import { mockedVeraidModule } from './testUtils/veraid.mock.js';
 import { OrgModelSchema } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging } from './testUtils/logging.js';
-import { MEMBER_NAME, ORG_NAME, TEST_SERVICE_OID } from './testUtils/stubs.js';
+import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
+import {
+  MEMBER_MONGO_ID,
+  MEMBER_NAME,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
+  ORG_NAME,
+  TEST_SERVICE_OID,
+} from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
 import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
-import { requireSuccessfulResult } from './testUtils/result.js';
+import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 
 const { generateMemberBundle } = await import('./memberBundle.js');
 const {
@@ -23,7 +29,7 @@ const {
   serialiseMemberIdBundle,
 } = mockedVeraidModule;
 
-const CERTIFICATE_ISSIE_PERIOD = 90;
+const CERTIFICATE_EXPIRY_DAYS = 90;
 
 describe('memberBundle', () => {
   const getConnection = setUpTestDbConnection();
@@ -43,7 +49,7 @@ describe('memberBundle', () => {
   let certificateValidTill: Date;
 
   beforeEach(async () => {
-    certificateValidTill = addDays(new Date(), CERTIFICATE_ISSIE_PERIOD);
+    certificateValidTill = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
     kms = getMockKms();
     const { publicKey: orgPublicCryptoKey, privateKey: orgPrivateCryptoKey } =
       await kms.generateKeyPair();
@@ -167,7 +173,7 @@ describe('memberBundle', () => {
           expect(issueMemberCertificate).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            selfIssueCertificateResult,
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer))),
             expect.anything(),
             expect.anything(),
           );
@@ -204,23 +210,23 @@ describe('memberBundle', () => {
         expect(retrieveVeraDnssecChain).toHaveBeenCalledOnceWith(ORG_NAME);
       });
 
-      test('Member bundle serialisation should be called with member Certificate', async () => {
-        await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
-
-        expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
-          issueMemberCertificateResult,
-          expect.anything(),
-          expect.anything(),
-        );
-      });
-
       describe('Member bundle serialisation', () => {
+        test('Should be called with member Certificate', async () => {
+          await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+          expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(issueMemberCertificateResult).equals(Buffer.from(arrayBuffer))),
+            expect.anything(),
+            expect.anything(),
+          );
+        });
+
         test('should be called with self signed certificate', async () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
           expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
             expect.anything(),
-            selfIssueCertificateResult,
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer))),
             expect.anything(),
           );
         });
@@ -231,17 +237,111 @@ describe('memberBundle', () => {
           expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            retrieveVeraDnssecChainResult,
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(retrieveVeraDnssecChainResult).equals(Buffer.from(arrayBuffer))),
           );
         });
       });
 
-      test('Member bundle should be generated', async () => {
+      test('Member bundle should be output', async () => {
         const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
         requireSuccessfulResult(result);
-        expect(result.result).toBe(serialiseMemberIdBundleResult);
+        expect(result.result).toStrictEqual(serialiseMemberIdBundleResult);
+      });
+
+      test('Member bundle for member without name should be output', async () => {
+        const member = await memberModel.create({
+          orgName: ORG_NAME,
+          role: Role.REGULAR,
+        });
+        memberPublicKey = await memberPublicKeyModel.create({
+          memberId: member.id,
+          publicKey: memberPublicKeyBuffer,
+          serviceOid: TEST_SERVICE_OID,
+        });
+
+        const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+        requireSuccessfulResult(result);
+        expect(result.result).toStrictEqual(serialiseMemberIdBundleResult);
       });
     });
+
+    test("Invalid member public key should fail", async () => {
+      const result = await generateMemberBundle(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member public key not found', { publicKeyId:MEMBER_PUBLIC_KEY_MONGO_ID }),
+      );
+    })
+
+    test("Missing member should fail", async () => {
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        publicKey: memberPublicKeyBuffer,
+        serviceOid: TEST_SERVICE_OID,
+      });
+      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member not found', { memberId:MEMBER_MONGO_ID }),
+      );
+    })
+
+    test("Missing org should fail", async () => {
+      const member = await memberModel.create({
+        orgName: ORG_NAME,
+        name: MEMBER_NAME,
+        role: Role.REGULAR,
+      });
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: member._id,
+        publicKey: memberPublicKeyBuffer,
+        serviceOid: TEST_SERVICE_OID,
+      });
+      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org not found', { orgName:ORG_NAME }),
+      );
+    })
+
+    test("Retrieving dnssec chain error should return positive shouldRetry", async () => {
+      await orgModel.create({
+        name: ORG_NAME,
+        privateKeyRef: orgPrivateKeyRef,
+        publicKey: orgPublicKey,
+      });
+      const member = await memberModel.create({
+        orgName: ORG_NAME,
+        name: MEMBER_NAME,
+        role: Role.REGULAR,
+      });
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: member.id,
+        publicKey: memberPublicKeyBuffer,
+        serviceOid: TEST_SERVICE_OID,
+      });
+      const ERROR = new Error('Oh noes');
+      retrieveVeraDnssecChain.mockRejectedValueOnce(ERROR);
+
+      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+      requireFailureResult(result);
+      expect(result.reason.shouldRetry).toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('warn', 'Failed to retrieve dnssec chain', {
+          memberPublicKeyId: memberPublicKey._id.toString(),
+          err: expect.objectContaining({ message: ERROR.message })
+        }),
+      );
+
+    })
   });
 });

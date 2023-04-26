@@ -16,7 +16,7 @@ import { OrgModelSchema } from './models/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
 
-const CERTIFICATE_ISSIE_PERIOD = 90;
+const CERTIFICATE_EXPIRY_DAYS = 90;
 interface CreateBundleInput {
   orgPrivateKeyRefBuffer: Buffer;
   orgPublicKeyBuffer: Buffer;
@@ -47,7 +47,7 @@ async function generateBundle(
 
   const memberCryptoPublicKey = await derDeserialisePublicKey(memberPublicKey);
 
-  const expiryDate = addDays(new Date(), CERTIFICATE_ISSIE_PERIOD);
+  const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
   const orgCertificate = await selfIssueOrganisationCertificate(orgName, orgKeyPair, expiryDate);
 
   const memberCertificate = await issueMemberCertificate(
@@ -134,7 +134,7 @@ export async function generateMemberBundle(
   if (!org) {
     options.logger.info(
       {
-        orgId: member.orgName,
+        orgName: member.orgName,
       },
       'Org not found',
     );

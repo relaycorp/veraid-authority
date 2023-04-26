@@ -6,7 +6,6 @@ type ValidationResult<Schema extends JSONSchema> = FromSchema<Schema> | string;
 
 const ajv = addFormats(new Ajv());
 
-// need to add tests!
 export function validateMessage<Schema extends JSONSchema>(
   value: unknown,
   schema: Schema,

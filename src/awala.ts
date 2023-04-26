@@ -50,7 +50,8 @@ export async function postToAwala(
   const { recipientId } = (await pdaResponse.json()) as {
     recipientId: string;
   };
-  if (recipientId) {
+
+  if (!recipientId) {
     return {
       didSucceed: false,
       reason: 'Recipient id was missing from Awala PDA import response',
@@ -59,6 +60,7 @@ export async function postToAwala(
 
   await fetch(awalaMiddlewareUrl, {
     body: data,
+    method: 'POST',
 
     headers: {
       [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
