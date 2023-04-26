@@ -80,7 +80,7 @@ describe('memberBundleIssuance', () => {
       mockPostToAwala.mockResolvedValueOnce({
         didSucceed: true,
       });
-    })
+    });
 
     test('Execution start should be logged', async () => {
       await postEvent(triggerEvent, server);
@@ -143,8 +143,7 @@ describe('memberBundleIssuance', () => {
         }),
       );
     });
-
-  })
+  });
 
   test('Execution start should be logged', async () => {
     const memberBundle = new ArrayBuffer(1);
@@ -193,10 +192,9 @@ describe('memberBundleIssuance', () => {
           shouldRetry: true,
         },
       });
-    })
+    });
 
     test('Should not post to awala', async () => {
-
       await postEvent(triggerEvent, server);
 
       expect(mockPostToAwala).not.toHaveBeenCalled();
@@ -228,7 +226,7 @@ describe('memberBundleIssuance', () => {
           shouldRetry: false,
         },
       });
-    })
+    });
 
     test('Should retry false should not post to awala', async () => {
       await postEvent(triggerEvent, server);

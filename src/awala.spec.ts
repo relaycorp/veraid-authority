@@ -110,11 +110,12 @@ describe('awala', () => {
     const awalaRecipientHeaderName = 'X-Awala-Recipient';
     const awalaPostData = 'Test data';
 
-
-    describe("Success path", () => {
-      test('Should make authorization request to Awala', async () => {
+    describe('Success path', () => {
+      beforeEach(() => {
         mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: testRecipientId })));
+      });
 
+      test('Should make authorization request to Awala', async () => {
         const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
         expect(awalaResponse.didSucceed).toBeTrue();
@@ -125,9 +126,7 @@ describe('awala', () => {
         });
       });
 
-      test('Should send data request to Awala', async () => {
-        mockFetch.mockResolvedValue(new Response(JSON.stringify({ recipientId: testRecipientId })));
-
+      test('Should post data to Awala', async () => {
         const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
         expect(awalaResponse.didSucceed).toBeTrue();
@@ -142,7 +141,7 @@ describe('awala', () => {
           body: awalaPostData,
         });
       });
-    })
+    });
 
     test('Missing recipient id from Awala response should not post data', async () => {
       mockFetch.mockResolvedValue(new Response(JSON.stringify({})));
