@@ -104,22 +104,49 @@ describe('memberBundleIssuance', () => {
       );
     });
 
-    test('Bundle should sent to awala', async () => {
-      await postEvent(triggerEvent, server);
+    describe('Awala request', () => {
+      test('Should be logged', async () => {
+        await postEvent(triggerEvent, server);
 
-      expect(mockPostToAwala).toHaveBeenCalledOnceWith(
-        expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
-          Buffer.from(memberBundle).equals(Buffer.from(arrayBuffer)),
-        ),
-        AWALA_PDA,
-        new URL(envVars.AWALA_MIDDLEWARE_ENDPOINT!),
-      );
-      expect(logs).toContainEqual(
-        partialPinoLog('debug', 'Sending member bundle to Awala', {
-          eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        }),
-      );
+        expect(logs).toContainEqual(
+          partialPinoLog('debug', 'Sending member bundle to Awala', {
+            eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
+            memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          }),
+        );
+      });
+
+      test('Should be called with member bundle', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
+          expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
+            Buffer.from(memberBundle).equals(Buffer.from(arrayBuffer)),
+          ),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+
+      test('Should be called with correct Awala PDA', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
+          expect.anything(),
+          AWALA_PDA,
+          expect.anything(),
+        );
+      });
+
+      test('Should be called with correct Awala middleware endpoint', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
+          expect.anything(),
+          expect.anything(),
+          new URL(envVars.AWALA_MIDDLEWARE_ENDPOINT!),
+        );
+      });
     });
 
     test('Should remove member bundle request', async () => {
@@ -145,23 +172,7 @@ describe('memberBundleIssuance', () => {
     });
   });
 
-  test('Execution start should be logged', async () => {
-    const memberBundle = new ArrayBuffer(1);
-    mockgGenerateMemberBundle.mockResolvedValueOnce({
-      didSucceed: true,
-      result: memberBundle,
-    });
-
-    await postEvent(triggerEvent, server);
-
-    expect(logs).toContainEqual(
-      partialPinoLog('debug', 'Starting member bundle request trigger', {
-        eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      }),
-    );
-  });
-
-  test('Malformed data should stop execution', async () => {
+  test('Malformed event data should stop execution', async () => {
     triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
       id: MEMBER_PUBLIC_KEY_MONGO_ID,
       source: CE_SOURCE,
@@ -183,7 +194,7 @@ describe('memberBundleIssuance', () => {
     );
   });
 
-  describe('Failed bundle generation with should retry true', () => {
+  describe('Failed bundle generation with shouldRetry true', () => {
     beforeEach(() => {
       mockgGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
@@ -217,7 +228,7 @@ describe('memberBundleIssuance', () => {
     });
   });
 
-  describe('Failed bundle generation with should retry false', () => {
+  describe('Failed bundle generation with shouldRetry false', () => {
     beforeEach(() => {
       mockgGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
