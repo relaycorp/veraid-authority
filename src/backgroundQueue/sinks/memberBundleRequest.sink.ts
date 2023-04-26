@@ -15,31 +15,48 @@ export default async function memberBundleIssuance(
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 
-  const validatedMessage = validateMessage(event.data, MEMBER_BUNDLE_REQUEST_PAYLOAD);
-  if (typeof validatedMessage === 'string') {
+  const validatedData = validateMessage(event.data, MEMBER_BUNDLE_REQUEST_PAYLOAD);
+  if (typeof validatedData === 'string') {
+    options.logger.info(
+      { eventId: event.id, validationError: validatedData },
+      'Malformed event data',
+    );
     return;
   }
 
-  const memberBundle = await generateMemberBundle(validatedMessage.publicKeyId, options);
+  const memberBundle = await generateMemberBundle(validatedData.publicKeyId, options);
   if (!memberBundle.didSucceed && memberBundle.reason.shouldRetry) {
     return;
   }
 
   if (memberBundle.didSucceed) {
-    options.logger.debug({ eventId: event.id, memberPublicKeyId: validatedMessage.publicKeyId }, 'Sending member bundle to Awala');
-    await postToAwala(
+    options.logger.debug(
+      { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
+      'Sending member bundle to Awala',
+    );
+    const awalaResponse = await postToAwala(
       memberBundle.result,
-      validatedMessage.awalaPda,
+      validatedData.awalaPda,
       options.awalaMiddlewareEndpoint,
     );
+
+    if (!awalaResponse.didSucceed) {
+      options.logger.info(
+        { eventId: event.id, reason: awalaResponse.reason },
+        'Posting to awala failed',
+      );
+      return;
+    }
   }
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
   await memberBundleRequestModel.deleteMany({
-    publicKeyId: validatedMessage.publicKeyId
+    publicKeyId: validatedData.publicKeyId,
   });
-  options.logger.debug({ eventId: event.id, publicKeyId: validatedMessage.publicKeyId }, 'Removed Bundle Request');
-
+  options.logger.info(
+    { eventId: event.id, publicKeyId: validatedData.publicKeyId },
+    'Removed Bundle Request',
+  );
 }

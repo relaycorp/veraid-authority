@@ -1,7 +1,8 @@
-import { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema } from 'json-schema-to-ts';
+
 import { validateMessage } from './validateMessage.js';
 
-export const TEST_SCHEMA = {
+const TEST_SCHEMA = {
   type: 'object',
 
   properties: {
@@ -11,25 +12,32 @@ export const TEST_SCHEMA = {
   required: ['testField'],
 } as const;
 
-export type Test = FromSchema<typeof TEST_SCHEMA>;
+type Test = FromSchema<typeof TEST_SCHEMA>;
+
 describe('validateMessage', () => {
-  test('Valid data should return an object type', async () => {
-    const testData : Test = {
-      testField: 'test'
+  test('Valid data should return an object type', () => {
+    const testData: Test = {
+      testField: 'test',
     };
 
-    const result = validateMessage({
-      testField: "test"
-    }, TEST_SCHEMA);
+    const result = validateMessage(
+      {
+        testField: 'test',
+      },
+      TEST_SCHEMA,
+    );
 
-    expect(result).toStrictEqual(testData)
+    expect(result).toStrictEqual(testData);
   });
 
-  test('Invalid data should return an error', async () => {
-    const result = validateMessage({
-      testField: 1
-    }, TEST_SCHEMA);
+  test('Invalid data should return an error', () => {
+    const result = validateMessage(
+      {
+        testField: 1,
+      },
+      TEST_SCHEMA,
+    );
 
-    expect(result).toStrictEqual("data/testField must be string")
+    expect(result).toBe('data/testField must be string');
   });
 });

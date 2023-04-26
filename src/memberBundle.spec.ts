@@ -173,7 +173,9 @@ describe('memberBundle', () => {
           expect(issueMemberCertificate).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer))),
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
+              Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer)),
+            ),
             expect.anything(),
             expect.anything(),
           );
@@ -215,7 +217,9 @@ describe('memberBundle', () => {
           await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
           expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
-            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(issueMemberCertificateResult).equals(Buffer.from(arrayBuffer))),
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
+              Buffer.from(issueMemberCertificateResult).equals(Buffer.from(arrayBuffer)),
+            ),
             expect.anything(),
             expect.anything(),
           );
@@ -226,7 +230,9 @@ describe('memberBundle', () => {
 
           expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
             expect.anything(),
-            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer))),
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
+              Buffer.from(selfIssueCertificateResult).equals(Buffer.from(arrayBuffer)),
+            ),
             expect.anything(),
           );
         });
@@ -237,7 +243,9 @@ describe('memberBundle', () => {
           expect(serialiseMemberIdBundle).toHaveBeenCalledOnceWith(
             expect.anything(),
             expect.anything(),
-            expect.toSatisfy<ArrayBuffer>((arrayBuffer) => Buffer.from(retrieveVeraDnssecChainResult).equals(Buffer.from(arrayBuffer))),
+            expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
+              Buffer.from(retrieveVeraDnssecChainResult).equals(Buffer.from(arrayBuffer)),
+            ),
           );
         });
       });
@@ -267,17 +275,19 @@ describe('memberBundle', () => {
       });
     });
 
-    test("Invalid member public key should fail", async () => {
+    test('Invalid member public key should fail', async () => {
       const result = await generateMemberBundle(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
       expect(result.reason.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member public key not found', { publicKeyId:MEMBER_PUBLIC_KEY_MONGO_ID }),
+        partialPinoLog('info', 'Member public key not found', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        }),
       );
-    })
+    });
 
-    test("Missing member should fail", async () => {
+    test('Missing member should fail', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
         memberId: MEMBER_MONGO_ID,
         publicKey: memberPublicKeyBuffer,
@@ -288,11 +298,11 @@ describe('memberBundle', () => {
       requireFailureResult(result);
       expect(result.reason.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member not found', { memberId:MEMBER_MONGO_ID }),
+        partialPinoLog('info', 'Member not found', { memberId: MEMBER_MONGO_ID }),
       );
-    })
+    });
 
-    test("Missing org should fail", async () => {
+    test('Missing org should fail', async () => {
       const member = await memberModel.create({
         orgName: ORG_NAME,
         name: MEMBER_NAME,
@@ -308,11 +318,11 @@ describe('memberBundle', () => {
       requireFailureResult(result);
       expect(result.reason.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Org not found', { orgName:ORG_NAME }),
+        partialPinoLog('info', 'Org not found', { orgName: ORG_NAME }),
       );
-    })
+    });
 
-    test("Retrieving dnssec chain error should return positive shouldRetry", async () => {
+    test('Retrieving dnssec chain error should return positive shouldRetry', async () => {
       await orgModel.create({
         name: ORG_NAME,
         privateKeyRef: orgPrivateKeyRef,
@@ -328,8 +338,8 @@ describe('memberBundle', () => {
         publicKey: memberPublicKeyBuffer,
         serviceOid: TEST_SERVICE_OID,
       });
-      const ERROR = new Error('Oh noes');
-      retrieveVeraDnssecChain.mockRejectedValueOnce(ERROR);
+      const error = new Error('Oh noes');
+      retrieveVeraDnssecChain.mockRejectedValueOnce(error);
 
       const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
@@ -338,10 +348,9 @@ describe('memberBundle', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('warn', 'Failed to retrieve dnssec chain', {
           memberPublicKeyId: memberPublicKey._id.toString(),
-          err: expect.objectContaining({ message: ERROR.message })
+          err: expect.objectContaining({ message: error.message }),
         }),
       );
-
-    })
+    });
   });
 });

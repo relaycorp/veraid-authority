@@ -6,13 +6,11 @@ import type { ServerMaker } from '../utilities/fastify/ServerMaker.js';
 import { makeMockLogging, type MockLogSet } from './logging.js';
 import { configureMockEnvVars, type EnvVarSet, type EnvVarMocker } from './envVars.js';
 import { setUpTestDbConnection } from './db.js';
-import { BaseLogger } from 'pino';
 
 export interface TestServerFixture {
   readonly server: FastifyInstance;
   readonly dbConnection: Connection;
   readonly logs: MockLogSet;
-  readonly logger: BaseLogger;
   readonly envVarMocker: EnvVarMocker;
   readonly envVars: EnvVarSet;
 }
@@ -34,5 +32,11 @@ export function makeTestServer(
     await server.close();
   });
 
-  return () => ({ server, dbConnection: getConnection(), logs: mockLogging.logs, logger: mockLogging.logger, envVarMocker, envVars });
+  return () => ({
+    server,
+    dbConnection: getConnection(),
+    logs: mockLogging.logs,
+    envVarMocker,
+    envVars,
+  });
 }
