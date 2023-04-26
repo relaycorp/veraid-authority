@@ -32,9 +32,13 @@ jobs:
       - name: Create cluster
         uses: medyagh/setup-minikube@v0.0.13
         with:
-          minikube-version: '1.28.0'
+          minikube-version: '1.30.1'
           kubernetes-version: 'v1.25.3'
         timeout-minutes: 5
+      - name: Start Minikube proxy
+        run: |-
+          minikube tunnel -p knative >>/tmp/minikube-tunnel.logs 2>&1 &
+        timeout-minutes: 1
       - name: Setup Knative
         run: |-
           set -o nounset
@@ -64,9 +68,6 @@ jobs:
             --namespace kourier-system \
             --type json \
             -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources"}]'
-
-          minikube tunnel --profile knative >>/dev/null 2>&1 &
-
         env:
           KN_VERSION: 1.9.0
           KUBERNETES_VERSION: 1.25.3
@@ -124,6 +125,9 @@ jobs:
 
           print_header "App logs"
           kubectl logs --prefix --all-containers=true -l "app.kubernetes.io/name=${KUBERNETES_APP_NAME}"
+
+          print_header "Minikube tunnel logs"
+          cat /tmp/minikube-tunnel.logs
         env:
           KUBERNETES_APP_NAME: veraid-authority
         timeout-minutes: 2
