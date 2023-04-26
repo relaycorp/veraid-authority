@@ -22,8 +22,10 @@ import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { mockEmitter } from './testUtils/eventing/mockEmitter.js';
-import type { MemberBundleRequestPayload } from './events/bundleRequest.event.js';
-import { MEMBER_KEY_IMPORT_TYPE } from './events/memberPublicKeyImport.event.js';
+import {
+  type MemberBundleRequestPayload,
+  BUNDLE_REQUEST_TYPE,
+} from './events/bundleRequest.event.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -171,7 +173,7 @@ describe('member key import token', () => {
         expect.objectContaining<Partial<CloudEventV1<MemberBundleRequestPayload>>>({
           id: MEMBER_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
-          type: MEMBER_KEY_IMPORT_TYPE,
+          type: BUNDLE_REQUEST_TYPE,
 
           data: {
             publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
