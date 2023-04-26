@@ -31,5 +31,10 @@ export function makeTestServer(
     await server.close();
   });
 
-  return () => ({ server, dbConnection: getConnection(), logs: mockLogging.logs, envVarMocker });
+  return () => ({
+    server,
+    dbConnection: getConnection(),
+    logs: mockLogging.logs,
+    envVarMocker,
+  });
 }

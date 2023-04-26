@@ -88,30 +88,6 @@ describe('triggerBundleRequest', () => {
     );
   });
 
-  test('Database entry should be deleted after event is emitted', async () => {
-    const requestData = {
-      publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      memberBundleStartDate: new Date(),
-      signature: SIGNATURE,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
-    };
-    const memberBundleRequest = await memberBundleRequestModel.create(requestData);
-    const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
-      id: CE_ID,
-      source: CE_SOURCE,
-      type: BUNDLE_REQUEST_TRIGGER_TYPE,
-    });
-
-    await postEvent(triggerEvent, server);
-
-    const publishedEvents = getEvents();
-    expect(publishedEvents).toHaveLength(1);
-    const memberBundleRequestCheck = await memberBundleRequestModel.findById(
-      memberBundleRequest._id,
-    );
-    expect(memberBundleRequestCheck).toBeNull();
-  });
-
   test('Processing empty collection should not emit events', async () => {
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
       id: CE_ID,

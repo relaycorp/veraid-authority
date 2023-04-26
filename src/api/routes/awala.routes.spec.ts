@@ -198,7 +198,7 @@ describe('awala routes', () => {
       });
     });
 
-    test('Malformed awala PDA should be refused', async () => {
+    test('Malformed Awala PDA should be refused', async () => {
       const methodPayload = {
         ...validPayload,
         awalaPda: 'INVALID_BASE_64',
