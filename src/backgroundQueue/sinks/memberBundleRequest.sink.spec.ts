@@ -188,7 +188,7 @@ describe('memberBundleIssuance', () => {
 
     expect(mockGenerateMemberBundle).not.toHaveBeenCalled();
     expect(logs).toContainEqual(
-      partialPinoLog('info', 'Malformed event data', {
+      partialPinoLog('info', 'Refusing malformed member bundle request event', {
         eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
         validationError: expect.stringContaining('awalaPda'),
       }),
