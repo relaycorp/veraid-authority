@@ -7,7 +7,10 @@ import { setUpTestQueueServer } from '../testUtils/queueServer.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
-import { configureMockEnvVars, REQUIRED_ENV_VARS } from '../testUtils/envVars.js';
+import {
+  EnvVarMocker,
+  REQUIRED_ENV_VARS,
+} from '../testUtils/envVars.js';
 import { mockSpy } from '../testUtils/jest.js';
 
 import { QueueProblemType } from './QueueProblemType.js';
@@ -16,8 +19,9 @@ import { makeQueueServerPlugin } from './server.js';
 describe('makeQueueServer', () => {
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyInstance;
+  let envVarMocker: EnvVarMocker
   beforeEach(() => {
-    ({ server } = getTestServerFixture());
+    ({ server, envVarMocker } = getTestServerFixture());
   });
 
   describe('GET', () => {
@@ -58,7 +62,7 @@ describe('makeQueueServer', () => {
     });
 
     describe('makeQueueServerPlugin', () => {
-      const setEnvVars = configureMockEnvVars(REQUIRED_ENV_VARS);
+      // const setEnvVars = configureMockEnvVars(REQUIRED_ENV_VARS);
       const mockFastify: FastifyInstance = {
         addContentTypeParser: jest.fn(),
         getDefaultJsonParser: jest.fn(),
@@ -74,7 +78,7 @@ describe('makeQueueServer', () => {
       });
 
       test('Missing Awala middleware endpoint in env should throw error', () => {
-        setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
+        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);
@@ -82,7 +86,7 @@ describe('makeQueueServer', () => {
       });
 
       test('Malformed Awala middleware endpoint in env should throw error', () => {
-        setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: 'INVALID_URL' });
+        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: 'INVALID_URL' });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);
@@ -90,7 +94,7 @@ describe('makeQueueServer', () => {
       });
 
       test('Awala middleware error should not call done', () => {
-        setEnvVars({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
+        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);

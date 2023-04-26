@@ -4,7 +4,7 @@ import type { Connection } from 'mongoose';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { CE_SOURCE } from '../../testUtils/eventing/stubs.js';
+import { AWALA_MIDDLEWARE_ENDPOINT, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import {
   BUNDLE_REQUEST_TYPE,
@@ -17,7 +17,6 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
-import { REQUIRED_ENV_VARS } from '../../testUtils/envVars.js';
 
 const mockPostToAwala = mockSpy(jest.fn<() => Promise<Result<undefined, string>>>());
 jest.unstable_mockModule('../../awala.js', () => ({
@@ -146,7 +145,7 @@ describe('memberBundleIssuance', () => {
         expect(mockPostToAwala).toHaveBeenCalledOnceWith(
           expect.anything(),
           expect.anything(),
-          new URL(REQUIRED_ENV_VARS.AWALA_MIDDLEWARE_ENDPOINT),
+          new URL(AWALA_MIDDLEWARE_ENDPOINT),
         );
       });
     });

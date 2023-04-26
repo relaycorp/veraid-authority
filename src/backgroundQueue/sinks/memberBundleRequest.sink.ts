@@ -19,7 +19,7 @@ export default async function memberBundleIssuance(
   if (typeof validatedData === 'string') {
     options.logger.info(
       { eventId: event.id, validationError: validatedData },
-      'Malformed event data',
+      'Refusing malformed member bundle request event',
     );
     return;
   }
