@@ -30,11 +30,10 @@ jobs:
 
       # Functional tests
       - name: Create cluster
-        uses: manusa/actions-setup-minikube@v2.7.2
+        uses: medyagh/setup-minikube@v0.0.13
         with:
-          minikube version: 'v1.28.0'
-          kubernetes version: 'v1.25.3'
-          github token: ${{ secrets.GITHUB_TOKEN }}
+          minikube-version: '1.28.0'
+          kubernetes-version: 'v1.25.3'
         timeout-minutes: 2
       - name: Setup Knative
         run: |-
@@ -65,6 +64,8 @@ jobs:
             --namespace kourier-system \
             --type json \
             -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources"}]'
+
+          minikube tunnel --profile knative >>/dev/null 2>&1 &
 
         env:
           KN_VERSION: 1.9.0
