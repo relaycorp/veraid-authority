@@ -58,6 +58,24 @@ describe('awala routes', () => {
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
   });
 
+  test('Content type application/json should resolve to unsupported media type error', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/awala',
+      payload: {
+        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        memberBundleStartDate: '2023-04-13T20:05:38.285Z',
+        awalaPda: AWALA_PDA,
+        signature: SIGNATURE,
+      },
+      headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'content-type': 'application/json',
+      },
+    });
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
+  });
+
   describe('Member bundle request', () => {
     const validPayload = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,

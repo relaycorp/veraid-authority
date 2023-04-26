@@ -106,6 +106,13 @@ export default function registerRoutes(
     fastify.getDefaultJsonParser('ignore', 'ignore'),
   );
 
+  fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function (_req, _body, done) {
+      done({
+        statusCode: HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE
+      }, undefined)
+  }
+  })
+
   fastify.route({
     method: ['POST'],
     url: '/awala',
@@ -114,6 +121,11 @@ export default function registerRoutes(
       const contentType = awalaRequestMessageTypeList.find(
         (messageType) => messageType === request.headers['content-type'],
       );
+
+      if(!contentType){
+        await reply.code(HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE).send();
+        return;
+      }
 
       const serviceOptions = {
         logger: this.log,
