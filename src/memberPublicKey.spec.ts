@@ -181,6 +181,7 @@ describe('member public key', () => {
         signature: Buffer.from(SIGNATURE, 'base64'),
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         publicKeyId: memberPublicKey._id,
+        memberId: MEMBER_MONGO_ID,
       });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
@@ -197,6 +198,7 @@ describe('member public key', () => {
         signature: Buffer.from(SIGNATURE, 'base64'),
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         publicKeyId: PUBLIC_KEY_ID,
+        memberId: MEMBER_MONGO_ID,
       });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
