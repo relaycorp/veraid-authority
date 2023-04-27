@@ -1,3 +1,6 @@
+/**
+ * The id for the existing private key in the mock AWS KMS server.
+ */
 const KMS_KEY_ID = '800d5768-3fd7-4edd-a4b8-4c81c3e4c147';
 
 const ORG_PUBLIC_KEY_PEM = `

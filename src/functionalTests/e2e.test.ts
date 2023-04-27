@@ -20,6 +20,11 @@ import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage, STUB_AWALA_PDA } from './utils/awala.js';
+import {
+  getMockAwalaMiddlewareRequests,
+  mockAwalaMiddleware,
+} from './utils/mockAwalaMiddleware.js';
+import { sleep } from './utils/time.js';
 
 const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
 
@@ -87,6 +92,8 @@ describe('E2E', () => {
     });
     const { token: publicKeyImportToken } = await CLIENT.send(keyImportCommand);
 
+    await mockAwalaMiddleware();
+
     const memberKeyPair = await generateKeyPair();
     const publicKeyDer = await derSerialisePublicKey(memberKeyPair.publicKey);
     const importMessage: MemberKeyImportRequest = {
@@ -96,5 +103,10 @@ describe('E2E', () => {
     };
     const response = await postAwalaMessage(KEY_IMPORT_CONTENT_TYPE, JSON.stringify(importMessage));
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-  });
+
+    await sleep(1000);
+
+    const awalaMiddlewareRequests = await getMockAwalaMiddlewareRequests();
+    expect(awalaMiddlewareRequests).toHaveLength(2);
+  }, 10_000);
 });

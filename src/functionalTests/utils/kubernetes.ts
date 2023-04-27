@@ -29,23 +29,24 @@ export async function connectToClusterService(
     });
 
     kubectlPortForward.once('error', (error) => {
-      reject(new Error(`Failed to spawn 'kubectl port-forward':${error.message}\n${stderr}`));
+      reject(new Error(`Failed to start port-forward ${serviceName}: ${error.message}\n${stderr}`));
     });
 
     kubectlPortForward.once('close', (exitCode) => {
       if (exitCode !== null && 0 < exitCode) {
-        reject(new Error(`'kubectl port-forward' exited with code ${exitCode}:\n${stderr}`));
+        reject(
+          new Error(`Port forwarder for ${serviceName} exited with code ${exitCode}:\n${stderr}`),
+        );
       } else {
         resolve();
       }
     });
 
     kubectlPortForward.once('spawn', () => {
+      // eslint-disable-next-line promise/catch-or-return
       command(localPort)
         // eslint-disable-next-line promise/prefer-await-to-then
-        .then(resolve)
-        // eslint-disable-next-line promise/prefer-await-to-then
-        .catch(reject)
+        .then(resolve, reject)
         // eslint-disable-next-line promise/prefer-await-to-then
         .finally(() => {
           abortController.abort();

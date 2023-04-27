@@ -4,4 +4,5 @@ module.exports = {
   ...mainJestConfig,
   roots: [__dirname],
   testPathIgnorePatterns: [],
+  preset: null,
 };
