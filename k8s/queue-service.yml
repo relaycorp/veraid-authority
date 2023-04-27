@@ -32,7 +32,7 @@ spec:
             - name: MONGODB_URI
               value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb
             - name: AWALA_MIDDLEWARE_ENDPOINT
-              value: https://awala-endpoint.example.com
+              value: http://mock-awala-middleware.default
 
             # Mock AWS KMS (used by WebCrypto KMS)
             - name: KMS_ADAPTER
