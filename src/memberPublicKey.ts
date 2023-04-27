@@ -64,7 +64,7 @@ export async function deleteMemberPublicKey(
     existingConnection: options.dbConnection,
   });
 
-  // Member bundle request should be deleted before the member public key
+  // Defer the key deletion until the end to make retries possible, in case we fail to delete dependant records.
   await memberBundleRequestModel.deleteOne({
     publicKeyId,
   });
