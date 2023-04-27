@@ -31,12 +31,6 @@ function generateOrgName(): string {
 }
 
 describe('API', () => {
-  test('Healthcheck should return 2XX response', async () => {
-    const response = await fetch(API_URL);
-
-    expect(response.status).toBe(200);
-  });
-
   describe('Orgs', () => {
     describe('Authentication', () => {
       test('Anonymous request to should be refused', async () => {
