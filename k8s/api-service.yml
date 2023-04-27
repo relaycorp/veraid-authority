@@ -58,7 +58,7 @@ spec:
                   name: credentials
                   key: aws_kms_secret_access_key
             - name: AWS_KMS_ENDPOINT
-              value: http://mock-aws-kms:8080
+              value: http://mock-aws-kms.default
             - name: AWS_KMS_REGION
               value: eu-west-2
 ---

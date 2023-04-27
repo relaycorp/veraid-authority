@@ -5,7 +5,6 @@ const execFileAsync = promisify(execFile);
 
 /**
  * Get the local URL to a Knative service.
- *
  * @throws {Error} if the service is not found or `kn` is not installed.
  */
 export async function getServiceUrl(serviceName: string): Promise<string> {

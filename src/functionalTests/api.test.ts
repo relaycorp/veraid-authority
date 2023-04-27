@@ -14,17 +14,7 @@ import { MEMBER_EMAIL, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 
-import { authenticate } from './utils/authentication.js';
-import { getServiceUrl } from './utils/knative.js';
-
-const SUPER_ADMIN_EMAIL = 'admin@veraid.example';
-
-const API_URL = await getServiceUrl('veraid-authority');
-
-async function makeClient(userEmail: string): Promise<AuthorityClient> {
-  const authHeader = await authenticate(userEmail);
-  return new AuthorityClient(API_URL, authHeader);
-}
+import { API_URL, makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 
 function generateOrgName(): string {
   return `${randomUUID()}.example`;
