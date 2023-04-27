@@ -6,7 +6,8 @@ import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PDA,
   MEMBER_MONGO_ID,
-  MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID, SIGNATURE,
+  MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
+  SIGNATURE,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
@@ -137,18 +138,19 @@ describe('member public key', () => {
 
   describe('deleteMemberPublicKey', () => {
     let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    const memberPublicKeyData = {
+      memberId: MEMBER_MONGO_ID,
+      publicKey: publicKeyBuffer,
+      serviceOid: TEST_SERVICE_OID,
+    };
     beforeEach(() => {
       memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
         existingConnection: connection,
       });
-    })
+    });
 
     test('Existing id should remove member public key', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
 
@@ -163,25 +165,7 @@ describe('member public key', () => {
     });
 
     test('Non existing id should not remove any member public key', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
-
-      const result = await deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions);
-
-      requireSuccessfulResult(result);
-      const dbResult = await memberPublicKeyModel.findById(memberPublicKey.id);
-      expect(dbResult).not.toBeNull();
-    });
-
-    test('Non existing id should not remove any member public key', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
 
       const result = await deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions);
 
@@ -191,43 +175,35 @@ describe('member public key', () => {
     });
 
     test('Related bundle request should be removed', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
       const memberBundleRequest = await memberBundleRequestModel.create({
-          memberBundleStartDate: new Date(),
-          signature: new Buffer(SIGNATURE),
-          awalaPda: new Buffer(AWALA_PDA),
-          publicKeyId: memberPublicKey._id
-      })
+        memberBundleStartDate: new Date(),
+        signature: Buffer.from(SIGNATURE, 'base64'),
+        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        publicKeyId: memberPublicKey._id,
+      });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberBundleRequestModel.findById(memberBundleRequest._id);
-      expect(dbResult).toBeNull()
+      expect(dbResult).toBeNull();
     });
 
     test('Unrelated bundle request should not be removed', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
       const memberBundleRequest = await memberBundleRequestModel.create({
-          memberBundleStartDate: new Date(),
-          signature: new Buffer(SIGNATURE),
-          awalaPda: new Buffer(AWALA_PDA),
-          publicKeyId: PUBLIC_KEY_ID
-      })
+        memberBundleStartDate: new Date(),
+        signature: Buffer.from(SIGNATURE, 'base64'),
+        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        publicKeyId: PUBLIC_KEY_ID,
+      });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberBundleRequestModel.findById(memberBundleRequest._id);
-      expect(dbResult).not.toBeNull()
+      expect(dbResult).not.toBeNull();
     });
   });
 });

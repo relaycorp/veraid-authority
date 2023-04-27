@@ -66,8 +66,8 @@ export async function deleteMemberPublicKey(
 
   // Member bundle request should be deleted before the member public key
   await memberBundleRequestModel.deleteOne({
-    publicKeyId: publicKeyId
-  })
+    publicKeyId,
+  });
   await memberPublicKey.findByIdAndDelete(publicKeyId);
 
   options.logger.info({ id: publicKeyId }, 'Member public key deleted');
