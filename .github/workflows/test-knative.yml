@@ -16,10 +16,6 @@ jobs:
           minikube-version: '1.28.0'
           kubernetes-version: 'v1.25.3'
         timeout-minutes: 5
-      - name: Start Minikube proxy
-        run: |-
-          minikube tunnel -p knative >>/tmp/minikube-tunnel.logs 2>&1 &
-        timeout-minutes: 1
       - name: Setup Knative
         run: |-
           set -o nounset
@@ -39,7 +35,6 @@ jobs:
           chmod +x /usr/local/bin/kn-quickstart
 
           kn quickstart minikube \
-            --name=default \
             --kubernetes-version=${KUBERNETES_VERSION} \
             --install-serving \
             --install-eventing
@@ -53,6 +48,10 @@ jobs:
           KN_VERSION: 1.9.0
           KUBERNETES_VERSION: 1.25.3
         timeout-minutes: 3
+      - name: Start Minikube tunnel
+        run: |-
+          minikube tunnel -p knative >>/tmp/minikube-tunnel.logs 2>&1 &
+        timeout-minutes: 1
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -81,6 +80,7 @@ jobs:
           print_header() {
             local title="$1"
 
+            echo
             printf '#%.0s' {1..50}
             echo " ${title}"
           }
@@ -92,6 +92,9 @@ jobs:
 
           print_header "Docker networks"
           docker network ls
+
+          print_header "Minikube profiles"
+          minikube profile list
 
           print_header "Images"
           docker images
