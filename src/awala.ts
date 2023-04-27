@@ -4,6 +4,7 @@ import type { Result, SuccessfulResult } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
 
 const contentTypeHeaderName = 'content-type';
 const awalaRecipientHeaderName = 'X-Awala-Recipient';
@@ -15,6 +16,19 @@ export async function createMemberBundleRequest(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
+  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const publicKey = memberPublicKeyModel.findById(requestData.publicKeyId);
+
+  if(!publicKey){
+    options.logger.info({ publicKeyId: requestData.publicKeyId }, 'Member public key not found');
+    return {
+      didSucceed: true,
+    };
+  }
+
+
   await memberBundleRequestModel.updateOne(
     {
       publicKeyId: requestData.publicKeyId,
