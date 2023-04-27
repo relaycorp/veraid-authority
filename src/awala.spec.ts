@@ -122,7 +122,7 @@ describe('createMemberBundleRequest', () => {
     expect(countResult).toBe(1);
   });
 
-  test('Invalid public key id should be refused', async () => {
+  test('Non existing public key id should be refused', async () => {
     const result = await createMemberBundleRequest(
       {
         ...methodInput,
@@ -132,18 +132,7 @@ describe('createMemberBundleRequest', () => {
     );
 
     expect(result.didSucceed).not.toBeTrue();
-  });
-
-  test('Invalid public key Id should not create member bundle request', async () => {
-    await createMemberBundleRequest(
-      {
-        ...methodInput,
-        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      },
-      serviceOptions,
-    );
-
-    const dbResult = await memberBundleRequestModel.findOne({
+    const dbResult = await memberBundleRequestModel.exists({
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
     });
     expect(dbResult).toBeNull();
