@@ -22,6 +22,10 @@ The API server additionally uses the following variables:
 - Authorisation-related variables:
   - `AUTHORITY_SUPERADMIN` (optional): The JWT _subject id_ of the super admin, which in this app we require it to be an email address. When unset, routes that require super admin role (e.g., `POST /orgs`) won't work by design. This is desirable in cases where an instance of this server will only ever support a handful of domain names (they could set the `AUTHORITY_SUPERADMIN`  to create the orgs, and then unset the super admin var).
 
+The background queue server additionally uses the following variables:
+
+- `AWALA_MIDDLEWARE_ENDPOINT` (required). The URL to the Awala endpoint middleware.
+
 ## Development
 
 This app requires the following system dependencies:
