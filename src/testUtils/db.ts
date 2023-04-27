@@ -2,7 +2,7 @@
 
 import { randomUUID } from 'node:crypto';
 
-import { createConnection, type Connection, type ConnectOptions, ConnectionStates } from 'mongoose';
+import { createConnection, type Connection, type ConnectOptions, STATES } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
 import { OrgModelSchema } from '../models/Org.model.js';
@@ -34,13 +34,13 @@ export function setUpTestDbConnection(): () => Connection {
   });
 
   beforeEach(async () => {
-    if (connection.readyState === ConnectionStates.disconnected) {
+    if (connection.readyState === STATES.disconnected) {
       connection = await connect();
     }
   });
 
   afterEach(async () => {
-    if (connection.readyState === ConnectionStates.disconnected) {
+    if (connection.readyState === STATES.disconnected) {
       // The test closed the connection, so we shouldn't just reconnect, but also purge TypeGoose'
       // model cache because every item there is bound to the old connection.
       MODEL_SCHEMAS.forEach(deleteModelWithClass);
