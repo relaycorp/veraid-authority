@@ -8,6 +8,7 @@ import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
 import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 
 export async function createMemberPublicKey(
   memberId: string,
@@ -56,10 +57,17 @@ export async function deleteMemberPublicKey(
   publicKeyId: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberPublicKeyProblemType>> {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    existingConnection: options.dbConnection,
+  });
   const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
     existingConnection: options.dbConnection,
   });
 
+  // Member bundle request should be deleted before the member public key
+  await memberBundleRequestModel.deleteOne({
+    publicKeyId: publicKeyId
+  })
   await memberPublicKey.findByIdAndDelete(publicKeyId);
 
   options.logger.info({ id: publicKeyId }, 'Member public key deleted');
