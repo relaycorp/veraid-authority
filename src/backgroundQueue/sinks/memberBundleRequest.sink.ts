@@ -58,7 +58,7 @@ export default async function memberBundleIssuance(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  await memberBundleRequestModel.deleteMany({
+  await memberBundleRequestModel.deleteOne({
     publicKeyId: validatedData.publicKeyId,
   });
   options.logger.info(
