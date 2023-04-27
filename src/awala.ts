@@ -1,6 +1,6 @@
 import { getModelForClass } from '@typegoose/typegoose';
 
-import type { Result, SuccessfulResult } from './utilities/result.js';
+import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
@@ -12,22 +12,21 @@ const awalaRecipientHeaderName = 'X-Awala-Recipient';
 export async function createMemberBundleRequest(
   requestData: MemberBundleRequest,
   options: ServiceOptions,
-): Promise<SuccessfulResult<undefined>> {
+): Promise<Result<undefined, undefined>> {
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const publicKey = memberPublicKeyModel.findById(requestData.publicKeyId);
+  const publicKey = await memberPublicKeyModel.findById(requestData.publicKeyId);
 
-  if(!publicKey){
+  if (!publicKey) {
     options.logger.info({ publicKeyId: requestData.publicKeyId }, 'Member public key not found');
     return {
-      didSucceed: true,
+      didSucceed: false,
     };
   }
-
 
   await memberBundleRequestModel.updateOne(
     {
@@ -38,6 +37,7 @@ export async function createMemberBundleRequest(
       memberBundleStartDate: new Date(requestData.memberBundleStartDate),
       signature: Buffer.from(requestData.signature, 'base64'),
       awalaPda: Buffer.from(requestData.awalaPda, 'base64'),
+      memberId: publicKey.memberId,
     },
     {
       upsert: true,

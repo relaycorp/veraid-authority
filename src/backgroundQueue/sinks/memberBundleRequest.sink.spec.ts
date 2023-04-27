@@ -10,7 +10,12 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
-import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from '../../testUtils/stubs.js';
+import {
+  AWALA_PDA,
+  MEMBER_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
+  SIGNATURE,
+} from '../../testUtils/stubs.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
@@ -156,6 +161,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -218,6 +224,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -252,6 +259,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -275,6 +283,7 @@ describe('memberBundleIssuance', () => {
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
       signature: Buffer.from(SIGNATURE, 'base64'),
       memberBundleStartDate: new Date(),
+      memberId: MEMBER_MONGO_ID,
     });
     const memberBundle = stringToArrayBuffer('memberBundle');
     mockGenerateMemberBundle.mockResolvedValueOnce({
