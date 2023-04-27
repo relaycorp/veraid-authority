@@ -18,8 +18,6 @@ export async function authenticate(clientId: string): Promise<AuthorizationHeade
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     client_secret: 's3cr3t',
   };
-  // eslint-disable-next-line no-console
-  console.log(`Connecting to ${AUTH_ENDPOINT_URL}`);
   const response = await fetch(AUTH_ENDPOINT_URL, {
     method: 'POST',
     headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
