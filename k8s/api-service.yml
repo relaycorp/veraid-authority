@@ -50,15 +50,18 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 configMapKeyRef:
-                  name: credentials
-                  key: aws_kms_access_key_id
+                  name: mock-aws-kms
+                  key: access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: credentials
                   key: aws_kms_secret_access_key
             - name: AWS_KMS_ENDPOINT
-              value: http://mock-aws-kms.default
+              valueFrom:
+                configMapKeyRef:
+                  name: mock-aws-kms
+                  key: endpoint
             - name: AWS_KMS_REGION
               value: eu-west-2
 ---
