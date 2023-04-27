@@ -1,25 +1,39 @@
 import { jest } from '@jest/globals';
 import type { FastifyInstance } from 'fastify';
 
-import { errorAppPlugin } from '../../testUtils/errorRoutesApp.js';
-import { HTTP_STATUS_CODES } from '../http.js';
-import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import fastifyRoutes from '@fastify/routes';
+import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
+import { HTTP_STATUS_CODES } from '../../http.js';
+import { configureMockEnvVars } from '../../../testUtils/envVars.js';
 
-const { makeFastify } = await import('./server.js');
+import { fastify } from 'fastify';
+import setErrorHandler from './setErrorHandler.js';
 
-afterAll(() => {
-  jest.restoreAllMocks();
-});
-
-describe('makeFastify - Error handling', () => {
+describe('set Error Handler', () => {
   const mockLogging = makeMockLogging();
+  configureMockEnvVars();
   let serverInstance: FastifyInstance;
   beforeEach(async () => {
-    serverInstance = await makeFastify(errorAppPlugin, mockLogging.logger);
-  });
+    serverInstance = fastify({
+      logger: mockLogging.logger,
+    });
+    await serverInstance.register(fastifyRoutes);
+    setErrorHandler(serverInstance);
+  })
 
   test('Thrown error should be handled gracefully and logged', async () => {
+    serverInstance.route({
+      method: ['POST'],
+      url: '/5xx',
+
+      handler(): void {
+        throw new Error('ERROR_MESSAGE');
+      },
+    });
+    serverInstance.ready();
+
     const response = await serverInstance.inject({ method: 'POST', url: '/5xx' });
+
     expect(response.headers['content-type']).toStartWith('text/plain');
     expect(response.body).toBe('Internal server error');
     expect(mockLogging.logs).toContainEqual(
@@ -34,6 +48,25 @@ describe('makeFastify - Error handling', () => {
   });
 
   test('Client error should be logged', async () => {
+    serverInstance.route({
+      method: ['POST'],
+      url: '/4xx',
+
+      schema: {
+        body: {
+          type: 'object',
+
+          properties: {
+            test: { type: 'string' },
+          },
+
+          required: ['test'],
+        } as const,
+      },
+
+      handler: jest.fn(),
+    });
+
     const response = await serverInstance.inject({
       method: 'POST',
       url: '/4xx',

@@ -11,10 +11,10 @@ import type { BaseLogger } from 'pino';
 
 import { makeLogger } from '../logging.js';
 import { configureExitHandling } from '../exitHandling.js';
-import { HTTP_STATUS_CODES } from '../http.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
+import setErrorHandler from './handler/setErrorHandler.js';
 
 const SERVER_PORT = 8080;
 const SERVER_HOST = '0.0.0.0';
@@ -52,21 +52,9 @@ export async function makeFastify(
 
   await server.register(fastifyMongoose);
 
-  const internalServerError = 'Internal server error';
-  server.setErrorHandler(async (error, _request, reply) => {
-    if (
-      error.statusCode !== undefined &&
-      error.statusCode < HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR
-    ) {
-      logger.info(error, 'Client error');
-      await reply.send(error);
-      return;
-    }
 
-    logger.error(error, internalServerError);
-    await reply.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).send(internalServerError);
-  });
 
+  setErrorHandler(server);
   await server.register(fastifyRoutes);
   await server.register(notFoundHandler);
 

@@ -146,3 +146,34 @@ describe('runFastify', () => {
     await expect(runFastify(mockFastify)).rejects.toStrictEqual(error);
   });
 });
+describe('set error handler', () => {
+  test('Server returned by makeFastify() should be used', async () => {
+    await runFastify(mockFastify);
+
+    expect(mockListen).toHaveBeenCalledTimes(1);
+  });
+
+  test('Server should listen on port 8080', async () => {
+    await runFastify(mockFastify);
+
+    const [[listenCallArguments]] = getMockContext(mockListen).calls;
+    expect(listenCallArguments).toHaveProperty('port', 8080);
+  });
+
+  test('Server should listen on 0.0.0.0', async () => {
+    await runFastify(mockFastify);
+
+    expect(mockListen).toHaveBeenCalledTimes(1);
+    const [[listenCallArguments]] = getMockContext(mockListen).calls;
+    expect(listenCallArguments).toHaveProperty('host', '0.0.0.0');
+  });
+
+  test('listen() call should be "awaited" for', async () => {
+    const error = new Error('Denied');
+    mockListen.mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(runFastify(mockFastify)).rejects.toStrictEqual(error);
+  });
+});
