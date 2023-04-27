@@ -65,7 +65,8 @@ jobs:
           skaffold-version: 2.1.0
           kubectl-version: 1.25.3
         timeout-minutes: 5
-      - run: curl -v http://mock-authz-server.default.svc.cluster.local
+      - run: |-
+          curl -v "$(kn service describe mock-authz-server -o url)/default/token"
         timeout-minutes: 3
 
       - name: Output diagnostic information upon failure
