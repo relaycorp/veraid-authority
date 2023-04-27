@@ -1,9 +1,10 @@
+import { CloudEvent, HTTP } from 'cloudevents';
+
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
+import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
 import { getServiceUrl } from './utils/knative.js';
-import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
-import { CloudEvent, HTTP } from 'cloudevents';
-import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
 const QUEUE_URL = await getServiceUrl('veraid-authority-queue');
 
