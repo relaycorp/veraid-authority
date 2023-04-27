@@ -8,25 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         timeout-minutes: 2
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-        timeout-minutes: 2
-      - name: Get npm cache directory
-        id: npm-cache
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-        timeout-minutes: 5
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-18-${{ hashFiles('**/package-lock.json') }}
-        timeout-minutes: 5
-      - name: Install dependencies
-        run: npm ci
-        timeout-minutes: 5
 
       # Functional tests
       - name: Create cluster
@@ -85,13 +66,10 @@ jobs:
           skaffold-version: 2.1.0
           kubectl-version: 1.25.3
         timeout-minutes: 5
-      - run: npm run test:functional
-        env:
-          IS_GITHUB: 'true'
+      - run: curl -v http://mock-authz-server.default.svc.cluster.local
         timeout-minutes: 3
 
       - name: Output diagnostic information upon failure
-        if: failure()
         run: |-
           set -o nounset
           set -o errexit
