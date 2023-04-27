@@ -90,6 +90,9 @@ jobs:
           print_header "Listening ports"
           sudo netstat -tnlp
 
+          print_header "Docker networks"
+          docker network ls
+
           print_header "Images"
           docker images
 
