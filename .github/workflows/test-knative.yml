@@ -70,6 +70,7 @@ jobs:
         timeout-minutes: 3
 
       - name: Output diagnostic information upon failure
+        if: failure()
         run: |-
           set -o nounset
           set -o errexit
