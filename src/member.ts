@@ -8,6 +8,9 @@ import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js
 import { MemberModelSchema } from './models/Member.model.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
 
 function validateMemberData(
   memberData: PatchMemberSchema,
@@ -91,8 +94,31 @@ export async function deleteMember(
   memberId: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberProblemType>> {
+  const memberKeyImportToken = getModelForClass(MemberKeyImportTokenModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+    existingConnection: options.dbConnection,
+  });
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: options.dbConnection,
+  });
+
+  // Defer the member deletion until the end to make retries possible, in case we fail to delete dependant records.
+  await memberKeyImportToken.deleteMany({
+    memberId,
+  });
+
+  // Defer public key deletion until bundle requests are deleted
+  await memberBundleRequestModel.deleteMany({
+    memberId,
+  });
+
+  await memberPublicKey.deleteMany({
+    memberId,
   });
 
   await memberModel.findByIdAndDelete(memberId);
