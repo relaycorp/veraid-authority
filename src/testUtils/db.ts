@@ -9,11 +9,13 @@ import { OrgModelSchema } from '../models/Org.model.js';
 import { MemberModelSchema } from '../models/Member.model.js';
 import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
 import { MemberKeyImportTokenModelSchema } from '../models/MemberKeyImportToken.model.js';
+import { MemberBundleRequestModelSchema } from '../models/MemberBundleRequest.model.js';
 
 const MODEL_SCHEMAS = Object.values([
   OrgModelSchema,
   MemberModelSchema,
   MemberPublicKeyModelSchema,
+  MemberBundleRequestModelSchema,
   MemberKeyImportTokenModelSchema,
 ]).filter((schema) => typeof schema === 'function');
 
