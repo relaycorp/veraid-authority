@@ -53,7 +53,7 @@ describe('makeApiServer', () => {
       expect(mockFastify.register).toHaveBeenCalledWith(mockRegisterAwalaRoute);
     });
 
-    test('Missing env variable should not register awala routes', async () => {
+    test('Awala routes should be registered if middleware is unset', async () => {
       mockEnvVariables({ AWALA_MIDDLEWARE_ENDPOINT: undefined });
 
       await makeApiServerPlugin(mockFastify);
