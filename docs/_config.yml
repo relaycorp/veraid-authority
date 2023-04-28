@@ -1,0 +1,18 @@
+title: VeraId Authority
+
+markdown: kramdown
+
+destination: ../build/docs
+remote_theme: pmarsceill/just-the-docs@v0.2.7-r
+
+footer_content: "Copyright &copy; 2023 by Relaycorp, Inc."
+
+color_scheme: dark
+
+search_enabled: false
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor

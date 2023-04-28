@@ -8,3 +8,7 @@ updates:
   commit-message:
     prefix: "fix(deps):"
     prefix-development: "chore(deps):"
+- package-ecosystem: bundler
+  directory: "/docs"
+  schedule:
+    interval: weekly
