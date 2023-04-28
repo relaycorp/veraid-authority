@@ -29,6 +29,40 @@ function validateOrgData(
   return undefined;
 }
 
+async function removeLastRelatedMember(
+  orgName: string,
+  options: ServiceOptions,
+): Promise<Result<undefined, OrgProblemType>> {
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  const memberCount = await memberModel.count({ orgName });
+  if (memberCount > 1) {
+    options.logger.info({ orgName }, 'Refused deletion - existing org members');
+    return {
+      didSucceed: false,
+      reason: OrgProblemType.EXISTING_MEMBERS,
+    };
+  }
+
+  if (memberCount === 1) {
+    const lastAdmin = await memberModel.findOne({ orgName, role: Role.ORG_ADMIN });
+    if (lastAdmin === null) {
+      options.logger.info({ orgName }, 'Refused deletion - last member not org admin');
+      return {
+        didSucceed: false,
+        reason: OrgProblemType.LAST_MEMBER_NOT_ADMIN,
+      };
+    }
+    await deleteMember(lastAdmin._id.toString(), options);
+  }
+
+  return {
+    didSucceed: true,
+  };
+}
+
 export async function createOrg(
   orgData: OrgSchema,
   options: ServiceOptions,
@@ -128,44 +162,24 @@ export async function getOrg(
 }
 
 export async function deleteOrg(
-  name: string,
+  orgName: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, OrgProblemType>> {
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const org = await orgModel.findOne({ name });
+  const org = await orgModel.findOne({ name: orgName });
 
   if (org === null) {
-    options.logger.info({ name }, 'Ignored deletion of non-existing org');
+    options.logger.info({ orgName }, 'Ignored deletion of non-existing org');
     return {
       didSucceed: true,
     };
   }
 
-  const memberModel = getModelForClass(MemberModelSchema, {
-    existingConnection: options.dbConnection,
-  });
-
-  const memberCount = await memberModel.count({ orgName: name });
-  if(memberCount > 1){
-    options.logger.info({ name }, 'Refused deletion - existing org members');
-    return {
-      didSucceed: false,
-      reason: OrgProblemType.EXISTING_MEMBERS
-    };
-  }
-
-  if(memberCount === 1){
-    const lastAdmin = await memberModel.findOne({ orgName: name, role: Role.ORG_ADMIN });
-    if(lastAdmin === null){
-      options.logger.info({ name }, 'Refused deletion - existing org members');
-      return {
-        didSucceed: false,
-        reason: OrgProblemType.EXISTING_MEMBERS
-      };
-    }
-    await deleteMember(lastAdmin._id.toString(), options);
+  const memberRemovalResult = await removeLastRelatedMember(orgName, options);
+  if (!memberRemovalResult.didSucceed) {
+    return memberRemovalResult;
   }
 
   const kms = await Kms.init();
@@ -174,11 +188,9 @@ export async function deleteOrg(
 
   await org.deleteOne();
 
-  options.logger.info({ name }, 'Org deleted');
+  options.logger.info({ orgName }, 'Org deleted');
 
   return {
     didSucceed: true,
   };
-
-
 }

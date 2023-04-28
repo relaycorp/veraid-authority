@@ -15,18 +15,15 @@ import { OrgProblemType } from './OrgProblemType.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
-import { Result } from './utilities/result.js';
-import { MemberProblemType } from './MemberProblemType.js';
+import type { Result } from './utilities/result.js';
+import type { MemberProblemType } from './MemberProblemType.js';
 
-const mockDeleteMember = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
-);
+const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
 jest.unstable_mockModule('./member.js', () => ({
   deleteMember: mockDeleteMember,
 }));
 
 const { createOrg, deleteOrg, getOrg, updateOrg } = await import('./org.js');
-
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
@@ -256,7 +253,6 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
-
     const orgData: OrgSchema = { name: ORG_NAME };
 
     test('Existing name should remove org', async () => {
@@ -270,7 +266,7 @@ describe('org', () => {
       });
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Org deleted', { name: ORG_NAME }),
+        partialPinoLog('info', 'Org deleted', { orgName: ORG_NAME }),
       );
     });
 
@@ -284,7 +280,7 @@ describe('org', () => {
       expect(dbResult).not.toBeNull();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Ignored deletion of non-existing org', {
-          name: NON_ASCII_ORG_NAME,
+          orgName: NON_ASCII_ORG_NAME,
         }),
       );
     });
@@ -298,7 +294,6 @@ describe('org', () => {
       const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
       expect(kms.destroyedPrivateKeyRefs).toContainEqual(privateKeyRef);
     });
-
 
     describe('Related members handling', () => {
       const memberData = {
@@ -317,9 +312,9 @@ describe('org', () => {
 
       test('Existing org admin should remove org', async () => {
         await createOrg(orgData, serviceOptions);
-        const member = await memberModel.create({
+        await memberModel.create({
           ...memberData,
-          role: Role.ORG_ADMIN
+          role: Role.ORG_ADMIN,
         });
 
         const result = await deleteOrg(ORG_NAME, serviceOptions);
@@ -328,34 +323,51 @@ describe('org', () => {
         const dbResult = await orgModel.exists({
           name: ORG_NAME,
         });
-        expect(dbResult).toBeNull();
-        expect(mockDeleteMember).toHaveBeenCalledOnceWith(member._id.toString(), serviceOptions)
-      })
 
-      test('Private key destruction should happen after member deletion', async () => {
+        expect(dbResult).toBeNull();
+      });
+
+      test('Existing org admin should remove last member', async () => {
+        await createOrg(orgData, serviceOptions);
+        const member = await memberModel.create({
+          ...memberData,
+          role: Role.ORG_ADMIN,
+        });
+
+        const result = await deleteOrg(ORG_NAME, serviceOptions);
+
+        requireSuccessfulResult(result);
+        expect(mockDeleteMember).toHaveBeenCalledOnceWith(member._id.toString(), serviceOptions);
+      });
+
+      test('Private key destruction should happen after last member deletion', async () => {
         await createOrg(orgData, serviceOptions);
         await memberModel.create({
           ...memberData,
-          role: Role.ORG_ADMIN
+          role: Role.ORG_ADMIN,
         });
         const { kms } = getMockKms();
         const spy = jest.spyOn(kms, 'destroyPrivateKey');
 
         await deleteOrg(ORG_NAME, serviceOptions);
 
-        expect(spy).toHaveBeenCalledAfter(mockDeleteMember)
-      })
+        expect(spy).toHaveBeenCalledAfter(mockDeleteMember);
+      });
 
-      test('Multiple existing org admins should not remove org', async () => {
+      test.each([
+        ['Multiple existing org admins', Role.ORG_ADMIN, Role.ORG_ADMIN],
+        ['Multiple existing regular members', Role.REGULAR, Role.REGULAR],
+        ['Existing org admin and regular members', Role.ORG_ADMIN, Role.REGULAR],
+      ])('%s should not remove org', async (_type, memberRole1, memberRole2) => {
         await createOrg(orgData, serviceOptions);
         await memberModel.create({
           ...memberData,
-          role: Role.ORG_ADMIN
+          role: memberRole1,
         });
         await memberModel.create({
           ...memberData,
-          role: Role.ORG_ADMIN,
-          name: 'Other Admin'
+          role: memberRole2,
+          name: 'Other Member',
         });
 
         const result = await deleteOrg(ORG_NAME, serviceOptions);
@@ -366,28 +378,36 @@ describe('org', () => {
           name: ORG_NAME,
         });
         expect(dbResult).not.toBeNull();
-        expect(mockDeleteMember).not.toHaveBeenCalled()
-      })
+        expect(mockDeleteMember).not.toHaveBeenCalled();
+        expect(mockLogging.logs).toContainEqual(
+          partialPinoLog('info', 'Refused deletion - existing org members', {
+            orgName: ORG_NAME,
+          }),
+        );
+      });
 
-      test('Existing regular member should not remove org', async () => {
+      test('Last existing regular member should not remove org', async () => {
         await createOrg(orgData, serviceOptions);
         await memberModel.create({
-          ...memberData
+          ...memberData,
         });
 
         const result = await deleteOrg(ORG_NAME, serviceOptions);
 
         requireFailureResult(result);
-        expect(result.reason).toBe(OrgProblemType.EXISTING_MEMBERS);
+        expect(result.reason).toBe(OrgProblemType.LAST_MEMBER_NOT_ADMIN);
         const dbResult = await orgModel.exists({
           name: ORG_NAME,
         });
         expect(dbResult).not.toBeNull();
-        expect(mockDeleteMember).not.toHaveBeenCalled()
-      })
-
-    })
-
+        expect(mockDeleteMember).not.toHaveBeenCalled();
+        expect(mockLogging.logs).toContainEqual(
+          partialPinoLog('info', 'Refused deletion - last member not org admin', {
+            orgName: ORG_NAME,
+          }),
+        );
+      });
+    });
 
     test('Record deletion errors should be propagated', async () => {
       await createOrg(orgData, serviceOptions);
