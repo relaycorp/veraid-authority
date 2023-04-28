@@ -39,7 +39,7 @@ async function removeLastRelatedMember(
 
   const memberCount = await memberModel.count({ orgName });
   if (memberCount > 1) {
-    options.logger.info({ orgName }, 'Refused deletion - existing org members');
+    options.logger.info({ orgName }, 'Refused org deletion because it contains multiple members');
     return {
       didSucceed: false,
       reason: OrgProblemType.EXISTING_MEMBERS,
