@@ -59,6 +59,14 @@ grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3
 
 You can then make authenticated requests to the API server by setting the `Authorization` header to `Bearer <access_token>`.
 
+### Functional tests
+
+To run the functional tests locally, run the following with the app up and running:
+
+```sh
+npm run test:functional
+```
+
 ## Architecture
 
 This multi-tenant server will allow one or more organisations to manage their VeraId setup, and it'll also allow organisation members to claim and renew their VeraId Ids.
