@@ -1,3 +1,7 @@
+---
+permalink: /awala
+nav_order: 4
+---
 # Awala support
 
 [Awala](https://awala.network) is a computer network where compatible apps can use the Internet when it's available, or switch to a fallback medium when it's unavailable. **VeraId Authority comes with built-in Awala support**, so that VeraId members can get their bundles with and without the Internet.
