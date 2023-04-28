@@ -10,6 +10,8 @@ import type { OrgCreationResult } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
+import { MemberModelSchema, Role } from './models/Member.model.js';
+import { deleteMember } from './member.js';
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
@@ -136,17 +138,47 @@ export async function deleteOrg(
 
   if (org === null) {
     options.logger.info({ name }, 'Ignored deletion of non-existing org');
-  } else {
-    const kms = await Kms.init();
-    const privateKey = await kms.retrievePrivateKeyByRef(org.privateKeyRef);
-    await kms.destroyPrivateKey(privateKey);
-
-    await org.deleteOne();
-
-    options.logger.info({ name }, 'Org deleted');
+    return {
+      didSucceed: true,
+    };
   }
+
+  const memberModel = getModelForClass(MemberModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+
+  const memberCount = await memberModel.count({ orgName: name });
+  if(memberCount > 1){
+    options.logger.info({ name }, 'Refused deletion - existing org members');
+    return {
+      didSucceed: false,
+      reason: OrgProblemType.EXISTING_MEMBERS
+    };
+  }
+
+  if(memberCount === 1){
+    const lastAdmin = await memberModel.findOne({ orgName: name, role: Role.ORG_ADMIN });
+    if(lastAdmin === null){
+      options.logger.info({ name }, 'Refused deletion - existing org members');
+      return {
+        didSucceed: false,
+        reason: OrgProblemType.EXISTING_MEMBERS
+      };
+    }
+    await deleteMember(lastAdmin._id.toString(), options);
+  }
+
+  const kms = await Kms.init();
+  const privateKey = await kms.retrievePrivateKeyByRef(org.privateKeyRef);
+  await kms.destroyPrivateKey(privateKey);
+
+  await org.deleteOne();
+
+  options.logger.info({ name }, 'Org deleted');
 
   return {
     didSucceed: true,
   };
+
+
 }

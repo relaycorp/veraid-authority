@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
+import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
@@ -7,13 +8,25 @@ import type { OrgSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { NON_ASCII_ORG_NAME, ORG_NAME } from './testUtils/stubs.js';
-import { getPromiseRejection } from './testUtils/jest.js';
+import { MEMBER_EMAIL, MEMBER_NAME, NON_ASCII_ORG_NAME, ORG_NAME } from './testUtils/stubs.js';
+import { getPromiseRejection, mockSpy } from './testUtils/jest.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
-import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
+import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Result } from './utilities/result.js';
+import { MemberProblemType } from './MemberProblemType.js';
+
+const mockDeleteMember = mockSpy(
+  jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
+);
+jest.unstable_mockModule('./member.js', () => ({
+  deleteMember: mockDeleteMember,
+}));
+
+const { createOrg, deleteOrg, getOrg, updateOrg } = await import('./org.js');
+
 
 describe('org', () => {
   const getConnection = setUpTestDbConnection();
@@ -92,7 +105,6 @@ describe('org', () => {
       const methodResult = await createOrg(orgData, serviceOptions);
 
       requireSuccessfulResult(methodResult);
-
       const dbResult = await orgModel.findOne({
         name: methodResult.result.name,
       });
@@ -244,6 +256,7 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
+
     const orgData: OrgSchema = { name: ORG_NAME };
 
     test('Existing name should remove org', async () => {
@@ -285,6 +298,96 @@ describe('org', () => {
       const [{ privateKeyRef }] = kms.generatedKeyPairRefs;
       expect(kms.destroyedPrivateKeyRefs).toContainEqual(privateKeyRef);
     });
+
+
+    describe('Related members handling', () => {
+      const memberData = {
+        name: MEMBER_NAME,
+        orgName: ORG_NAME,
+        role: Role.REGULAR,
+        email: MEMBER_EMAIL,
+      };
+      let memberModel: ReturnModelType<typeof MemberModelSchema>;
+
+      beforeEach(() => {
+        memberModel = getModelForClass(MemberModelSchema, {
+          existingConnection: connection,
+        });
+      });
+
+      test('Existing org admin should remove org', async () => {
+        await createOrg(orgData, serviceOptions);
+        const member = await memberModel.create({
+          ...memberData,
+          role: Role.ORG_ADMIN
+        });
+
+        const result = await deleteOrg(ORG_NAME, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const dbResult = await orgModel.exists({
+          name: ORG_NAME,
+        });
+        expect(dbResult).toBeNull();
+        expect(mockDeleteMember).toHaveBeenCalledOnceWith(member._id.toString(), serviceOptions)
+      })
+
+      test('Private key destruction should happen after member deletion', async () => {
+        await createOrg(orgData, serviceOptions);
+        await memberModel.create({
+          ...memberData,
+          role: Role.ORG_ADMIN
+        });
+        const { kms } = getMockKms();
+        const spy = jest.spyOn(kms, 'destroyPrivateKey');
+
+        await deleteOrg(ORG_NAME, serviceOptions);
+
+        expect(spy).toHaveBeenCalledAfter(mockDeleteMember)
+      })
+
+      test('Multiple existing org admins should not remove org', async () => {
+        await createOrg(orgData, serviceOptions);
+        await memberModel.create({
+          ...memberData,
+          role: Role.ORG_ADMIN
+        });
+        await memberModel.create({
+          ...memberData,
+          role: Role.ORG_ADMIN,
+          name: 'Other Admin'
+        });
+
+        const result = await deleteOrg(ORG_NAME, serviceOptions);
+
+        requireFailureResult(result);
+        expect(result.reason).toBe(OrgProblemType.EXISTING_MEMBERS);
+        const dbResult = await orgModel.exists({
+          name: ORG_NAME,
+        });
+        expect(dbResult).not.toBeNull();
+        expect(mockDeleteMember).not.toHaveBeenCalled()
+      })
+
+      test('Existing regular member should not remove org', async () => {
+        await createOrg(orgData, serviceOptions);
+        await memberModel.create({
+          ...memberData
+        });
+
+        const result = await deleteOrg(ORG_NAME, serviceOptions);
+
+        requireFailureResult(result);
+        expect(result.reason).toBe(OrgProblemType.EXISTING_MEMBERS);
+        const dbResult = await orgModel.exists({
+          name: ORG_NAME,
+        });
+        expect(dbResult).not.toBeNull();
+        expect(mockDeleteMember).not.toHaveBeenCalled()
+      })
+
+    })
+
 
     test('Record deletion errors should be propagated', async () => {
       await createOrg(orgData, serviceOptions);
