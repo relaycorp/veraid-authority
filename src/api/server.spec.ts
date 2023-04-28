@@ -45,7 +45,7 @@ describe('makeApiServer', () => {
   describe('makeApiServerPlugin', () => {
     const mockEnvVariables = configureMockEnvVars();
 
-    test('Existing env variable should register awala routes', async () => {
+    test('Awala routes should be registered if middleware is set', async () => {
       mockEnvVariables({ AWALA_MIDDLEWARE_ENDPOINT });
 
       await makeApiServerPlugin(mockFastify);
