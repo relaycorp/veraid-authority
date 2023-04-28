@@ -7,6 +7,7 @@ import { AwalaContentType } from '../../utilities/awala.js';
 
 import { connectToClusterService } from './kubernetes.js';
 import { sleep } from './time.js';
+import { getServiceActiveRevision } from './knative.js';
 
 const SERVICE_PORT = 80;
 
@@ -44,16 +45,14 @@ const EXPECTATIONS: Expectation[] = [
 type Command = (client: MockServerClient) => Promise<unknown>;
 
 async function connectToMockServer(command: Command): Promise<void> {
-  await connectToClusterService(
-    'mock-awala-middleware-00001-private',
-    SERVICE_PORT,
-    async (localPort) => {
-      await sleep(PORT_FORWARDING_DELAY_SECONDS);
+  const revision = await getServiceActiveRevision('mock-awala-middleware');
+  const serviceName = `${revision}-private`;
+  await connectToClusterService(serviceName, SERVICE_PORT, async (localPort) => {
+    await sleep(PORT_FORWARDING_DELAY_SECONDS);
 
-      const client = mockServerClient('127.0.0.1', localPort);
-      await command(client);
-    },
-  );
+    const client = mockServerClient('127.0.0.1', localPort);
+    await command(client);
+  });
 }
 
 export async function mockAwalaMiddleware(): Promise<void> {

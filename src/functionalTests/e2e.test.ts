@@ -123,7 +123,7 @@ describe('E2E', () => {
     const { publicKey: memberPublicKey } = await generateKeyPair();
     await claimKeyImportTokenViaAwala(publicKeyImportToken, memberPublicKey);
 
-    // Allow sufficient time to process the member bundle request:
+    // Allow sufficient time for the member bundle request to be processed:
     await sleep(1000);
 
     // Check that the member bundle was issued and published:
