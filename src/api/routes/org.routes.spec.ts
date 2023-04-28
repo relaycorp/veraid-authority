@@ -309,5 +309,27 @@ describe('org routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
     });
+
+    test.each([
+      ['Existing org members', OrgProblemType.EXISTING_MEMBERS],
+      ['Last member not admin', OrgProblemType.LAST_MEMBER_NOT_ADMIN],
+    ])('%s should should be refused', async (_type, reason) => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: true,
+        result: { name: ORG_NAME },
+      });
+      mockDeleteOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        reason,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.FAILED_DEPENDENCY);
+      expect(response.json()).toHaveProperty('type', reason);
+    });
   });
 });
