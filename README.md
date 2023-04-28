@@ -35,10 +35,9 @@ If for whatever reason you want to manually test the app, you first need to get 
 kn service list
 ```
 
-To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`), run:
+To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`) using the OAuth2 client credentials flow, run:
 
 ```http
-### Authenticate with authorisation server (client credentials)
 POST http://mock-authz-server.default.10.103.177.106.sslip.io/default/token
 Content-Type: application/x-www-form-urlencoded
 
