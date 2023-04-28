@@ -23,9 +23,9 @@ skaffold dev
 
 ### Automated testing
 
-The app is thoroughly unit tested with a coverage of 100%, which can be run with `npm test`.
+The unit test suite can be run with the standard `npm test`.
 
-If you'd like to run some tests against a real, running instance of this app, the simplest way to do that is to add/modify [functional tests](./src/functionalTests) and then run `npm run test:integration` (alternatively, you can use your IDE to only run the test you're interested in).
+If you'd like to run some tests against the real instance of the app managed by Skaffold, the simplest way to do that is to add/modify [functional tests](./src/functionalTests) and then run `npm run test:integration` (alternatively, you can use your IDE to only run the test you're interested in).
 
 ### Manual testing
 
