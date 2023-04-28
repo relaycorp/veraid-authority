@@ -49,7 +49,7 @@ async function removeLastRelatedMember(
   if (memberCount === 1) {
     const lastAdmin = await memberModel.findOne({ orgName, role: Role.ORG_ADMIN });
     if (lastAdmin === null) {
-      options.logger.info({ orgName }, 'Refused deletion - last member not org admin');
+      options.logger.info({ orgName }, 'Refused org deletion because last member is not admin');
       return {
         didSucceed: false,
         reason: OrgProblemType.LAST_MEMBER_NOT_ADMIN,
