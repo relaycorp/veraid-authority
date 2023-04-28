@@ -380,7 +380,7 @@ describe('org', () => {
         expect(dbResult).not.toBeNull();
         expect(mockDeleteMember).not.toHaveBeenCalled();
         expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('info', 'Refused deletion - existing org members', {
+          partialPinoLog('info', 'Refused org deletion because it contains multiple members', {
             orgName: ORG_NAME,
           }),
         );
@@ -402,7 +402,7 @@ describe('org', () => {
         expect(dbResult).not.toBeNull();
         expect(mockDeleteMember).not.toHaveBeenCalled();
         expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('info', 'Refused deletion - last member not org admin', {
+          partialPinoLog('info', 'Refused org deletion because last member is not admin', {
             orgName: ORG_NAME,
           }),
         );
