@@ -2,6 +2,8 @@ import { mockServerClient, type Expectation, type HttpResponse } from 'mockserve
 import type { MockServerClient } from 'mockserver-client/mockServerClient.js';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
+import { AwalaContentType } from '../../utilities/awala.js';
 
 import { connectToClusterService } from './kubernetes.js';
 import { sleep } from './time.js';
@@ -16,7 +18,7 @@ const EXPECTATIONS: Expectation[] = [
       method: 'POST',
       path: '/',
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      headers: { 'Content-Type': 'application/vnd+relaycorp.awala.pda-path' },
+      headers: { 'Content-Type': AwalaContentType.PDA },
     },
 
     httpResponse: {
@@ -30,7 +32,7 @@ const EXPECTATIONS: Expectation[] = [
       method: 'POST',
       path: '/',
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      headers: { 'Content-Type': 'application/vnd.veraid.member-bundle' },
+      headers: { 'Content-Type': VeraidContentType.MEMBER_BUNDLE },
     },
 
     httpResponse: {

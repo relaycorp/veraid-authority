@@ -5,6 +5,8 @@ import type { ServiceOptions } from './serviceTypes.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { VeraidContentType } from './utilities/veraid.js';
+import { AwalaContentType } from './utilities/awala.js';
 
 const contentTypeHeaderName = 'content-type';
 const awalaRecipientHeaderName = 'X-Awala-Recipient';
@@ -58,7 +60,7 @@ export async function postToAwala(
 ): Promise<Result<undefined, string>> {
   const pdaResponse = await fetch(awalaMiddlewareUrl, {
     method: 'POST',
-    headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+    headers: { [contentTypeHeaderName]: AwalaContentType.PDA },
     body: awalaPda,
   });
   const { recipientId } = (await pdaResponse.json()) as {
@@ -77,7 +79,7 @@ export async function postToAwala(
     method: 'POST',
 
     headers: {
-      [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+      [contentTypeHeaderName]: VeraidContentType.MEMBER_BUNDLE,
       [awalaRecipientHeaderName]: recipientId,
     },
   });

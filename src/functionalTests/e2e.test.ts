@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   MemberCreationCommand,
   MemberKeyImportTokenCommand,
@@ -15,6 +17,7 @@ import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import { VeraidContentType } from '../utilities/veraid.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
@@ -25,6 +28,7 @@ import {
   mockAwalaMiddleware,
 } from './utils/mockAwalaMiddleware.js';
 import { sleep } from './utils/time.js';
+import { type BinaryBody, jsonParseBinaryBody } from './utils/mockServer.js';
 
 const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
 
@@ -75,38 +79,61 @@ async function createTestOrg(): Promise<OrgCreationOutput> {
   return output;
 }
 
+async function createTestMember(membersEndpoint: string) {
+  const memberName = randomUUID();
+  const command = new MemberCreationCommand({
+    endpoint: membersEndpoint,
+    role: MemberRole.REGULAR,
+    name: memberName,
+  });
+  const { publicKeyImportTokens: keyImportTokenEndpoint } = await CLIENT.send(command);
+  return keyImportTokenEndpoint;
+}
+
+async function createKeyImportToken(endpoint: string) {
+  const command = new MemberKeyImportTokenCommand({ endpoint, serviceOid: TEST_SERVICE_OID });
+  const { token: publicKeyImportToken } = await CLIENT.send(command);
+  return publicKeyImportToken;
+}
+
+async function claimKeyImportTokenViaAwala(
+  publicKeyImportToken: string,
+  memberPublicKey: CryptoKey,
+) {
+  const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
+  const importMessage: MemberKeyImportRequest = {
+    publicKey: publicKeyDer.toString('base64'),
+    awalaPda: STUB_AWALA_PDA.toString('base64'),
+    publicKeyImportToken,
+  };
+  const requestBody = JSON.stringify(importMessage);
+  const response = await postAwalaMessage(KEY_IMPORT_CONTENT_TYPE, requestBody);
+  expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
+}
+
 describe('E2E', () => {
   test('Get member bundle via Awala', async () => {
+    // Create the necessary setup as an admin:
     const { members: membersEndpoint } = await createTestOrg();
+    const keyImportTokenEndpoint = await createTestMember(membersEndpoint);
+    const publicKeyImportToken = await createKeyImportToken(keyImportTokenEndpoint);
 
-    const { publicKeyImportTokens: keyImportTokenEndpoint } = await CLIENT.send(
-      new MemberCreationCommand({
-        endpoint: membersEndpoint,
-        role: MemberRole.REGULAR,
-      }),
-    );
-
-    const keyImportCommand = new MemberKeyImportTokenCommand({
-      endpoint: keyImportTokenEndpoint,
-      serviceOid: TEST_SERVICE_OID,
-    });
-    const { token: publicKeyImportToken } = await CLIENT.send(keyImportCommand);
-
+    // Claim the token as a member via Awala:
     await mockAwalaMiddleware();
+    const { publicKey: memberPublicKey } = await generateKeyPair();
+    await claimKeyImportTokenViaAwala(publicKeyImportToken, memberPublicKey);
 
-    const memberKeyPair = await generateKeyPair();
-    const publicKeyDer = await derSerialisePublicKey(memberKeyPair.publicKey);
-    const importMessage: MemberKeyImportRequest = {
-      publicKey: publicKeyDer.toString('base64'),
-      awalaPda: STUB_AWALA_PDA.toString('base64'),
-      publicKeyImportToken,
-    };
-    const response = await postAwalaMessage(KEY_IMPORT_CONTENT_TYPE, JSON.stringify(importMessage));
-    expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-
+    // Allow sufficient time to process the member bundle request:
     await sleep(1000);
 
+    // Check that the member bundle was issued and published:
     const awalaMiddlewareRequests = await getMockAwalaMiddlewareRequests();
     expect(awalaMiddlewareRequests).toHaveLength(2);
+    const [, { body: bundleRequestBody }] = awalaMiddlewareRequests;
+    const message = jsonParseBinaryBody(
+      bundleRequestBody as BinaryBody,
+      VeraidContentType.MEMBER_BUNDLE,
+    );
+    expect(message).toHaveProperty('memberBundle');
   }, 10_000);
 });
