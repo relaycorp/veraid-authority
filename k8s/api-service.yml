@@ -36,6 +36,8 @@ spec:
                   key: mongodb_password
             - name: MONGODB_URI
               value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb.default
+            - name: AWALA_MIDDLEWARE_ENDPOINT
+              value: http://mock-awala-middleware.default
 
             - name: OAUTH2_JWKS_URL
               value: http://mock-authz-server.default/default/jwks
