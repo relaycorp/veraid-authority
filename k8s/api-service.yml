@@ -36,6 +36,8 @@ spec:
                   key: mongodb_password
             - name: MONGODB_URI
               value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb.default
+            - name: AWALA_MIDDLEWARE_ENDPOINT
+              value: http://mock-awala-middleware.default
 
             - name: OAUTH2_JWKS_URL
               value: http://mock-authz-server.default/default/jwks
@@ -50,15 +52,18 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 configMapKeyRef:
-                  name: credentials
-                  key: aws_kms_access_key_id
+                  name: mock-aws-kms
+                  key: access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: credentials
                   key: aws_kms_secret_access_key
             - name: AWS_KMS_ENDPOINT
-              value: http://mock-aws-kms:8080
+              valueFrom:
+                configMapKeyRef:
+                  name: mock-aws-kms
+                  key: endpoint
             - name: AWS_KMS_REGION
               value: eu-west-2
 ---

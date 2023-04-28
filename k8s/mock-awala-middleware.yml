@@ -1,0 +1,16 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mock-awala-middleware
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      containers:
+        - name: awala-middleware
+          image: mockserver/mockserver:5.15.0
+          env:
+            - name: MOCKSERVER_SERVER_PORT
+              value: "8080"

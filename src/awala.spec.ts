@@ -22,6 +22,8 @@ import { requireFailureResult } from './testUtils/result.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { VeraidContentType } from './utilities/veraid.js';
+import { AwalaContentType } from './utilities/awala.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -171,14 +173,14 @@ describe('postToAwala', () => {
         );
       });
 
-      test('Content type should be application/vnd+relaycorp.awala.pda-path', async () => {
+      test('Content type should be that of an Awala PDA', async () => {
         await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
         expect(mockFetch).toHaveBeenNthCalledWith(
           1,
           expect.anything(),
           expect.objectContaining({
-            headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+            headers: { [contentTypeHeaderName]: AwalaContentType.PDA },
           }),
         );
       });
@@ -223,7 +225,7 @@ describe('postToAwala', () => {
           expect.anything(),
           expect.objectContaining({
             headers: expect.objectContaining({
-              [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+              [contentTypeHeaderName]: VeraidContentType.MEMBER_BUNDLE,
             }),
           }),
         );
