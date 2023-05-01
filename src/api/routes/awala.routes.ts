@@ -9,10 +9,10 @@ import {
   type MemberBundleRequest,
   type MemberKeyImportRequest,
 } from '../../schemas/awala.schema.js';
-import { createMemberBundleRequest } from '../../awala.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
 import { validateMessage } from '../../utilities/validateMessage.js';
+import { createMemberBundleRequest } from '../../memberBundle.js';
 
 async function processMemberBundleRequest(
   data: unknown,
