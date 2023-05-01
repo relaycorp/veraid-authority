@@ -5,6 +5,8 @@ import { postToAwala } from './awala.js';
 import { mockSpy } from './testUtils/jest.js';
 import { AWALA_MIDDLEWARE_ENDPOINT } from './testUtils/eventing/stubs.js';
 import { requireFailureResult } from './testUtils/result.js';
+import { AwalaContentType } from './utilities/awala.js';
+import { VeraidContentType } from './utilities/veraid.js';
 
 describe('postToAwala', () => {
   const mockFetch = mockSpy(jest.spyOn(global, 'fetch'));
@@ -38,14 +40,14 @@ describe('postToAwala', () => {
         );
       });
 
-      test('Content type should be application/vnd+relaycorp.awala.pda-path', async () => {
+      test('Content type should be that of an Awala PDA', async () => {
         await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
         expect(mockFetch).toHaveBeenNthCalledWith(
           1,
           expect.anything(),
           expect.objectContaining({
-            headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+            headers: { [contentTypeHeaderName]: AwalaContentType.PDA },
           }),
         );
       });
@@ -90,7 +92,7 @@ describe('postToAwala', () => {
           expect.anything(),
           expect.objectContaining({
             headers: expect.objectContaining({
-              [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+              [contentTypeHeaderName]: VeraidContentType.MEMBER_BUNDLE,
             }),
           }),
         );
