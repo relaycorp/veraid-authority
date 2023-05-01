@@ -102,7 +102,7 @@ export async function generateMemberBundle(
   if (!memberPublicKey) {
     options.logger.info(
       {
-        publicKeyId,
+        memberPublicKeyId: publicKeyId,
       },
       'Member public key not found',
     );

@@ -24,7 +24,10 @@ export async function createMemberBundleRequest(
   const publicKey = await memberPublicKeyModel.findById(requestData.publicKeyId);
 
   if (!publicKey) {
-    options.logger.info({ publicKeyId: requestData.publicKeyId }, 'Member public key not found');
+    options.logger.info(
+      { memberPublicKeyId: requestData.publicKeyId },
+      'Member public key not found',
+    );
     return {
       didSucceed: false,
     };
@@ -46,7 +49,10 @@ export async function createMemberBundleRequest(
     },
   );
 
-  options.logger.info({ publicKeyId: requestData.publicKeyId }, 'Member bundle request created');
+  options.logger.info(
+    { memberPublicKeyId: requestData.publicKeyId },
+    'Member bundle request created',
+  );
 
   return {
     didSucceed: true,

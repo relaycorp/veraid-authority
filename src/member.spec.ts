@@ -74,7 +74,10 @@ describe('member', () => {
         requireSuccessfulResult(member);
         expect(dbResult?.id).toStrictEqual(member.result.id);
         expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('info', 'Member created', { orgName: ORG_NAME }),
+          partialPinoLog('info', 'Member created', {
+            orgName: ORG_NAME,
+            memberId: member.result.id,
+          }),
         );
       },
     );
@@ -274,7 +277,7 @@ describe('member', () => {
       const dbResult = await memberModel.findById(member._id);
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member deleted', { id: member._id.toString() }),
+        partialPinoLog('info', 'Member deleted', { memberId: member._id.toString() }),
       );
     });
 
@@ -449,7 +452,7 @@ describe('member', () => {
       expect(dbResult?.email).toBe(testEmail);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member updated', {
-          id: member._id.toString(),
+          memberId: member._id.toString(),
         }),
       );
     });
@@ -471,7 +474,7 @@ describe('member', () => {
       expect(dbResult?.email).toBe(MEMBER_EMAIL);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member updated', {
-          id: member._id.toString(),
+          memberId: member._id.toString(),
         }),
       );
     });

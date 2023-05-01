@@ -66,7 +66,7 @@ describe('member public key', () => {
       expect(dbResult!.creationDate).toBeBetween(commandRunTime, new Date());
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key created', {
-          id: memberPublicKey.result.id,
+          memberPublicKeyId: memberPublicKey.result.id,
         }),
       );
     });
@@ -159,7 +159,7 @@ describe('member public key', () => {
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key deleted', {
-          id: memberPublicKey.id,
+          memberPublicKeyId: memberPublicKey.id,
         }),
       );
     });

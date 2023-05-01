@@ -22,7 +22,7 @@ function validateOrgData(
   options: ServiceOptions,
 ): OrgProblemType | undefined {
   if (orgData.name !== undefined && !isValidUtf8Domain(orgData.name)) {
-    options.logger.info({ name: orgData.name }, 'Refused malformed org name');
+    options.logger.info({ orgName: orgData.name }, 'Refused malformed org name');
     return OrgProblemType.MALFORMED_ORG_NAME;
   }
 
@@ -87,7 +87,7 @@ export async function createOrg(
     await orgModel.create(org);
   } catch (err) {
     if ((err as { code: number }).code === MONGODB_DUPLICATE_INDEX_CODE) {
-      options.logger.info({ name: orgData.name }, 'Refused duplicated org name');
+      options.logger.info({ orgName: orgData.name }, 'Refused duplicated org name');
       return {
         didSucceed: false,
         reason: OrgProblemType.EXISTING_ORG_NAME,
@@ -96,7 +96,7 @@ export async function createOrg(
     throw err as Error;
   }
 
-  options.logger.info({ name: orgData.name }, 'Org created');
+  options.logger.info({ orgName: orgData.name }, 'Org created');
   return {
     didSucceed: true,
     result: { name: orgData.name },
@@ -131,7 +131,7 @@ export async function updateOrg(
 
   await orgModel.updateOne({ name }, orgData);
 
-  options.logger.info({ name: orgData.name }, 'Org updated');
+  options.logger.info({ orgName: orgData.name }, 'Org updated');
   return {
     didSucceed: true,
   };

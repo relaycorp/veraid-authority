@@ -55,7 +55,7 @@ export async function createMember(
     throw err as Error;
   }
 
-  options.logger.info({ orgName }, 'Member created');
+  options.logger.info({ orgName, memberId: member.id }, 'Member created');
   return {
     didSucceed: true,
     result: { id: member.id },
@@ -123,7 +123,7 @@ export async function deleteMember(
 
   await memberModel.findByIdAndDelete(memberId);
 
-  options.logger.info({ id: memberId }, 'Member deleted');
+  options.logger.info({ memberId }, 'Member deleted');
   return {
     didSucceed: true,
   };
@@ -158,7 +158,7 @@ export async function updateMember(
     throw err as Error;
   }
 
-  options.logger.info({ id: memberId }, 'Member updated');
+  options.logger.info({ memberId }, 'Member updated');
   return {
     didSucceed: true,
   };

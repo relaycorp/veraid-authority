@@ -294,7 +294,7 @@ describe('memberBundle', () => {
       expect(result.reason.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key not found', {
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
