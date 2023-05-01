@@ -44,7 +44,7 @@
     "@relaycorp/veraid-authority": "^1.6.5",
     "@shelf/jest-mongodb": "^4.1.7",
     "@types/jest": "^29.5.1",
-    "@types/node": "^18.16.2",
+    "@types/node": "^18.16.3",
     "@types/split2": "^4.2.0",
     "del-cli": "^5.0.0",
     "get-port": "^6.1.2",
