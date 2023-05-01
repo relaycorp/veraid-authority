@@ -34,12 +34,12 @@ describe('jwks-authentication', () => {
     );
   });
 
-  test('OAUTH2_JWKS_URL should be used as the domain', async () => {
+  test('OAUTH2_JWKS_URL should be honoured', async () => {
     await jwksPlugin(mockFastify, {});
 
     expect(mockFastify.register).toHaveBeenCalledWith(
       fastifyOauth2Verify,
-      expect.objectContaining({ domain: OAUTH2_JWKS_URL }),
+      expect.objectContaining({ jwksUrl: OAUTH2_JWKS_URL }),
     );
   });
 
