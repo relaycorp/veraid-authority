@@ -196,7 +196,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token not found', {
           token: invalidToken,
@@ -211,7 +211,7 @@ describe('member key import token', () => {
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
       });
 
       const result = await processMemberKeyImportToken(
@@ -224,7 +224,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
+      expect(result.context).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
       expect(mockCreateMemberPublicKey).toHaveBeenCalledOnceWith(
         MEMBER_MONGO_ID,
         {

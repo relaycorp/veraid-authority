@@ -109,7 +109,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -125,7 +125,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -142,7 +142,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -164,7 +164,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: true,
       },
     };

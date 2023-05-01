@@ -40,7 +40,7 @@ async function decideAuthorisation(
   const { orgName, memberId } = request.params as Partial<OrgRequestParams>;
 
   if (orgName === undefined) {
-    return { didSucceed: false, reason: 'Non-super admin tries to access bulk org endpoint' };
+    return { didSucceed: false, context: 'Non-super admin tries to access bulk org endpoint' };
   }
 
   const memberModel = getModelForClass(MemberModelSchema, {
@@ -48,7 +48,7 @@ async function decideAuthorisation(
   });
   const member = await memberModel.findOne({ orgName, email: userEmail }).select(['role']);
   if (member === null) {
-    return { didSucceed: false, reason: 'User is not a member of the org' };
+    return { didSucceed: false, context: 'User is not a member of the org' };
   }
   if (member.role === Role.ORG_ADMIN) {
     return { didSucceed: true, result: { reason: 'User is org admin', isAdmin: true } };
@@ -61,7 +61,7 @@ async function decideAuthorisation(
     };
   }
 
-  return { didSucceed: false, reason: 'User is not accessing their membership' };
+  return { didSucceed: false, context: 'User is not accessing their membership' };
 }
 
 async function denyAuthorisation(reason: string, reply: FastifyReply, userEmail: string) {
@@ -78,7 +78,7 @@ function registerOrgAuth(fastify: FastifyInstance, _opts: PluginMetadata, done: 
     const superAdmin = envVar.get('AUTHORITY_SUPERADMIN').asString();
     const userEmail = (request as AuthenticatedFastifyRequest).user.sub;
     const decision = await decideAuthorisation(userEmail, request, fastify.mongoose, superAdmin);
-    const reason = decision.didSucceed ? decision.result.reason : decision.reason;
+    const reason = decision.didSucceed ? decision.result.reason : decision.context;
     if (decision.didSucceed) {
       (request as AuthorisedFastifyRequest).isUserAdmin = decision.result.isAdmin;
       request.log.debug({ userEmail, reason }, 'Authorisation granted');

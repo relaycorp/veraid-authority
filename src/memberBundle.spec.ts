@@ -291,7 +291,7 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key not found', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -308,7 +308,7 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member not found', { memberId: MEMBER_MONGO_ID }),
       );
@@ -328,7 +328,7 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Org not found', { orgName: ORG_NAME }),
       );
@@ -362,7 +362,7 @@ describe('memberBundle', () => {
         const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
         requireFailureResult(result);
-        expect(result.reason.shouldRetry).toBeTrue();
+        expect(result.context.shouldRetry).toBeTrue();
         expect(mockLogging.logs).toContainEqual(
           partialPinoLog('warn', 'Failed to retrieve DNSSEC chain', {
             memberPublicKeyId,

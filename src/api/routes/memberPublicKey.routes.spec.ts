@@ -92,7 +92,7 @@ describe('member public keys routes', () => {
       };
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
       });
       const response = await serverInstance.inject({
         ...injectionOptions,
@@ -168,7 +168,7 @@ describe('member public keys routes', () => {
     test('Non existing id should resolve into not found status', async () => {
       mockGetMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
+        context: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
