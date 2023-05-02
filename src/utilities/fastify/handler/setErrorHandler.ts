@@ -19,5 +19,4 @@ export default function setErrorHandler(
     await reply.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).send(internalServerError);
   });
 
-  fastify.addHook('onError', () => {})
 }

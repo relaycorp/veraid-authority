@@ -52,8 +52,6 @@ export async function makeFastify(
 
   await server.register(fastifyMongoose);
 
-
-
   setErrorHandler(server);
   await server.register(fastifyRoutes);
   await server.register(notFoundHandler);

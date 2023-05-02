@@ -11,12 +11,10 @@ import notFoundHandler from './plugins/notFoundHandler.js';
 const mockListen = mockSpy(jest.fn<() => Promise<string>>());
 const mockRegister = mockSpy(jest.fn());
 const mockReady = mockSpy(jest.fn<() => Promise<undefined>>());
-const mockSetErrorHandler = mockSpy(jest.fn<() => Promise<undefined>>());
 const mockFastify: FastifyInstance = {
   listen: mockListen,
   ready: mockReady,
   register: mockRegister,
-  setErrorHandler: mockSetErrorHandler,
 } as any;
 jest.unstable_mockModule('fastify', () => ({
   fastify: jest.fn().mockImplementation(() => mockFastify),
@@ -28,6 +26,15 @@ jest.unstable_mockModule('../../utilities/logging.js', () => ({ makeLogger: mock
 const mockExitHandler = jest.fn().mockReturnValue({});
 jest.unstable_mockModule('../../utilities/exitHandling.js', () => ({
   configureExitHandling: mockExitHandler,
+}));
+
+
+
+
+const mockSetErrorHandler = jest.fn().mockReturnValue({});
+
+jest.unstable_mockModule('./handler/setErrorHandler.js', () => ({
+  default: mockSetErrorHandler
 }));
 
 const { makeFastify, runFastify } = await import('./server.js');
@@ -113,40 +120,14 @@ describe('makeFastify', () => {
 
     expect(mockFastify.register).toHaveBeenCalledWith(notFoundHandler);
   });
+
+  test('Error handler should be configured', async () => {
+    const createdServer = await makeFastify(jest.fn());
+    expect(mockSetErrorHandler).toHaveBeenCalledOnceWith(createdServer);
+  });
 });
 
 describe('runFastify', () => {
-  test('Server returned by makeFastify() should be used', async () => {
-    await runFastify(mockFastify);
-
-    expect(mockListen).toHaveBeenCalledTimes(1);
-  });
-
-  test('Server should listen on port 8080', async () => {
-    await runFastify(mockFastify);
-
-    const [[listenCallArguments]] = getMockContext(mockListen).calls;
-    expect(listenCallArguments).toHaveProperty('port', 8080);
-  });
-
-  test('Server should listen on 0.0.0.0', async () => {
-    await runFastify(mockFastify);
-
-    expect(mockListen).toHaveBeenCalledTimes(1);
-    const [[listenCallArguments]] = getMockContext(mockListen).calls;
-    expect(listenCallArguments).toHaveProperty('host', '0.0.0.0');
-  });
-
-  test('listen() call should be "awaited" for', async () => {
-    const error = new Error('Denied');
-    mockListen.mockImplementation(() => {
-      throw error;
-    });
-
-    await expect(runFastify(mockFastify)).rejects.toStrictEqual(error);
-  });
-});
-describe('set error handler', () => {
   test('Server returned by makeFastify() should be used', async () => {
     await runFastify(mockFastify);
 

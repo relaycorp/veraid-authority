@@ -4,14 +4,13 @@ import type { FastifyInstance } from 'fastify';
 import fastifyRoutes from '@fastify/routes';
 import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
 import { HTTP_STATUS_CODES } from '../../http.js';
-import { configureMockEnvVars } from '../../../testUtils/envVars.js';
 
 import { fastify } from 'fastify';
 import setErrorHandler from './setErrorHandler.js';
 
 describe('set Error Handler', () => {
   const mockLogging = makeMockLogging();
-  configureMockEnvVars();
+  // configureMockEnvVars();
   let serverInstance: FastifyInstance;
   beforeEach(async () => {
     serverInstance = fastify({
@@ -66,6 +65,7 @@ describe('set Error Handler', () => {
 
       handler: jest.fn(),
     });
+
 
     const response = await serverInstance.inject({
       method: 'POST',
