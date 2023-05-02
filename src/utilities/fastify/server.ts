@@ -59,7 +59,6 @@ export async function makeFastify(
   await server.register(appPlugin);
 
   await server.ready();
-
   return server;
 }
 

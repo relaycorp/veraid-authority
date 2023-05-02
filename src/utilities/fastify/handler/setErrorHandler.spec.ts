@@ -53,10 +53,10 @@ describe('set Error Handler', () => {
           type: 'object',
 
           properties: {
-            test: { type: 'string' },
+            test4xxField: { type: 'string' },
           },
 
-          required: ['test'],
+          required: ['test4xxField'],
         } as const,
       },
 
@@ -73,7 +73,7 @@ describe('set Error Handler', () => {
     expect(mockLogging.logs).toContainEqual(
       partialPinoLog('info', 'Client error', {
         err: expect.objectContaining({
-          message: "body must have required property 'test'",
+          message: expect.stringContaining('test4xxField'),
           stack: expect.toStartWith('Error: '),
         }),
       }),
