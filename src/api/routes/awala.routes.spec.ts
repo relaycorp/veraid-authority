@@ -27,7 +27,7 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
 const mockCreateMemberBundleRequest = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
 );
-jest.unstable_mockModule('../../awala.js', () => ({
+jest.unstable_mockModule('../../memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
 }));
 
