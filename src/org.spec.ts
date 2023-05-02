@@ -53,7 +53,7 @@ describe('org', () => {
       const dbResult = await orgModel.exists({ name: ORG_NAME });
       expect(dbResult).not.toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Org created', { name: ORG_NAME }),
+        partialPinoLog('info', 'Org created', { orgName: ORG_NAME }),
       );
     });
 
@@ -76,7 +76,7 @@ describe('org', () => {
       expect(result.context).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed org name', {
-          name: malformedName,
+          orgName: malformedName,
         }),
       );
     });
@@ -91,7 +91,7 @@ describe('org', () => {
       expect(methodResult.context).toBe(OrgProblemType.EXISTING_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated org name', {
-          name: ORG_NAME,
+          orgName: ORG_NAME,
         }),
       );
     });
@@ -165,6 +165,9 @@ describe('org', () => {
       const response = await updateOrg(name, { name }, serviceOptions);
 
       expect(response.didSucceed).toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Org updated', { orgName: name }),
+      );
     });
 
     test('Non existing name should be ignored', async () => {
@@ -188,7 +191,7 @@ describe('org', () => {
       expect(result.context).toBe(OrgProblemType.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed org name', {
-          name: malformedOrgName,
+          orgName: malformedOrgName,
         }),
       );
     });

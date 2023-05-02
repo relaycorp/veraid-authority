@@ -130,7 +130,7 @@ describe('memberBundle', () => {
       expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member bundle request created', {
-          publicKeyId: memberPublicKey._id.toString(),
+          memberPublicKeyId: memberPublicKey._id.toString(),
         }),
       );
     });
@@ -400,7 +400,7 @@ describe('memberBundle', () => {
       expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key not found', {
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });

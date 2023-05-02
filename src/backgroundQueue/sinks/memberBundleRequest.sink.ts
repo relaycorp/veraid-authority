@@ -62,7 +62,7 @@ export default async function memberBundleIssuance(
     publicKeyId: validatedData.publicKeyId,
   });
   options.logger.info(
-    { eventId: event.id, publicKeyId: validatedData.publicKeyId },
+    { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
     'Removed Bundle Request',
   );
 }

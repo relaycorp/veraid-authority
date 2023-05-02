@@ -173,7 +173,7 @@ describe('memberBundleIssuance', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Removed Bundle Request', {
           eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
@@ -271,7 +271,7 @@ describe('memberBundleIssuance', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Removed Bundle Request', {
           eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });

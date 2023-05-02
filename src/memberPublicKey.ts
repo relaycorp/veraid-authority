@@ -43,7 +43,7 @@ export async function createMemberPublicKey(
     publicKey: memberPublicKeyBuffer,
   });
 
-  options.logger.info({ id: memberPublicKey.id }, 'Member public key created');
+  options.logger.info({ memberPublicKeyId: memberPublicKey.id }, 'Member public key created');
   return {
     didSucceed: true,
 
@@ -70,7 +70,7 @@ export async function deleteMemberPublicKey(
   });
   await memberPublicKey.findByIdAndDelete(publicKeyId);
 
-  options.logger.info({ id: publicKeyId }, 'Member public key deleted');
+  options.logger.info({ memberPublicKeyId: publicKeyId }, 'Member public key deleted');
   return {
     didSucceed: true,
   };
