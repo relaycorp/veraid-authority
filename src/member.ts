@@ -34,7 +34,7 @@ export async function createMember(
 ): Promise<Result<MemberCreationResult, MemberProblemType>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: options.dbConnection,
@@ -49,7 +49,7 @@ export async function createMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;
@@ -75,7 +75,7 @@ export async function getMember(
   if (member === null || member.orgName !== orgName) {
     return {
       didSucceed: false,
-      reason: MemberProblemType.MEMBER_NOT_FOUND,
+      context: MemberProblemType.MEMBER_NOT_FOUND,
     };
   }
 
@@ -136,7 +136,7 @@ export async function updateMember(
 ): Promise<Result<undefined, MemberProblemType>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
 
   const memberModel = getModelForClass(MemberModelSchema, {
@@ -152,7 +152,7 @@ export async function updateMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;

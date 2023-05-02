@@ -22,7 +22,7 @@ export async function postToAwala(
   if (!recipientId) {
     return {
       didSucceed: false,
-      reason: 'Recipient id was missing from Awala PDA import response',
+      context: 'Recipient id was missing from Awala PDA import response',
     };
   }
 

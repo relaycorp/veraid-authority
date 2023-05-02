@@ -75,7 +75,7 @@ describe('org routes', () => {
       const payload: OrgSchema = { name: ORG_NAME };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.EXISTING_ORG_NAME,
+        context: OrgProblemType.EXISTING_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -91,7 +91,7 @@ describe('org routes', () => {
       const payload: OrgSchema = { name: 'MALFORMED_NAME' };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.MALFORMED_ORG_NAME,
+        context: OrgProblemType.MALFORMED_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -163,7 +163,7 @@ describe('org routes', () => {
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       mockUpdateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.INVALID_ORG_NAME,
+        context: OrgProblemType.INVALID_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -179,7 +179,7 @@ describe('org routes', () => {
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -235,7 +235,7 @@ describe('org routes', () => {
     test('Non existing name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -297,7 +297,7 @@ describe('org routes', () => {
     test('Non existing name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -320,7 +320,7 @@ describe('org routes', () => {
       });
       mockDeleteOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason,
+        context: reason,
       });
 
       const response = await serverInstance.inject({

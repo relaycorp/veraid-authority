@@ -42,7 +42,7 @@ async function removeLastRelatedMember(
     options.logger.info({ orgName }, 'Refused org deletion because it contains multiple members');
     return {
       didSucceed: false,
-      reason: OrgProblemType.EXISTING_MEMBERS,
+      context: OrgProblemType.EXISTING_MEMBERS,
     };
   }
 
@@ -52,7 +52,7 @@ async function removeLastRelatedMember(
       options.logger.info({ orgName }, 'Refused org deletion because last member is not admin');
       return {
         didSucceed: false,
-        reason: OrgProblemType.LAST_MEMBER_NOT_ADMIN,
+        context: OrgProblemType.LAST_MEMBER_NOT_ADMIN,
       };
     }
     await deleteMember(lastAdmin._id.toString(), options);
@@ -73,7 +73,7 @@ export async function createOrg(
   });
 
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
 
   const kms = await Kms.init();
@@ -90,7 +90,7 @@ export async function createOrg(
       options.logger.info({ name: orgData.name }, 'Refused duplicated org name');
       return {
         didSucceed: false,
-        reason: OrgProblemType.EXISTING_ORG_NAME,
+        context: OrgProblemType.EXISTING_ORG_NAME,
       };
     }
     throw err as Error;
@@ -115,14 +115,14 @@ export async function updateOrg(
     );
     return {
       didSucceed: false,
-      reason: OrgProblemType.INVALID_ORG_NAME,
+      context: OrgProblemType.INVALID_ORG_NAME,
     };
   }
 
   const validationFailure = validateOrgData({ ...orgData }, options);
 
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
 
   const orgModel = getModelForClass(OrgModelSchema, {
@@ -151,7 +151,7 @@ export async function getOrg(
   if (org === null) {
     return {
       didSucceed: false,
-      reason: OrgProblemType.ORG_NOT_FOUND,
+      context: OrgProblemType.ORG_NOT_FOUND,
     };
   }
 

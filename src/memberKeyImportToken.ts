@@ -56,7 +56,7 @@ export async function processMemberKeyImportToken(
     );
     return {
       didSucceed: false,
-      reason: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
+      context: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
     };
   }
 
@@ -72,7 +72,7 @@ export async function processMemberKeyImportToken(
   if (!publicKeyCreationResult.didSucceed) {
     return {
       didSucceed: false,
-      reason: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
+      context: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
     };
   }
 

@@ -138,7 +138,7 @@ describe('postToAwala', () => {
     const awalaResponse = await postToAwala(awalaPostData, AWALA_PDA, testAwalaEndpoint);
 
     requireFailureResult(awalaResponse);
-    expect(awalaResponse.reason).toBe('Recipient id was missing from Awala PDA import response');
+    expect(awalaResponse.context).toBe('Recipient id was missing from Awala PDA import response');
     expect(mockFetch).toHaveBeenCalledOnce();
   });
 });

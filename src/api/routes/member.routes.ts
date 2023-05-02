@@ -87,8 +87,8 @@ export default async function registerRoutes(
         return;
       }
 
-      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-        type: result.reason,
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+        type: result.context,
       });
     },
   });
@@ -110,8 +110,8 @@ export default async function registerRoutes(
 
       const result = await getMember(orgName, memberId, serviceOptions);
       if (!result.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-          type: result.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+          type: result.context,
         });
         return;
       }
@@ -138,8 +138,8 @@ export default async function registerRoutes(
 
       const getMemberResult = await getMember(orgName, memberId, serviceOptions);
       if (!getMemberResult.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.reason]).send({
-          type: getMemberResult.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.context]).send({
+          type: getMemberResult.context,
         });
         return;
       }
@@ -169,8 +169,8 @@ export default async function registerRoutes(
 
       const getMemberResult = await getMember(orgName, memberId, serviceOptions);
       if (!getMemberResult.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.reason]).send({
-          type: getMemberResult.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getMemberResult.context]).send({
+          type: getMemberResult.context,
         });
         return;
       }
@@ -184,8 +184,8 @@ export default async function registerRoutes(
         return;
       }
 
-      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-        type: result.reason,
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+        type: result.context,
       });
     },
   });
