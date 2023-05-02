@@ -130,7 +130,7 @@ describe('memberBundle', () => {
       expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member bundle request created', {
-          publicKeyId: memberPublicKey._id.toString(),
+          memberPublicKeyId: memberPublicKey._id.toString(),
         }),
       );
     });
