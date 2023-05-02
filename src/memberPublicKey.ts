@@ -30,7 +30,7 @@ export async function createMemberPublicKey(
     );
     return {
       didSucceed: false,
-      reason: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+      context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
     };
   }
 
@@ -90,7 +90,7 @@ export async function getMemberPublicKey(
   if (memberPublicKey === null || memberPublicKey.memberId !== memberId) {
     return {
       didSucceed: false,
-      reason: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
+      context: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
     };
   }
   return {

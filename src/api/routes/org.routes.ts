@@ -67,8 +67,8 @@ export default async function registerRoutes(
         return;
       }
 
-      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-        type: result.reason,
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+        type: result.context,
       });
     },
   });
@@ -91,8 +91,8 @@ export default async function registerRoutes(
 
       const getOrgResult = await getOrg(orgName, serviceOptions);
       if (!getOrgResult.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[getOrgResult.reason]).send({
-          type: getOrgResult.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getOrgResult.context]).send({
+          type: getOrgResult.context,
         });
         return;
       }
@@ -103,8 +103,8 @@ export default async function registerRoutes(
         return;
       }
 
-      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-        type: result.reason,
+      await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+        type: result.context,
       });
     },
   });
@@ -126,8 +126,8 @@ export default async function registerRoutes(
 
       const result = await getOrg(orgName, serviceOptions);
       if (!result.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-          type: result.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+          type: result.context,
         });
         return;
       }
@@ -153,8 +153,8 @@ export default async function registerRoutes(
 
       const getOrgResult = await getOrg(orgName, serviceOptions);
       if (!getOrgResult.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[getOrgResult.reason]).send({
-          type: getOrgResult.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[getOrgResult.context]).send({
+          type: getOrgResult.context,
         });
         return;
       }
@@ -162,8 +162,8 @@ export default async function registerRoutes(
       const result = await deleteOrg(orgName, serviceOptions);
 
       if (!result.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-          type: result.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+          type: result.context,
         });
         return;
       }

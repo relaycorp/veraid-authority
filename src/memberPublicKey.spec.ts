@@ -82,7 +82,7 @@ describe('member public key', () => {
       );
 
       requireFailureResult(memberPublicKey);
-      expect(memberPublicKey.reason).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
+      expect(memberPublicKey.context).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
     });
   });
 
@@ -118,7 +118,7 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(MEMBER_MONGO_ID, invalidPublicKeyId, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
@@ -132,7 +132,7 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
   });
 

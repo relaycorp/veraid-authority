@@ -206,7 +206,7 @@ describe('memberBundleIssuance', () => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: {
+        context: {
           shouldRetry: true,
         },
       });
@@ -241,7 +241,7 @@ describe('memberBundleIssuance', () => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: {
+        context: {
           shouldRetry: false,
         },
       });
@@ -293,7 +293,7 @@ describe('memberBundleIssuance', () => {
     const awalaReason = 'Some random reason';
     mockPostToAwala.mockResolvedValueOnce({
       didSucceed: false,
-      reason: awalaReason,
+      context: awalaReason,
     });
 
     await postEvent(triggerEvent, server);
