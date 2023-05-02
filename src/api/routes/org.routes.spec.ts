@@ -75,7 +75,7 @@ describe('org routes', () => {
       const payload: OrgSchema = { name: ORG_NAME };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.EXISTING_ORG_NAME,
+        context: OrgProblemType.EXISTING_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -91,7 +91,7 @@ describe('org routes', () => {
       const payload: OrgSchema = { name: 'MALFORMED_NAME' };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.MALFORMED_ORG_NAME,
+        context: OrgProblemType.MALFORMED_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -163,7 +163,7 @@ describe('org routes', () => {
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       mockUpdateOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.INVALID_ORG_NAME,
+        context: OrgProblemType.INVALID_ORG_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -179,7 +179,7 @@ describe('org routes', () => {
       const payload: OrgSchemaPatch = {};
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -235,7 +235,7 @@ describe('org routes', () => {
     test('Non existing name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -297,7 +297,7 @@ describe('org routes', () => {
     test('Non existing name should resolve into not found status', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
-        reason: OrgProblemType.ORG_NOT_FOUND,
+        context: OrgProblemType.ORG_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -308,6 +308,28 @@ describe('org routes', () => {
       expect(mockDeleteOrg).not.toHaveBeenCalled();
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
       expect(response.json()).toHaveProperty('type', OrgProblemType.ORG_NOT_FOUND);
+    });
+
+    test.each([
+      ['Existing org members', OrgProblemType.EXISTING_MEMBERS],
+      ['Last member not admin', OrgProblemType.LAST_MEMBER_NOT_ADMIN],
+    ])('%s should should be refused', async (_type, reason) => {
+      mockGetOrg.mockResolvedValueOnce({
+        didSucceed: true,
+        result: { name: ORG_NAME },
+      });
+      mockDeleteOrg.mockResolvedValueOnce({
+        didSucceed: false,
+        context: reason,
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        url: `/orgs/${ORG_NAME}`,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.FAILED_DEPENDENCY);
+      expect(response.json()).toHaveProperty('type', reason);
     });
   });
 });

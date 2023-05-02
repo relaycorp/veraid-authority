@@ -10,7 +10,12 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
-import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from '../../testUtils/stubs.js';
+import {
+  AWALA_PDA,
+  MEMBER_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
+  SIGNATURE,
+} from '../../testUtils/stubs.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
@@ -156,6 +161,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -167,7 +173,7 @@ describe('memberBundleIssuance', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Removed Bundle Request', {
           eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
@@ -200,7 +206,7 @@ describe('memberBundleIssuance', () => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: {
+        context: {
           shouldRetry: true,
         },
       });
@@ -218,6 +224,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -234,7 +241,7 @@ describe('memberBundleIssuance', () => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: {
+        context: {
           shouldRetry: false,
         },
       });
@@ -252,6 +259,7 @@ describe('memberBundleIssuance', () => {
         awalaPda: Buffer.from(AWALA_PDA, 'base64'),
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
+        memberId: MEMBER_MONGO_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -263,7 +271,7 @@ describe('memberBundleIssuance', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Removed Bundle Request', {
           eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
@@ -275,6 +283,7 @@ describe('memberBundleIssuance', () => {
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
       signature: Buffer.from(SIGNATURE, 'base64'),
       memberBundleStartDate: new Date(),
+      memberId: MEMBER_MONGO_ID,
     });
     const memberBundle = stringToArrayBuffer('memberBundle');
     mockGenerateMemberBundle.mockResolvedValueOnce({
@@ -284,7 +293,7 @@ describe('memberBundleIssuance', () => {
     const awalaReason = 'Some random reason';
     mockPostToAwala.mockResolvedValueOnce({
       didSucceed: false,
-      reason: awalaReason,
+      context: awalaReason,
     });
 
     await postEvent(triggerEvent, server);

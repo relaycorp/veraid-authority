@@ -25,7 +25,7 @@ export default async function memberBundleIssuance(
   }
 
   const memberBundle = await generateMemberBundle(validatedData.publicKeyId, options);
-  if (!memberBundle.didSucceed && memberBundle.reason.shouldRetry) {
+  if (!memberBundle.didSucceed && memberBundle.context.shouldRetry) {
     return;
   }
 
@@ -48,7 +48,7 @@ export default async function memberBundleIssuance(
 
     if (!awalaResponse.didSucceed) {
       options.logger.info(
-        { eventId: event.id, reason: awalaResponse.reason },
+        { eventId: event.id, reason: awalaResponse.context },
         'Failed to post member bundle to Awala',
       );
       return;
@@ -58,11 +58,11 @@ export default async function memberBundleIssuance(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  await memberBundleRequestModel.deleteMany({
+  await memberBundleRequestModel.deleteOne({
     publicKeyId: validatedData.publicKeyId,
   });
   options.logger.info(
-    { eventId: event.id, publicKeyId: validatedData.publicKeyId },
+    { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
     'Removed Bundle Request',
   );
 }

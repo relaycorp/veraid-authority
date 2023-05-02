@@ -9,10 +9,12 @@ import { OrgModelSchema } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
+  AWALA_PDA,
   MEMBER_MONGO_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   ORG_NAME,
+  SIGNATURE,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
@@ -23,10 +25,12 @@ import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { stringToArrayBuffer } from './testUtils/buffer.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import type { MemberBundleRequest } from './schemas/awala.schema.js';
 
 import SpiedFunction = jest.SpiedFunction;
 
-const { generateMemberBundle } = await import('./memberBundle.js');
+const { generateMemberBundle, createMemberBundleRequest } = await import('./memberBundle.js');
 const {
   selfIssueOrganisationCertificate,
   issueMemberCertificate,
@@ -35,6 +39,8 @@ const {
 } = mockedVeraidModule;
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
+const { publicKey: testPublicKey } = await generateKeyPair();
+const testPublicKeyBuffer = await derSerialisePublicKey(testPublicKey);
 
 describe('memberBundle', () => {
   const getConnection = setUpTestDbConnection();
@@ -79,6 +85,106 @@ describe('memberBundle', () => {
     });
     memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
       existingConnection: connection,
+    });
+  });
+
+  describe('createMemberBundleRequest', () => {
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
+    let futureTimestamp: string;
+    let methodInput: MemberBundleRequest;
+    beforeEach(async () => {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+        existingConnection: connection,
+      });
+
+      memberPublicKey = await memberPublicKeyModel.create({
+        memberId: MEMBER_MONGO_ID,
+        serviceOid: TEST_SERVICE_OID,
+        publicKey: testPublicKeyBuffer,
+      });
+
+      futureTimestamp = addSeconds(new Date(), 5).toISOString();
+      methodInput = {
+        publicKeyId: memberPublicKey._id.toString(),
+        memberBundleStartDate: futureTimestamp,
+        awalaPda: AWALA_PDA,
+        signature: SIGNATURE,
+      };
+    });
+
+    test('Valid data should be accepted and stored', async () => {
+      const result = await createMemberBundleRequest(methodInput, serviceOptions);
+
+      const dbResult = await memberBundleRequestModel.findOne({
+        publicKeyId: memberPublicKey._id.toString(),
+      });
+      expect(result).toStrictEqual({
+        didSucceed: true,
+      });
+      expect(dbResult).not.toBeNull();
+      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.awalaPda.toString('base64')).toBe(AWALA_PDA);
+      expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
+      expect(dbResult!.memberBundleStartDate).toBeDate();
+      expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member bundle request created', {
+          memberPublicKeyId: memberPublicKey._id.toString(),
+        }),
+      );
+    });
+
+    test('Member bundle data should be updated', async () => {
+      const data = {
+        publicKeyId: memberPublicKey._id.toString(),
+        memberBundleStartDate: new Date(),
+        signature: 'test',
+        awalaPda: 'test',
+        memberId: MEMBER_MONGO_ID,
+      };
+      await memberBundleRequestModel.create(data);
+
+      await createMemberBundleRequest(methodInput, serviceOptions);
+      const dbResult = await memberBundleRequestModel.findOne({
+        publicKeyId: memberPublicKey._id.toString(),
+      });
+      expect(dbResult).not.toBeNull();
+      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.awalaPda.toString('base64')).toBe(AWALA_PDA);
+      expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
+      expect(dbResult!.memberBundleStartDate).toBeDate();
+      expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);
+    });
+
+    test('Existing data should not create new entry', async () => {
+      await memberBundleRequestModel.create({
+        ...methodInput,
+        memberId: MEMBER_MONGO_ID,
+      });
+
+      await createMemberBundleRequest(methodInput, serviceOptions);
+
+      const countResult = await memberBundleRequestModel.count({
+        publicKeyId: memberPublicKey._id.toString(),
+      });
+      expect(countResult).toBe(1);
+    });
+
+    test('Non existing public key id should be refused', async () => {
+      const result = await createMemberBundleRequest(
+        {
+          ...methodInput,
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        },
+        serviceOptions,
+      );
+
+      expect(result.didSucceed).not.toBeTrue();
+      const dbResult = await memberBundleRequestModel.exists({
+        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+      });
+      expect(dbResult).toBeNull();
     });
   });
 
@@ -291,10 +397,10 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key not found', {
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
@@ -308,7 +414,7 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member not found', { memberId: MEMBER_MONGO_ID }),
       );
@@ -328,7 +434,7 @@ describe('memberBundle', () => {
       const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason.shouldRetry).not.toBeTrue();
+      expect(result.context.shouldRetry).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Org not found', { orgName: ORG_NAME }),
       );
@@ -362,7 +468,7 @@ describe('memberBundle', () => {
         const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
         requireFailureResult(result);
-        expect(result.reason.shouldRetry).toBeTrue();
+        expect(result.context.shouldRetry).toBeTrue();
         expect(mockLogging.logs).toContainEqual(
           partialPinoLog('warn', 'Failed to retrieve DNSSEC chain', {
             memberPublicKeyId,

@@ -1,16 +1,20 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import type { Connection } from 'mongoose';
+import type { Connection, HydratedDocument } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
+  AWALA_PDA,
   MEMBER_EMAIL,
   MEMBER_MONGO_ID,
   MEMBER_NAME,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
   NON_ASCII_MEMBER_NAME,
   NON_ASCII_ORG_NAME,
   ORG_NAME,
+  SIGNATURE,
+  TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberModelSchema, Role } from './models/Member.model.js';
@@ -24,6 +28,14 @@ import { getPromiseRejection } from './testUtils/jest.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { ROLE_MAPPING } from './memberTypes.js';
 import { MemberProblemType } from './MemberProblemType.js';
+import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { generateKeyPair } from './testUtils/webcrypto.js';
+import { derSerialisePublicKey } from './utilities/webcrypto.js';
+import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+
+const { publicKey } = await generateKeyPair();
+const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 
 describe('member', () => {
   const getConnection = setUpTestDbConnection();
@@ -62,7 +74,10 @@ describe('member', () => {
         requireSuccessfulResult(member);
         expect(dbResult?.id).toStrictEqual(member.result.id);
         expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('info', 'Member created', { orgName: ORG_NAME }),
+          partialPinoLog('info', 'Member created', {
+            orgName: ORG_NAME,
+            memberId: member.result.id,
+          }),
         );
       },
     );
@@ -140,7 +155,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: MEMBER_NAME,
@@ -158,7 +173,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,
@@ -218,7 +233,7 @@ describe('member', () => {
       const result = await getMember('INVALID_ORG_NAME', member._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
     });
 
     test('Invalid member id should return non existing error', async () => {
@@ -230,7 +245,7 @@ describe('member', () => {
       const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
@@ -262,7 +277,7 @@ describe('member', () => {
       const dbResult = await memberModel.findById(member._id);
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member deleted', { id: member._id.toString() }),
+        partialPinoLog('info', 'Member deleted', { memberId: member._id.toString() }),
       );
     });
 
@@ -287,6 +302,125 @@ describe('member', () => {
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
+    });
+
+    describe('Related records', () => {
+      let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
+      let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+      let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
+      let member: HydratedDocument<MemberModelSchema>;
+
+      beforeEach(async () => {
+        memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+          existingConnection: connection,
+        });
+        memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+          existingConnection: connection,
+        });
+        memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+          existingConnection: connection,
+        });
+        member = await memberModel.create({
+          role: Role.ORG_ADMIN,
+          orgName: ORG_NAME,
+        });
+      });
+
+      test('Related public keys should be removed', async () => {
+        await memberPublicKeyModel.create({
+          memberId: member.id,
+          publicKey: publicKeyBuffer,
+          serviceOid: TEST_SERVICE_OID,
+        });
+        await memberPublicKeyModel.create({
+          memberId: member.id,
+          publicKey: publicKeyBuffer,
+          serviceOid: TEST_SERVICE_OID,
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const memberPublicKeysCount = await memberPublicKeyModel.count();
+        expect(memberPublicKeysCount).toBe(0);
+      });
+
+      test('Non related public keys should not be removed', async () => {
+        const memberPublicKey = await memberPublicKeyModel.create({
+          memberId: MEMBER_MONGO_ID,
+          publicKey: publicKeyBuffer,
+          serviceOid: TEST_SERVICE_OID,
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const dbResult = await memberPublicKeyModel.findById(memberPublicKey._id);
+        expect(dbResult).not.toBeNull();
+      });
+
+      test('Related key import tokens should be removed', async () => {
+        await memberKeyImportTokenModel.create({
+          memberId: member.id,
+          serviceOid: TEST_SERVICE_OID,
+        });
+        await memberKeyImportTokenModel.create({
+          memberId: member.id,
+          serviceOid: TEST_SERVICE_OID,
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const memberKeyImportTokenCount = await memberKeyImportTokenModel.count();
+        expect(memberKeyImportTokenCount).toBe(0);
+      });
+
+      test('Non related key import tokens should not be removed', async () => {
+        const memberKeyImportToken = await memberKeyImportTokenModel.create({
+          memberId: MEMBER_MONGO_ID,
+          serviceOid: TEST_SERVICE_OID,
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const dbResult = await memberKeyImportTokenModel.findById(memberKeyImportToken._id);
+        expect(dbResult).not.toBeNull();
+      });
+
+      test('Related member bundle requests should be removed', async () => {
+        await memberBundleRequestModel.create({
+          memberId: member.id,
+          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          signature: Buffer.from(SIGNATURE, 'base64'),
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberBundleStartDate: new Date(),
+        });
+        await memberBundleRequestModel.create({
+          memberId: member.id,
+          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          signature: Buffer.from(SIGNATURE, 'base64'),
+          publicKeyId: '111111111111111111111111',
+          memberBundleStartDate: new Date(),
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const memberBundleRequestCount = await memberBundleRequestModel.count();
+        expect(memberBundleRequestCount).toBe(0);
+      });
+
+      test('Non related member bundle requests should not be removed', async () => {
+        const memberBundleRequest = await memberBundleRequestModel.create({
+          memberId: MEMBER_MONGO_ID,
+          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          signature: Buffer.from(SIGNATURE, 'base64'),
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          memberBundleStartDate: new Date(),
+        });
+
+        await deleteMember(member._id.toString(), serviceOptions);
+
+        const dbResult = await memberBundleRequestModel.findById(memberBundleRequest._id);
+        expect(dbResult).not.toBeNull();
+      });
     });
   });
 
@@ -318,7 +452,7 @@ describe('member', () => {
       expect(dbResult?.email).toBe(testEmail);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member updated', {
-          id: member._id.toString(),
+          memberId: member._id.toString(),
         }),
       );
     });
@@ -340,7 +474,7 @@ describe('member', () => {
       expect(dbResult?.email).toBe(MEMBER_EMAIL);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member updated', {
-          id: member._id.toString(),
+          memberId: member._id.toString(),
         }),
       );
     });
@@ -433,7 +567,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: NON_ASCII_MEMBER_NAME,
@@ -458,7 +592,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,

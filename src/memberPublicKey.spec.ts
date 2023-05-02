@@ -4,8 +4,10 @@ import type { Connection } from 'mongoose';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
+  AWALA_PDA,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
+  SIGNATURE,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
@@ -19,6 +21,7 @@ import {
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -63,7 +66,7 @@ describe('member public key', () => {
       expect(dbResult!.creationDate).toBeBetween(commandRunTime, new Date());
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key created', {
-          id: memberPublicKey.result.id,
+          memberPublicKeyId: memberPublicKey.result.id,
         }),
       );
     });
@@ -79,7 +82,7 @@ describe('member public key', () => {
       );
 
       requireFailureResult(memberPublicKey);
-      expect(memberPublicKey.reason).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
+      expect(memberPublicKey.context).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
     });
   });
 
@@ -115,7 +118,7 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(MEMBER_MONGO_ID, invalidPublicKeyId, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
@@ -129,17 +132,25 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
     });
   });
 
   describe('deleteMemberPublicKey', () => {
-    test('Existing id should remove member public key', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    const memberPublicKeyData = {
+      memberId: MEMBER_MONGO_ID,
+      publicKey: publicKeyBuffer,
+      serviceOid: TEST_SERVICE_OID,
+    };
+    beforeEach(() => {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+        existingConnection: connection,
       });
+    });
+
+    test('Existing id should remove member public key', async () => {
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
 
@@ -148,22 +159,52 @@ describe('member public key', () => {
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key deleted', {
-          id: memberPublicKey.id,
+          memberPublicKeyId: memberPublicKey.id,
         }),
       );
     });
 
     test('Non existing id should not remove any member public key', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
-        publicKey: publicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
 
       const result = await deleteMemberPublicKey(PUBLIC_KEY_ID, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey.id);
+      expect(dbResult).not.toBeNull();
+    });
+
+    test('Related bundle request should be removed', async () => {
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
+      const memberBundleRequest = await memberBundleRequestModel.create({
+        memberBundleStartDate: new Date(),
+        signature: Buffer.from(SIGNATURE, 'base64'),
+        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        publicKeyId: memberPublicKey._id,
+        memberId: MEMBER_MONGO_ID,
+      });
+
+      const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberBundleRequestModel.findById(memberBundleRequest._id);
+      expect(dbResult).toBeNull();
+    });
+
+    test('Unrelated bundle request should not be removed', async () => {
+      const memberPublicKey = await memberPublicKeyModel.create(memberPublicKeyData);
+      const memberBundleRequest = await memberBundleRequestModel.create({
+        memberBundleStartDate: new Date(),
+        signature: Buffer.from(SIGNATURE, 'base64'),
+        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        publicKeyId: PUBLIC_KEY_ID,
+        memberId: MEMBER_MONGO_ID,
+      });
+
+      const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
+
+      requireSuccessfulResult(result);
+      const dbResult = await memberBundleRequestModel.findById(memberBundleRequest._id);
       expect(dbResult).not.toBeNull();
     });
   });

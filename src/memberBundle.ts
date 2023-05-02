@@ -15,6 +15,8 @@ import { Kms } from './utilities/kms/Kms.js';
 import { OrgModelSchema } from './models/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
+import type { MemberBundleRequest } from './schemas/awala.schema.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 interface BundleCreationInput {
@@ -75,6 +77,54 @@ async function generateBundle(
   return serialiseMemberIdBundle(memberCertificate, orgCertificate, dnssecChain);
 }
 
+export async function createMemberBundleRequest(
+  requestData: MemberBundleRequest,
+  options: ServiceOptions,
+): Promise<Result<undefined, undefined>> {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const publicKey = await memberPublicKeyModel.findById(requestData.publicKeyId);
+
+  if (!publicKey) {
+    options.logger.info(
+      { memberPublicKeyId: requestData.publicKeyId },
+      'Member public key not found',
+    );
+    return {
+      didSucceed: false,
+    };
+  }
+
+  await memberBundleRequestModel.updateOne(
+    {
+      publicKeyId: requestData.publicKeyId,
+    },
+    {
+      publicKeyId: requestData.publicKeyId,
+      memberBundleStartDate: new Date(requestData.memberBundleStartDate),
+      signature: Buffer.from(requestData.signature, 'base64'),
+      awalaPda: Buffer.from(requestData.awalaPda, 'base64'),
+      memberId: publicKey.memberId,
+    },
+    {
+      upsert: true,
+    },
+  );
+
+  options.logger.info(
+    { memberPublicKeyId: requestData.publicKeyId },
+    'Member bundle request created',
+  );
+
+  return {
+    didSucceed: true,
+  };
+}
+
 export async function generateMemberBundle(
   publicKeyId: string,
   options: ServiceOptions,
@@ -102,14 +152,14 @@ export async function generateMemberBundle(
   if (!memberPublicKey) {
     options.logger.info(
       {
-        publicKeyId,
+        memberPublicKeyId: publicKeyId,
       },
       'Member public key not found',
     );
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -125,7 +175,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -142,7 +192,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: false,
       },
     };
@@ -164,7 +214,7 @@ export async function generateMemberBundle(
     return {
       didSucceed: false,
 
-      reason: {
+      context: {
         shouldRetry: true,
       },
     };

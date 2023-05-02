@@ -1,41 +1,9 @@
-import { getModelForClass } from '@typegoose/typegoose';
-
-import type { Result, SuccessfulResult } from './utilities/result.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import type { MemberBundleRequest } from './schemas/awala.schema.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import type { Result } from './utilities/result.js';
+import { VeraidContentType } from './utilities/veraid.js';
+import { AwalaContentType } from './utilities/awala.js';
 
 const contentTypeHeaderName = 'content-type';
 const awalaRecipientHeaderName = 'X-Awala-Recipient';
-
-export async function createMemberBundleRequest(
-  requestData: MemberBundleRequest,
-  options: ServiceOptions,
-): Promise<SuccessfulResult<undefined>> {
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
-    existingConnection: options.dbConnection,
-  });
-  await memberBundleRequestModel.updateOne(
-    {
-      publicKeyId: requestData.publicKeyId,
-    },
-    {
-      publicKeyId: requestData.publicKeyId,
-      memberBundleStartDate: new Date(requestData.memberBundleStartDate),
-      signature: Buffer.from(requestData.signature, 'base64'),
-      awalaPda: Buffer.from(requestData.awalaPda, 'base64'),
-    },
-    {
-      upsert: true,
-    },
-  );
-
-  options.logger.info({ publicKeyId: requestData.publicKeyId }, 'Member bundle request created');
-
-  return {
-    didSucceed: true,
-  };
-}
 
 export async function postToAwala(
   data: BodyInit,
@@ -44,7 +12,7 @@ export async function postToAwala(
 ): Promise<Result<undefined, string>> {
   const pdaResponse = await fetch(awalaMiddlewareUrl, {
     method: 'POST',
-    headers: { [contentTypeHeaderName]: 'application/vnd+relaycorp.awala.pda-path' },
+    headers: { [contentTypeHeaderName]: AwalaContentType.PDA },
     body: awalaPda,
   });
   const { recipientId } = (await pdaResponse.json()) as {
@@ -54,7 +22,7 @@ export async function postToAwala(
   if (!recipientId) {
     return {
       didSucceed: false,
-      reason: 'Recipient id was missing from Awala PDA import response',
+      context: 'Recipient id was missing from Awala PDA import response',
     };
   }
 
@@ -63,7 +31,7 @@ export async function postToAwala(
     method: 'POST',
 
     headers: {
-      [contentTypeHeaderName]: 'application/vnd.veraid.member-bundle',
+      [contentTypeHeaderName]: VeraidContentType.MEMBER_BUNDLE,
       [awalaRecipientHeaderName]: recipientId,
     },
   });

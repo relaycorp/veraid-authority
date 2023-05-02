@@ -74,7 +74,7 @@ describe('member key import token', () => {
       expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member key import token created', {
-          id: meberKeyImportToken.result.id,
+          memberKeyImportToken: meberKeyImportToken.result.id,
         }),
       );
     });
@@ -141,7 +141,7 @@ describe('member key import token', () => {
       expect(importTokenCount).toBe(0);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token deleted', {
-          token: keyImportToken._id.toString(),
+          memberKeyImportToken: keyImportToken._id.toString(),
         }),
       );
     });
@@ -196,10 +196,10 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token not found', {
-          token: invalidToken,
+          memberKeyImportToken: invalidToken,
         }),
       );
     });
@@ -211,7 +211,7 @@ describe('member key import token', () => {
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
       });
 
       const result = await processMemberKeyImportToken(
@@ -224,7 +224,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.reason).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
+      expect(result.context).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
       expect(mockCreateMemberPublicKey).toHaveBeenCalledOnceWith(
         MEMBER_MONGO_ID,
         {

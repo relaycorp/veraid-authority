@@ -188,7 +188,7 @@ describe('member routes', () => {
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: MemberProblemType.MALFORMED_MEMBER_NAME,
+        context: MemberProblemType.MALFORMED_MEMBER_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -208,7 +208,7 @@ describe('member routes', () => {
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: false,
 
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -260,7 +260,7 @@ describe('member routes', () => {
     test('Non existing member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblemType.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
@@ -314,7 +314,7 @@ describe('member routes', () => {
     test('Non existing org name or member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblemType.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
@@ -418,7 +418,7 @@ describe('member routes', () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
       mockUpdateMember.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberProblemType.MALFORMED_MEMBER_NAME,
+        context: MemberProblemType.MALFORMED_MEMBER_NAME,
       });
       const payload: PatchMemberSchema = {
         name: `@${MEMBER_NAME}`,
@@ -437,7 +437,7 @@ describe('member routes', () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
       mockUpdateMember.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       });
       const payload: PatchMemberSchema = {
         name: `@${MEMBER_NAME}`,
@@ -455,7 +455,7 @@ describe('member routes', () => {
     test('Non existing org name or member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        reason: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblemType.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({

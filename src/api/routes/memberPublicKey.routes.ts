@@ -76,8 +76,8 @@ export default function registerRoutes(
         dbConnection: this.mongoose,
       });
       if (!result.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.reason]).send({
-          type: result.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({
+          type: result.context,
         });
         return;
       }
@@ -103,8 +103,8 @@ export default function registerRoutes(
 
       const memberPublicKey = await getMemberPublicKey(memberId, memberPublicKeyId, serviceOptions);
       if (!memberPublicKey.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[memberPublicKey.reason]).send({
-          type: memberPublicKey.reason,
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[memberPublicKey.context]).send({
+          type: memberPublicKey.context,
         });
         return;
       }

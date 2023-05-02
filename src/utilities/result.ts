@@ -2,10 +2,9 @@ interface BaseResult {
   readonly didSucceed: boolean;
 }
 
-export interface FailureResult<Reason> extends BaseResult {
-  readonly didSucceed: false;
-  readonly reason: Reason;
-}
+export type FailureResult<Reason> = Reason extends undefined
+  ? BaseResult & { readonly didSucceed: false }
+  : BaseResult & { readonly didSucceed: false; readonly context: Reason };
 
 export type SuccessfulResult<Result> = Result extends undefined
   ? BaseResult & { readonly didSucceed: true }

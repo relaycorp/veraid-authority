@@ -8,6 +8,9 @@ import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js
 import { MemberModelSchema } from './models/Member.model.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
+import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
 
 function validateMemberData(
   memberData: PatchMemberSchema,
@@ -31,7 +34,7 @@ export async function createMember(
 ): Promise<Result<MemberCreationResult, MemberProblemType>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: options.dbConnection,
@@ -46,13 +49,13 @@ export async function createMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;
   }
 
-  options.logger.info({ orgName }, 'Member created');
+  options.logger.info({ orgName, memberId: member.id }, 'Member created');
   return {
     didSucceed: true,
     result: { id: member.id },
@@ -72,7 +75,7 @@ export async function getMember(
   if (member === null || member.orgName !== orgName) {
     return {
       didSucceed: false,
-      reason: MemberProblemType.MEMBER_NOT_FOUND,
+      context: MemberProblemType.MEMBER_NOT_FOUND,
     };
   }
 
@@ -91,13 +94,36 @@ export async function deleteMember(
   memberId: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberProblemType>> {
+  const memberKeyImportToken = getModelForClass(MemberKeyImportTokenModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    existingConnection: options.dbConnection,
+  });
+  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+    existingConnection: options.dbConnection,
+  });
   const memberModel = getModelForClass(MemberModelSchema, {
     existingConnection: options.dbConnection,
   });
 
+  // Defer the member deletion until the end to make retries possible, in case we fail to delete dependant records.
+  await memberKeyImportToken.deleteMany({
+    memberId,
+  });
+
+  // Defer public key deletion until bundle requests are deleted
+  await memberBundleRequestModel.deleteMany({
+    memberId,
+  });
+
+  await memberPublicKey.deleteMany({
+    memberId,
+  });
+
   await memberModel.findByIdAndDelete(memberId);
 
-  options.logger.info({ id: memberId }, 'Member deleted');
+  options.logger.info({ memberId }, 'Member deleted');
   return {
     didSucceed: true,
   };
@@ -110,7 +136,7 @@ export async function updateMember(
 ): Promise<Result<undefined, MemberProblemType>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
-    return { didSucceed: false, reason: validationFailure };
+    return { didSucceed: false, context: validationFailure };
   }
 
   const memberModel = getModelForClass(MemberModelSchema, {
@@ -126,13 +152,13 @@ export async function updateMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        reason: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblemType.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;
   }
 
-  options.logger.info({ id: memberId }, 'Member updated');
+  options.logger.info({ memberId }, 'Member updated');
   return {
     didSucceed: true,
   };

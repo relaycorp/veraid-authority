@@ -28,7 +28,10 @@ export async function createMemberKeyImportToken(
     serviceOid,
   });
 
-  options.logger.info({ id: memberKeyImportToken.id }, 'Member key import token created');
+  options.logger.info(
+    { memberKeyImportToken: memberKeyImportToken.id },
+    'Member key import token created',
+  );
   return {
     didSucceed: true,
 
@@ -51,12 +54,12 @@ export async function processMemberKeyImportToken(
   );
   if (!memberKeyImportToken) {
     options.logger.info(
-      { token: keyImportData.publicKeyImportToken },
+      { memberKeyImportToken: keyImportData.publicKeyImportToken },
       'Member public key import token not found',
     );
     return {
       didSucceed: false,
-      reason: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
+      context: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
     };
   }
 
@@ -72,7 +75,7 @@ export async function processMemberKeyImportToken(
   if (!publicKeyCreationResult.didSucceed) {
     return {
       didSucceed: false,
-      reason: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
+      context: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
     };
   }
 
@@ -91,7 +94,7 @@ export async function processMemberKeyImportToken(
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportData.publicKeyImportToken);
   options.logger.info(
-    { token: keyImportData.publicKeyImportToken },
+    { memberKeyImportToken: keyImportData.publicKeyImportToken },
     'Member public key import token deleted',
   );
   return {

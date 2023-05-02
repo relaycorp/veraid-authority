@@ -2,18 +2,20 @@
 
 import { randomUUID } from 'node:crypto';
 
-import { createConnection, type Connection, type ConnectOptions } from 'mongoose';
+import { createConnection, type Connection, type ConnectOptions, STATES } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
 import { OrgModelSchema } from '../models/Org.model.js';
 import { MemberModelSchema } from '../models/Member.model.js';
 import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
 import { MemberKeyImportTokenModelSchema } from '../models/MemberKeyImportToken.model.js';
+import { MemberBundleRequestModelSchema } from '../models/MemberBundleRequest.model.js';
 
 const MODEL_SCHEMAS = Object.values([
   OrgModelSchema,
   MemberModelSchema,
   MemberPublicKeyModelSchema,
+  MemberBundleRequestModelSchema,
   MemberKeyImportTokenModelSchema,
 ]).filter((schema) => typeof schema === 'function');
 
@@ -34,13 +36,13 @@ export function setUpTestDbConnection(): () => Connection {
   });
 
   beforeEach(async () => {
-    if (connection.readyState === 0) {
+    if (connection.readyState === STATES.disconnected) {
       connection = await connect();
     }
   });
 
   afterEach(async () => {
-    if (connection.readyState === 0) {
+    if (connection.readyState === STATES.disconnected) {
       // The test closed the connection, so we shouldn't just reconnect, but also purge TypeGoose'
       // model cache because every item there is bound to the old connection.
       MODEL_SCHEMAS.forEach(deleteModelWithClass);

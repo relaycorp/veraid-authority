@@ -5,6 +5,9 @@ export class MemberBundleRequestModelSchema {
   public publicKeyId!: string;
 
   @prop({ required: true })
+  public memberId!: string;
+
+  @prop({ required: true })
   public memberBundleStartDate!: Date;
 
   @prop({ required: true })

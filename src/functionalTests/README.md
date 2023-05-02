@@ -2,10 +2,12 @@
 
 As functional tests, the tests in this directory must adhere to the following constraints:
 
-- Mocks or spies can't be used -- at least not on the code under test.
-- The code under test must not be imported: If we need to use it, it must be run as a separate process.
-- The executed code must not count towards the unit test coverage.
+- The app must be tested over the network.
+- Backing services shouldn't be accessed from the tests, except for:
+  - Auth server: to obtain a valid access token.
+  - Any service that we must mock with [MockServer](https://mock-server.com).
+- The executed code must not count towards the **unit** test coverage.
 
-## Fixture isolation
+## End-to-end tests
 
-In order to give each test its own isolated fixture, a new private gateway should be registered on each test.
+The end-to-end tests are runs with a **real** VeraId organisation (`lib-testing.veraid.net`), which is used in all functional and integration tests in the project. Consequently, its private key is publicly available, but the VeraId TXT record locks it to the test service, so it has no validity in any other context.

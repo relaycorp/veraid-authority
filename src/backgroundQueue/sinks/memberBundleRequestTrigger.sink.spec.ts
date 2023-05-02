@@ -16,7 +16,12 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
-import { AWALA_PDA, MEMBER_PUBLIC_KEY_MONGO_ID, SIGNATURE } from '../../testUtils/stubs.js';
+import {
+  AWALA_PDA,
+  MEMBER_MONGO_ID,
+  MEMBER_PUBLIC_KEY_MONGO_ID,
+  SIGNATURE,
+} from '../../testUtils/stubs.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';
@@ -43,12 +48,14 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      memberId: MEMBER_MONGO_ID,
     };
     const requestData2 = {
       publicKeyId: mongoId,
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      memberId: MEMBER_MONGO_ID,
     };
     await memberBundleRequestModel.create(requestData1);
     await memberBundleRequestModel.create(requestData2);
@@ -110,6 +117,7 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: addDays(new Date(), range),
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      memberId: MEMBER_MONGO_ID,
     };
     await memberBundleRequestModel.create(requestData);
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
@@ -130,6 +138,7 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: addSeconds(addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE), 20),
       signature: SIGNATURE,
       awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      memberId: MEMBER_MONGO_ID,
     };
     const futureBundleRequest = await memberBundleRequestModel.create(data);
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
