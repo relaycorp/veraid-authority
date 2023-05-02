@@ -28,13 +28,10 @@ jest.unstable_mockModule('../../utilities/exitHandling.js', () => ({
   configureExitHandling: mockExitHandler,
 }));
 
-
-
-
 const mockSetErrorHandler = jest.fn().mockReturnValue({});
 
 jest.unstable_mockModule('./handler/setErrorHandler.js', () => ({
-  default: mockSetErrorHandler
+  default: mockSetErrorHandler,
 }));
 
 const { makeFastify, runFastify } = await import('./server.js');

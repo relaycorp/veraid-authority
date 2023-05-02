@@ -1,9 +1,8 @@
-import { HTTP_STATUS_CODES } from '../../http.js';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
-export default function setErrorHandler(
-  fastify: FastifyInstance,
-): void {
+import { HTTP_STATUS_CODES } from '../../http.js';
+
+export default function setErrorHandler(fastify: FastifyInstance): void {
   const internalServerError = 'Internal server error';
   fastify.setErrorHandler(async (error, _request, reply) => {
     if (
@@ -18,5 +17,4 @@ export default function setErrorHandler(
     fastify.log.error(error, internalServerError);
     await reply.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).send(internalServerError);
   });
-
 }

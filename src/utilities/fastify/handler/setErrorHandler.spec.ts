@@ -1,16 +1,15 @@
 import { jest } from '@jest/globals';
-import type { FastifyInstance } from 'fastify';
-
+import { type FastifyInstance, fastify } from 'fastify';
 import fastifyRoutes from '@fastify/routes';
+
 import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
 import { HTTP_STATUS_CODES } from '../../http.js';
 
-import { fastify } from 'fastify';
 import setErrorHandler from './setErrorHandler.js';
 
 describe('set Error Handler', () => {
   const mockLogging = makeMockLogging();
-  // configureMockEnvVars();
+
   let serverInstance: FastifyInstance;
   beforeEach(async () => {
     serverInstance = fastify({
@@ -18,7 +17,7 @@ describe('set Error Handler', () => {
     });
     await serverInstance.register(fastifyRoutes);
     setErrorHandler(serverInstance);
-  })
+  });
 
   test('Thrown error should be handled gracefully and logged', async () => {
     serverInstance.route({
@@ -29,8 +28,6 @@ describe('set Error Handler', () => {
         throw new Error('ERROR_MESSAGE');
       },
     });
-    serverInstance.ready();
-
     const response = await serverInstance.inject({ method: 'POST', url: '/5xx' });
 
     expect(response.headers['content-type']).toStartWith('text/plain');
@@ -65,7 +62,6 @@ describe('set Error Handler', () => {
 
       handler: jest.fn(),
     });
-
 
     const response = await serverInstance.inject({
       method: 'POST',
