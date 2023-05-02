@@ -74,7 +74,7 @@ describe('member key import token', () => {
       expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member key import token created', {
-          memberKeyImportTokenId: meberKeyImportToken.result.id,
+          memberKeyImportToken: meberKeyImportToken.result.id,
         }),
       );
     });
@@ -141,7 +141,7 @@ describe('member key import token', () => {
       expect(importTokenCount).toBe(0);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token deleted', {
-          memberKeyImportTokenId: keyImportToken._id.toString(),
+          memberKeyImportToken: keyImportToken._id.toString(),
         }),
       );
     });
@@ -199,7 +199,7 @@ describe('member key import token', () => {
       expect(result.reason).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token not found', {
-          memberKeyImportTokenId: invalidToken,
+          memberKeyImportToken: invalidToken,
         }),
       );
     });

@@ -29,7 +29,7 @@ export async function createMemberKeyImportToken(
   });
 
   options.logger.info(
-    { memberKeyImportTokenId: memberKeyImportToken.id },
+    { memberKeyImportToken: memberKeyImportToken.id },
     'Member key import token created',
   );
   return {
@@ -54,7 +54,7 @@ export async function processMemberKeyImportToken(
   );
   if (!memberKeyImportToken) {
     options.logger.info(
-      { memberKeyImportTokenId: keyImportData.publicKeyImportToken },
+      { memberKeyImportToken: keyImportData.publicKeyImportToken },
       'Member public key import token not found',
     );
     return {
@@ -94,7 +94,7 @@ export async function processMemberKeyImportToken(
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportData.publicKeyImportToken);
   options.logger.info(
-    { memberKeyImportTokenId: keyImportData.publicKeyImportToken },
+    { memberKeyImportToken: keyImportData.publicKeyImportToken },
     'Member public key import token deleted',
   );
   return {
