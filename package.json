@@ -21,7 +21,7 @@
     "@peculiar/webcrypto": "^1.4.3",
     "@relaycorp/dnssec": "^1.11.4",
     "@relaycorp/pino-cloud": "^1.0.28",
-    "@relaycorp/veraid": "^1.14.0",
+    "@relaycorp/veraid": "^1.14.2",
     "@relaycorp/webcrypto-kms": "^1.5.7",
     "@typegoose/typegoose": "^11.1.0",
     "ajv": "^8.12.0",
