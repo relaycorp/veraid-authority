@@ -35,7 +35,7 @@
     "is-valid-domain": "^0.1.6",
     "json-schema-to-ts": "^2.8.0",
     "mongoose": "^7.0.5",
-    "pino": "^8.11.0"
+    "pino": "^8.14.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
