@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import type { FastifyInstance } from 'fastify';
 import envVar from 'env-var';
-import fastifyOauth2Verify from 'fastify-auth0-verify';
+import fastifyJwtJwks from 'fastify-jwt-jwks';
 
 import { mockSpy } from '../../../testUtils/jest.js';
 import {
@@ -34,12 +34,12 @@ describe('jwks-authentication', () => {
     );
   });
 
-  test('OAUTH2_JWKS_URL should be used as the domain', async () => {
+  test('OAUTH2_JWKS_URL should be honoured', async () => {
     await jwksPlugin(mockFastify, {});
 
     expect(mockFastify.register).toHaveBeenCalledWith(
-      fastifyOauth2Verify,
-      expect.objectContaining({ domain: OAUTH2_JWKS_URL }),
+      fastifyJwtJwks,
+      expect.objectContaining({ jwksUrl: OAUTH2_JWKS_URL }),
     );
   });
 
@@ -85,7 +85,7 @@ describe('jwks-authentication', () => {
     await jwksPlugin(mockFastify, {});
 
     expect(mockFastify.register).toHaveBeenCalledWith(
-      fastifyOauth2Verify,
+      fastifyJwtJwks,
       expect.objectContaining({ issuer: OAUTH2_TOKEN_ISSUER }),
     );
   });
@@ -114,7 +114,7 @@ describe('jwks-authentication', () => {
     await jwksPlugin(mockFastify, {});
 
     expect(mockFastify.register).toHaveBeenCalledWith(
-      fastifyOauth2Verify,
+      fastifyJwtJwks,
       expect.objectContaining({ issuer: new RegExp(issuerRegex, 'u') }),
     );
   });
@@ -146,7 +146,7 @@ describe('jwks-authentication', () => {
     await jwksPlugin(mockFastify, {});
 
     expect(mockFastify.register).toHaveBeenCalledWith(
-      fastifyOauth2Verify,
+      fastifyJwtJwks,
       expect.objectContaining({ audience: OAUTH2_TOKEN_AUDIENCE }),
     );
   });
