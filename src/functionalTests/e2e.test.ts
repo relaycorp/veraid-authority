@@ -22,7 +22,7 @@ import { VeraidContentType } from '../utilities/veraid.js';
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage, STUB_AWALA_PDA } from './utils/awala.js';
+import { KEY_IMPORT_CONTENT_TYPE, PEER_ID, postAwalaMessage } from './utils/awala.js';
 import {
   getMockAwalaMiddlewareRequests,
   mockAwalaMiddleware,
@@ -103,7 +103,7 @@ async function claimKeyImportTokenViaAwala(
   const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
   const importMessage: MemberKeyImportRequest = {
     publicKey: publicKeyDer.toString('base64'),
-    awalaPda: STUB_AWALA_PDA.toString('base64'),
+    peerId: PEER_ID,
     publicKeyImportToken,
   };
   const requestBody = JSON.stringify(importMessage);

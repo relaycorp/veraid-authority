@@ -31,7 +31,7 @@ spec:
                   key: mongodb_password
             - name: MONGODB_URI
               value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb
-            - name: AWALA_MIDDLEWARE_ENDPOINT
+            - name: POHTTP_TLS_REQUIRED
               value: http://mock-awala-middleware.default
 
             # Mock AWS KMS (used by WebCrypto KMS)

@@ -87,7 +87,7 @@ export async function processMemberKeyImportToken(
 
     data: {
       publicKeyId: publicKeyCreationResult.result.id,
-      awalaPda: keyImportData.awalaPda,
+      peerId: keyImportData.peerId,
     },
   });
   await emitter.emit(event);

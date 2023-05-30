@@ -23,7 +23,7 @@ const triggerMemberBundleIssuance = async (
       type: BUNDLE_REQUEST_TYPE,
 
       data: {
-        awalaPda: memberBundleRequest.awalaPda.toString('base64'),
+        peerId: memberBundleRequest.peerId,
         publicKeyId: memberBundleRequest.publicKeyId,
       },
     }),

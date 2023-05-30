@@ -55,7 +55,7 @@ async function processMemberKeyImportRequest(
     {
       publicKey: validationResult.publicKey,
       publicKeyImportToken: validationResult.publicKeyImportToken,
-      awalaPda: validationResult.awalaPda,
+      peerId: validationResult.peerId,
     },
     options,
   );

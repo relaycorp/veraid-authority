@@ -12,8 +12,8 @@ import awalaRoutes from './routes/awala.routes.js';
 
 export async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
   const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
-  const awalaMiddlewareEndpoint = env.get('AWALA_MIDDLEWARE_ENDPOINT').asString();
-  if (awalaMiddlewareEndpoint !== undefined) {
+  const isPoHttpTlsRequired = env.get('POHTTP_TLS_REQUIRED').default('true').asBool()
+  if (isPoHttpTlsRequired !== undefined) {
     rootRoutes.push(awalaRoutes);
   }
   await server.register(jwksPlugin);

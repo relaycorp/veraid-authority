@@ -73,24 +73,24 @@ describe('makeQueueServer', () => {
         expect(mockDone).toHaveBeenCalledOnce();
       });
 
-      test('Missing Awala middleware endpoint in env should throw error', () => {
-        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
+      test('Missing PoHTTP TLS in env should throw error', () => {
+        envVarMocker({ ...REQUIRED_ENV_VARS, POHTTP_TLS_REQUIRED: undefined });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);
-        }).toThrowWithMessage(envVar.EnvVarError, /AWALA_MIDDLEWARE_ENDPOINT/u);
+        }).toThrowWithMessage(envVar.EnvVarError, /POHTTP_TLS_REQUIRED/u);
       });
 
-      test('Malformed Awala middleware endpoint in env should throw error', () => {
-        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: 'INVALID_URL' });
+      test('Malformed PoHTTP TLS in env should throw error', () => {
+        envVarMocker({ ...REQUIRED_ENV_VARS, POHTTP_TLS_REQUIRED: 'INVALID_URL' });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);
-        }).toThrowWithMessage(envVar.EnvVarError, /AWALA_MIDDLEWARE_ENDPOINT/u);
+        }).toThrowWithMessage(envVar.EnvVarError, /POHTTP_TLS_REQUIRED/u);
       });
 
-      test('Awala middleware error should not call done', () => {
-        envVarMocker({ ...REQUIRED_ENV_VARS, AWALA_MIDDLEWARE_ENDPOINT: undefined });
+      test('PoHTTP TLS error should not call done', () => {
+        envVarMocker({ ...REQUIRED_ENV_VARS, POHTTP_TLS_REQUIRED: undefined });
 
         expect(() => {
           makeQueueServerPlugin(mockFastify, {}, mockDone);

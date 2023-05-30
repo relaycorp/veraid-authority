@@ -17,7 +17,7 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
@@ -47,14 +47,14 @@ describe('triggerBundleRequest', () => {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      peerId: PEER_ID,
       memberId: MEMBER_MONGO_ID,
     };
     const requestData2 = {
       publicKeyId: mongoId,
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      peerId: PEER_ID,
       memberId: MEMBER_MONGO_ID,
     };
     await memberBundleRequestModel.create(requestData1);
@@ -76,7 +76,7 @@ describe('triggerBundleRequest', () => {
         type: BUNDLE_REQUEST_TYPE,
 
         data: {
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         },
       }),
@@ -88,7 +88,7 @@ describe('triggerBundleRequest', () => {
         type: BUNDLE_REQUEST_TYPE,
 
         data: {
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
           publicKeyId: mongoId,
         },
       }),
@@ -116,7 +116,7 @@ describe('triggerBundleRequest', () => {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: addDays(new Date(), range),
       signature: SIGNATURE,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      peerId: PEER_ID,
       memberId: MEMBER_MONGO_ID,
     };
     await memberBundleRequestModel.create(requestData);
@@ -137,7 +137,7 @@ describe('triggerBundleRequest', () => {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: addSeconds(addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE), 20),
       signature: SIGNATURE,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      peerId: PEER_ID,
       memberId: MEMBER_MONGO_ID,
     };
     const futureBundleRequest = await memberBundleRequestModel.create(data);

@@ -4,14 +4,14 @@ import type { Connection } from 'mongoose';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { AWALA_MIDDLEWARE_ENDPOINT, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
+import { POHTTP_TLS_REQUIRED, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
@@ -60,7 +60,7 @@ describe('memberBundleIssuance', () => {
     type: BUNDLE_REQUEST_TYPE,
 
     data: {
-      awalaPda: AWALA_PDA,
+      peerId: PEER_ID,
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
     },
   });
@@ -139,7 +139,7 @@ describe('memberBundleIssuance', () => {
 
         expect(mockPostToAwala).toHaveBeenCalledOnceWith(
           expect.anything(),
-          AWALA_PDA,
+          PEER_ID,
           expect.anything(),
         );
       });
@@ -150,7 +150,7 @@ describe('memberBundleIssuance', () => {
         expect(mockPostToAwala).toHaveBeenCalledOnceWith(
           expect.anything(),
           expect.anything(),
-          new URL(AWALA_MIDDLEWARE_ENDPOINT),
+          new URL(POHTTP_TLS_REQUIRED),
         );
       });
     });
@@ -158,7 +158,7 @@ describe('memberBundleIssuance', () => {
     test('Should remove member bundle request', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        peerId: PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,
@@ -196,7 +196,7 @@ describe('memberBundleIssuance', () => {
     expect(logs).toContainEqual(
       partialPinoLog('info', 'Refusing malformed member bundle request event', {
         eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        validationError: expect.stringContaining('awalaPda'),
+        validationError: expect.stringContaining('peerId'),
       }),
     );
   });
@@ -221,7 +221,7 @@ describe('memberBundleIssuance', () => {
     test('Should not remove member public key', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        peerId: PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,
@@ -256,7 +256,7 @@ describe('memberBundleIssuance', () => {
     test('Should remove member bundle request', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        peerId: PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,
@@ -280,7 +280,7 @@ describe('memberBundleIssuance', () => {
   test('Failed posting to Awala should not remove member bundle request', async () => {
     const memberBundleRequest = await memberBundleRequestModel.create({
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+      peerId: PEER_ID,
       signature: Buffer.from(SIGNATURE, 'base64'),
       memberBundleStartDate: new Date(),
       memberId: MEMBER_MONGO_ID,

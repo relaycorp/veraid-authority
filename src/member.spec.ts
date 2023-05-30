@@ -5,7 +5,7 @@ import type { Connection, HydratedDocument } from 'mongoose';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_EMAIL,
   MEMBER_MONGO_ID,
   MEMBER_NAME,
@@ -388,14 +388,14 @@ describe('member', () => {
       test('Related member bundle requests should be removed', async () => {
         await memberBundleRequestModel.create({
           memberId: member.id,
-          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          peerId: PEER_ID,
           signature: Buffer.from(SIGNATURE, 'base64'),
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           memberBundleStartDate: new Date(),
         });
         await memberBundleRequestModel.create({
           memberId: member.id,
-          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          peerId: PEER_ID,
           signature: Buffer.from(SIGNATURE, 'base64'),
           publicKeyId: '111111111111111111111111',
           memberBundleStartDate: new Date(),
@@ -410,7 +410,7 @@ describe('member', () => {
       test('Non related member bundle requests should not be removed', async () => {
         const memberBundleRequest = await memberBundleRequestModel.create({
           memberId: MEMBER_MONGO_ID,
-          awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+          peerId: PEER_ID,
           signature: Buffer.from(SIGNATURE, 'base64'),
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           memberBundleStartDate: new Date(),

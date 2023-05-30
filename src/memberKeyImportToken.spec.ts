@@ -6,7 +6,7 @@ import type { CloudEventV1 } from 'cloudevents';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   TEST_SERVICE_OID,
@@ -123,7 +123,7 @@ describe('member key import token', () => {
         {
           publicKey: publicKeyBase64,
           publicKeyImportToken: keyImportToken._id.toString(),
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
         },
         serviceOptions,
       );
@@ -163,7 +163,7 @@ describe('member key import token', () => {
         {
           publicKey: publicKeyBase64,
           publicKeyImportToken: keyImportToken._id.toString(),
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
         },
         serviceOptions,
       );
@@ -177,7 +177,7 @@ describe('member key import token', () => {
 
           data: {
             publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-            awalaPda: AWALA_PDA,
+            peerId: PEER_ID,
           },
         }),
       );
@@ -190,7 +190,7 @@ describe('member key import token', () => {
         {
           publicKey: publicKeyBase64,
           publicKeyImportToken: invalidToken,
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
         },
         serviceOptions,
       );
@@ -218,7 +218,7 @@ describe('member key import token', () => {
         {
           publicKey: publicKeyBase64,
           publicKeyImportToken: keyImportToken._id.toString(),
-          awalaPda: AWALA_PDA,
+          peerId: PEER_ID,
         },
         serviceOptions,
       );

@@ -9,10 +9,10 @@ export const MEMBER_BUNDLE_REQUEST_SCHEMA = {
     publicKeyId: { type: 'string' },
     memberBundleStartDate: { type: 'string', format: 'date-time' },
     signature: { type: 'string', pattern: BASE_64_REGEX },
-    awalaPda: { type: 'string', pattern: BASE_64_REGEX },
+    peerId: { type: 'string',  minLength: 1},
   },
 
-  required: ['publicKeyId', 'memberBundleStartDate', 'signature', 'awalaPda'],
+  required: ['publicKeyId', 'memberBundleStartDate', 'signature', 'peerId'],
 } as const;
 
 export const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
@@ -21,10 +21,10 @@ export const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
   properties: {
     publicKeyImportToken: { type: 'string' },
     publicKey: { type: 'string' },
-    awalaPda: { type: 'string', pattern: BASE_64_REGEX },
+    peerId: { type: 'string',  minLength: 1},
   },
 
-  required: ['publicKeyImportToken', 'publicKey', 'awalaPda'],
+  required: ['publicKeyImportToken', 'publicKey', 'peerId'],
 } as const;
 
 export type MemberBundleRequest = FromSchema<typeof MEMBER_BUNDLE_REQUEST_SCHEMA>;

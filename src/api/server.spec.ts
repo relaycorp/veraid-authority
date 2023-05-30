@@ -4,7 +4,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { mockSpy } from '../testUtils/jest.js';
 import { configureMockEnvVars } from '../testUtils/envVars.js';
-import { AWALA_MIDDLEWARE_ENDPOINT } from '../testUtils/eventing/stubs.js';
+import { POHTTP_TLS_REQUIRED } from '../testUtils/eventing/stubs.js';
 
 const mockRegisterAwalaRoute = mockSpy(jest.fn());
 jest.unstable_mockModule('./routes/awala.routes.js', () => ({
@@ -46,7 +46,7 @@ describe('makeApiServer', () => {
     const mockEnvVariables = configureMockEnvVars();
 
     test('Awala routes should be registered if middleware is set', async () => {
-      mockEnvVariables({ AWALA_MIDDLEWARE_ENDPOINT });
+      mockEnvVariables({ POHTTP_TLS_REQUIRED });
 
       await makeApiServerPlugin(mockFastify);
 
@@ -54,7 +54,7 @@ describe('makeApiServer', () => {
     });
 
     test('Awala routes should be registered if middleware is unset', async () => {
-      mockEnvVariables({ AWALA_MIDDLEWARE_ENDPOINT: undefined });
+      mockEnvVariables({ POHTTP_TLS_REQUIRED: undefined });
 
       await makeApiServerPlugin(mockFastify);
 

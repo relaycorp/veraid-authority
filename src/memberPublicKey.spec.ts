@@ -4,7 +4,7 @@ import type { Connection } from 'mongoose';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   SIGNATURE,
@@ -179,7 +179,7 @@ describe('member public key', () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         memberBundleStartDate: new Date(),
         signature: Buffer.from(SIGNATURE, 'base64'),
-        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        peerId: PEER_ID,
         publicKeyId: memberPublicKey._id,
         memberId: MEMBER_MONGO_ID,
       });
@@ -196,7 +196,7 @@ describe('member public key', () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         memberBundleStartDate: new Date(),
         signature: Buffer.from(SIGNATURE, 'base64'),
-        awalaPda: Buffer.from(AWALA_PDA, 'base64'),
+        peerId: PEER_ID,
         publicKeyId: PUBLIC_KEY_ID,
         memberId: MEMBER_MONGO_ID,
       });

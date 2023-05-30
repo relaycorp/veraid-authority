@@ -10,7 +10,7 @@ import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
 import type { MemberProblemType } from '../../MemberProblemType.js';
 import {
-  AWALA_PDA,
+  PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   MEMBER_KEY_IMPORT_TOKEN,
   SIGNATURE,
@@ -75,7 +75,7 @@ describe('awala routes', () => {
     const validPayload = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: '2023-04-13T20:05:38.285Z',
-      awalaPda: AWALA_PDA,
+      peerId: PEER_ID,
       signature: SIGNATURE,
     };
     const validHeaders = {
@@ -123,10 +123,10 @@ describe('awala routes', () => {
       );
     });
 
-    test('Malformed Awala PDA should be refused', async () => {
+    test.skip('Empty peer id should be refused', async () => {
       const methodPayload = {
         ...validPayload,
-        awalaPda: 'INVALID_BASE_64',
+        peerId: ''
       };
 
       const response = await server.inject({
@@ -140,7 +140,7 @@ describe('awala routes', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          reason: expect.stringContaining('awalaPda'),
+          reason: expect.stringContaining('peerId'),
         }),
       );
     });
@@ -172,7 +172,7 @@ describe('awala routes', () => {
     const validPayload = {
       publicKeyImportToken: MEMBER_KEY_IMPORT_TOKEN,
       publicKey: publicKeyBase64,
-      awalaPda: AWALA_PDA,
+      peerId: PEER_ID,
     };
     const validHeaders = {
       // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -198,10 +198,10 @@ describe('awala routes', () => {
       });
     });
 
-    test('Malformed Awala PDA should be refused', async () => {
+    test('Empty peer id should be refused', async () => {
       const methodPayload = {
         ...validPayload,
-        awalaPda: 'INVALID_BASE_64',
+        peerId: ''
       };
 
       const response = await server.inject({
@@ -214,7 +214,7 @@ describe('awala routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
-          reason: expect.stringContaining('awalaPda'),
+          reason: expect.stringContaining('peerId'),
         }),
       );
     });

@@ -18,7 +18,7 @@ import type { Result } from './utilities/result.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 
-const CERTIFICATE_EXPIRY_DAYS = 90;
+export const CERTIFICATE_EXPIRY_DAYS = 90;
 interface BundleCreationInput {
   orgPrivateKeyRefBuffer: Buffer;
   orgPublicKeyBuffer: Buffer;
@@ -107,7 +107,7 @@ export async function createMemberBundleRequest(
       publicKeyId: requestData.publicKeyId,
       memberBundleStartDate: new Date(requestData.memberBundleStartDate),
       signature: Buffer.from(requestData.signature, 'base64'),
-      awalaPda: Buffer.from(requestData.awalaPda, 'base64'),
+      peerId: requestData.peerId,
       memberId: publicKey.memberId,
     },
     {

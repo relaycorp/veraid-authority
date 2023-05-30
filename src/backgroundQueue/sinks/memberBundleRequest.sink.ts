@@ -1,13 +1,18 @@
 import type { CloudEvent } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
 
-import { MEMBER_BUNDLE_REQUEST_PAYLOAD } from '../../events/bundleRequest.event.js';
-import { postToAwala } from '../../awala.js';
-import { generateMemberBundle } from '../../memberBundle.js';
+import {
+  MEMBER_BUNDLE_REQUEST_PAYLOAD,
+} from '../../events/bundleRequest.event.js';
+import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { validateMessage } from '../../utilities/validateMessage.js';
 
 import type { SinkOptions } from './sinkTypes.js';
+import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
+import { addDays } from 'date-fns';
 
 export default async function memberBundleIssuance(
   event: CloudEvent<unknown>,
@@ -35,24 +40,18 @@ export default async function memberBundleIssuance(
       'Sending member bundle to Awala',
     );
 
-    const requestBody = JSON.stringify({
-      memberBundle: Buffer.from(memberBundle.result).toString('base64'),
-      memberPublicKeyId: validatedData.publicKeyId,
-    });
+    const now = new Date();
+    const message = makeOutgoingServiceMessageEvent({
+      publicKeyId: validatedData.publicKeyId,
+      peerId: validatedData.peerId,
+      contentType: VeraidContentType.MEMBER_BUNDLE,
+      content:  Buffer.from(memberBundle.result),
+      creationDate: now,
+      expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS)
+    })
+    const emitter = Emitter.init();
 
-    const awalaResponse = await postToAwala(
-      requestBody,
-      validatedData.awalaPda,
-      options.awalaMiddlewareEndpoint,
-    );
-
-    if (!awalaResponse.didSucceed) {
-      options.logger.info(
-        { eventId: event.id, reason: awalaResponse.context },
-        'Failed to post member bundle to Awala',
-      );
-      return;
-    }
+    await emitter.emit(message,);
   }
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
