@@ -15,14 +15,14 @@ import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
 import { OrgModelSchema } from '../models/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { TEST_SERVICE_OID } from '../testUtils/stubs.js';
+import { PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { VeraidContentType } from '../utilities/veraid.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { KEY_IMPORT_CONTENT_TYPE, PEER_ID, postAwalaMessage } from './utils/awala.js';
+import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage } from './utils/awala.js';
 import {
   getMockAwalaMiddlewareRequests,
   mockAwalaMiddleware,
