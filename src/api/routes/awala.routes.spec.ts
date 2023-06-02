@@ -123,10 +123,10 @@ describe('awala routes', () => {
       );
     });
 
-    test.skip('Empty peer id should be refused', async () => {
+    test('Empty peer id should be refused', async () => {
       const methodPayload = {
         ...validPayload,
-        peerId: ''
+        peerId: '',
       };
 
       const response = await server.inject({
@@ -201,7 +201,7 @@ describe('awala routes', () => {
     test('Empty peer id should be refused', async () => {
       const methodPayload = {
         ...validPayload,
-        peerId: ''
+        peerId: '',
       };
 
       const response = await server.inject({

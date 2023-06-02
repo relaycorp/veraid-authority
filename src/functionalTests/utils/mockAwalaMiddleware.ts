@@ -3,7 +3,6 @@ import type { MockServerClient } from 'mockserver-client/mockServerClient.js';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
-import { AwalaContentType } from '../../utilities/awala.js';
 
 import { connectToClusterService } from './kubernetes.js';
 import { sleep } from './time.js';
@@ -18,8 +17,6 @@ const EXPECTATIONS: Expectation[] = [
     httpRequest: {
       method: 'POST',
       path: '/',
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      headers: { 'Content-Type': AwalaContentType.PDA },
     },
 
     httpResponse: {

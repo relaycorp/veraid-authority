@@ -18,7 +18,6 @@ import type { Result } from './utilities/result.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 
-export const CERTIFICATE_EXPIRY_DAYS = 90;
 interface BundleCreationInput {
   orgPrivateKeyRefBuffer: Buffer;
   orgPublicKeyBuffer: Buffer;
@@ -26,6 +25,7 @@ interface BundleCreationInput {
   orgName: string;
   memberName?: string;
   memberPublicKeyId: string;
+  certificateExpiryDays: number;
 }
 
 async function generateBundle(
@@ -36,6 +36,7 @@ async function generateBundle(
     orgName,
     memberName,
     memberPublicKeyId,
+    certificateExpiryDays,
   }: BundleCreationInput,
   logger: BaseLogger,
 ): Promise<ArrayBuffer | undefined> {
@@ -63,7 +64,7 @@ async function generateBundle(
 
   const memberCryptoPublicKey = await derDeserialisePublicKey(memberPublicKey);
 
-  const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
+  const expiryDate = addDays(new Date(), certificateExpiryDays);
   const orgCertificate = await selfIssueOrganisationCertificate(orgName, orgKeyPair, expiryDate);
 
   const memberCertificate = await issueMemberCertificate(
@@ -76,6 +77,8 @@ async function generateBundle(
 
   return serialiseMemberIdBundle(memberCertificate, orgCertificate, dnssecChain);
 }
+
+export const CERTIFICATE_EXPIRY_DAYS = 90;
 
 export async function createMemberBundleRequest(
   requestData: MemberBundleRequest,
@@ -206,6 +209,7 @@ export async function generateMemberBundle(
       orgName: org.name,
       memberName: member.name ?? undefined,
       memberPublicKeyId: publicKeyId,
+      certificateExpiryDays: CERTIFICATE_EXPIRY_DAYS,
     },
     options.logger,
   );

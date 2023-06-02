@@ -2,9 +2,10 @@ import { CloudEvent } from 'cloudevents';
 import { jest } from '@jest/globals';
 import type { Connection } from 'mongoose';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
+import { addDays, addSeconds, parseISO } from 'date-fns';
 
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { POHTTP_TLS_REQUIRED, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
+import { CE_SOURCE } from '../../testUtils/eventing/stubs.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import {
   BUNDLE_REQUEST_TYPE,
@@ -22,13 +23,14 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
+import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
+import {
+  OUTGOING_MESSAGE_SENDER_ID,
+  OUTGOING_SERVICE_MESSAGE_TYPE,
+} from '../../events/outgoingServiceMessage.event.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
 
-const mockPostToAwala = mockSpy(jest.fn<() => Promise<Result<undefined, string>>>());
-jest.unstable_mockModule('../../awala.js', () => ({
-  postToAwala: mockPostToAwala,
-  createMemberBundleRequest: jest.fn(),
-}));
-
+const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
   jest.fn<
     () => Promise<
@@ -44,16 +46,20 @@ const mockGenerateMemberBundle = mockSpy(
 
 jest.unstable_mockModule('../../memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
+  CERTIFICATE_EXPIRY_DAYS,
 }));
 
 const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
 
 describe('memberBundleIssuance', () => {
   const getTestServerFixture = setUpTestQueueServer();
+  const getEvents = mockEmitter();
   let server: FastifyTypedInstance;
   let logs: object[];
   let dbConnection: Connection;
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+  let publishedEvents: CloudEvent[];
+
   const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
     id: MEMBER_PUBLIC_KEY_MONGO_ID,
     source: CE_SOURCE,
@@ -70,6 +76,7 @@ describe('memberBundleIssuance', () => {
     memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
       existingConnection: dbConnection,
     });
+    publishedEvents = getEvents();
   });
 
   describe('Success path', () => {
@@ -79,9 +86,6 @@ describe('memberBundleIssuance', () => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: true,
         result: memberBundle,
-      });
-      mockPostToAwala.mockResolvedValueOnce({
-        didSucceed: true,
       });
     });
 
@@ -107,50 +111,116 @@ describe('memberBundleIssuance', () => {
       );
     });
 
-    describe('Awala request', () => {
-      test('Should be logged', async () => {
+    describe('Outgoing message emission', () => {
+      test('Should emit one cloud event', async () => {
         await postEvent(triggerEvent, server);
 
         expect(logs).toContainEqual(
-          partialPinoLog('debug', 'Sending member bundle to Awala', {
+          partialPinoLog('debug', 'Emitting member bundle event', {
             eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
             memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
         );
+        expect(publishedEvents).toHaveLength(1);
       });
 
-      test('Should be called with member bundle and member public key id', async () => {
-        const requestBody = JSON.stringify({
-          memberBundle: Buffer.from(memberBundle).toString('base64'),
-          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        });
-
+      test('Version should be 1.0', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
-          requestBody,
-          expect.anything(),
-          expect.anything(),
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            specversion: '1.0',
+          }),
         );
       });
 
-      test('Should be called with correct Awala PDA', async () => {
+      test('Type should be outgoing service message', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
-          expect.anything(),
-          PEER_ID,
-          expect.anything(),
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            type: OUTGOING_SERVICE_MESSAGE_TYPE,
+          }),
         );
       });
 
-      test('Should be called with correct Awala middleware endpoint', async () => {
+      test('Id should be member public key id', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(mockPostToAwala).toHaveBeenCalledOnceWith(
-          expect.anything(),
-          expect.anything(),
-          new URL(POHTTP_TLS_REQUIRED),
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            id: MEMBER_PUBLIC_KEY_MONGO_ID,
+          }),
+        );
+      });
+
+      test('Source should be awala endpoint internet', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            source: OUTGOING_MESSAGE_SENDER_ID,
+          }),
+        );
+      });
+
+      test('Subject should be peer id', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            subject: PEER_ID,
+          }),
+        );
+      });
+
+      test('Data content type should be member bundle', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            datacontenttype: VeraidContentType.MEMBER_BUNDLE,
+          }),
+        );
+      });
+
+      test('Data should be buffer from member bundle', async () => {
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            data: Buffer.from(memberBundle),
+          }),
+        );
+      });
+
+      test('Time should be the time of creation of the message in iso format', async () => {
+        const creationDate = new Date();
+
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            time: expect.toSatisfy((time: string) => {
+              const dateFromTime = parseISO(time);
+              return creationDate <= dateFromTime && dateFromTime <= addSeconds(creationDate, 20);
+            }),
+          }),
+        );
+      });
+
+      test('Expiry should be the date of expiration of the certificate in iso format', async () => {
+        const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
+
+        await postEvent(triggerEvent, server);
+
+        expect(publishedEvents).toContainEqual(
+          expect.objectContaining({
+            expiry: expect.toSatisfy((expiry: string) => {
+              const dateFromExpiry = parseISO(expiry);
+              return expiryDate <= dateFromExpiry && dateFromExpiry <= addSeconds(expiryDate, 20);
+            }),
+          }),
         );
       });
     });
@@ -212,10 +282,10 @@ describe('memberBundleIssuance', () => {
       });
     });
 
-    test('Should not post to awala', async () => {
+    test('Should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(mockPostToAwala).not.toHaveBeenCalled();
+      expect(publishedEvents).toHaveLength(0);
     });
 
     test('Should not remove member public key', async () => {
@@ -247,10 +317,10 @@ describe('memberBundleIssuance', () => {
       });
     });
 
-    test('Should retry false should not post to awala', async () => {
+    test('Should retry false should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(mockPostToAwala).not.toHaveBeenCalled();
+      expect(publishedEvents).toHaveLength(0);
     });
 
     test('Should remove member bundle request', async () => {
@@ -275,38 +345,5 @@ describe('memberBundleIssuance', () => {
         }),
       );
     });
-  });
-
-  test('Failed posting to Awala should not remove member bundle request', async () => {
-    const memberBundleRequest = await memberBundleRequestModel.create({
-      publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      peerId: PEER_ID,
-      signature: Buffer.from(SIGNATURE, 'base64'),
-      memberBundleStartDate: new Date(),
-      memberId: MEMBER_MONGO_ID,
-    });
-    const memberBundle = stringToArrayBuffer('memberBundle');
-    mockGenerateMemberBundle.mockResolvedValueOnce({
-      didSucceed: true,
-      result: memberBundle,
-    });
-    const awalaReason = 'Some random reason';
-    mockPostToAwala.mockResolvedValueOnce({
-      didSucceed: false,
-      context: awalaReason,
-    });
-
-    await postEvent(triggerEvent, server);
-
-    expect(logs).toContainEqual(
-      partialPinoLog('info', 'Failed to post member bundle to Awala', {
-        eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        reason: awalaReason,
-      }),
-    );
-    const memberBundleRequestCheck = await memberBundleRequestModel.findById(
-      memberBundleRequest._id,
-    );
-    expect(memberBundleRequestCheck).not.toBeNull();
   });
 });

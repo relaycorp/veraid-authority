@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 
 import { addMinutes } from 'date-fns';
 
-
-import {
-  type OutgoingServiceMessageOptions,
-  makeOutgoingServiceMessageEvent,
-} from './outgoingServiceMessage.event.js';
 import { PEER_ID } from '../testUtils/stubs.js';
 import {
   SERVICE_MESSAGE_CONTENT,
   SERVICE_MESSAGE_CONTENT_TYPE,
 } from '../testUtils/eventing/stubs.js';
+
+import {
+  type OutgoingServiceMessageOptions,
+  makeOutgoingServiceMessageEvent,
+} from './outgoingServiceMessage.event.js';
 
 describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {
@@ -22,7 +22,6 @@ describe('makeIncomingServiceMessageEvent', () => {
     content: SERVICE_MESSAGE_CONTENT,
     peerId: PEER_ID,
   };
-
 
   test('Event spec version should be 1.0', () => {
     const { specversion: version } = makeOutgoingServiceMessageEvent(options);

@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import envVar from 'env-var';
 
-import { K_SINK, POHTTP_TLS_REQUIRED } from './eventing/stubs.js';
+import { K_SINK } from './eventing/stubs.js';
 import { MONGODB_URI } from './db.js';
 
 export interface EnvVarSet {
@@ -12,7 +12,6 @@ export const REQUIRED_ENV_VARS = {
   AUTHORITY_VERSION: '1.2.3',
   K_SINK,
   MONGODB_URI,
-  POHTTP_TLS_REQUIRED,
 };
 
 export type EnvVarMocker = (envVars: EnvVarSet) => void;

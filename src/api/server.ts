@@ -1,6 +1,5 @@
 import type { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import type { BaseLogger } from 'pino';
-import env from 'env-var';
 
 import { makeFastify } from '../utilities/fastify/server.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
@@ -11,11 +10,12 @@ import orgRoutes from './routes/org.routes.js';
 import awalaRoutes from './routes/awala.routes.js';
 
 export async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
-  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
-  const isPoHttpTlsRequired = env.get('POHTTP_TLS_REQUIRED').default('true').asBool()
-  if (isPoHttpTlsRequired !== undefined) {
-    rootRoutes.push(awalaRoutes);
-  }
+  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [
+    healthcheckRoutes,
+    orgRoutes,
+    awalaRoutes,
+  ];
+
   await server.register(jwksPlugin);
   await Promise.all(rootRoutes.map((route) => server.register(route)));
 }
