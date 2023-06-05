@@ -2,25 +2,25 @@ import { randomUUID } from 'node:crypto';
 
 import { addMinutes } from 'date-fns';
 
-import { PEER_ID } from '../testUtils/stubs.js';
-import {
-  SERVICE_MESSAGE_CONTENT,
-  SERVICE_MESSAGE_CONTENT_TYPE,
-} from '../testUtils/eventing/stubs.js';
+import { AWALA_PEER_ID } from '../testUtils/stubs.js';
 
 import {
   type OutgoingServiceMessageOptions,
   makeOutgoingServiceMessageEvent,
 } from './outgoingServiceMessage.event.js';
 
+const CE_SERVICE_MESSAGE_CONTENT_TYPE = 'application/test';
+
+const CE_SERVICE_MESSAGE_CONTENT = Buffer.from('Test');
+
 describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {
     creationDate: new Date(),
     expiryDate: addMinutes(new Date(), 5),
     publicKeyId: randomUUID(),
-    contentType: SERVICE_MESSAGE_CONTENT_TYPE,
-    content: SERVICE_MESSAGE_CONTENT,
-    peerId: PEER_ID,
+    contentType: CE_SERVICE_MESSAGE_CONTENT_TYPE,
+    content: CE_SERVICE_MESSAGE_CONTENT,
+    peerId: AWALA_PEER_ID,
   };
 
   test('Event spec version should be 1.0', () => {

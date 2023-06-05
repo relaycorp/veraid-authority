@@ -9,7 +9,7 @@ import { OrgModelSchema } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
-  PEER_ID,
+  AWALA_PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -108,7 +108,7 @@ describe('memberBundle', () => {
       methodInput = {
         publicKeyId: memberPublicKey._id.toString(),
         memberBundleStartDate: futureTimestamp,
-        peerId: PEER_ID,
+        peerId: AWALA_PEER_ID,
         signature: SIGNATURE,
       };
     });
@@ -124,7 +124,7 @@ describe('memberBundle', () => {
       });
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
-      expect(dbResult!.peerId).toBe(PEER_ID);
+      expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
       expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);
@@ -151,7 +151,7 @@ describe('memberBundle', () => {
       });
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
-      expect(dbResult!.peerId).toBe(PEER_ID);
+      expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
       expect(dbResult!.memberBundleStartDate.toISOString()).toBe(futureTimestamp);

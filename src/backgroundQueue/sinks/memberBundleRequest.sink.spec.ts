@@ -2,7 +2,7 @@ import { CloudEvent } from 'cloudevents';
 import { jest } from '@jest/globals';
 import type { Connection } from 'mongoose';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import { addDays, addSeconds, parseISO } from 'date-fns';
+import { addDays, parseISO } from 'date-fns';
 
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import { CE_SOURCE } from '../../testUtils/eventing/stubs.js';
@@ -12,7 +12,7 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import {
-  PEER_ID,
+  AWALA_PEER_ID,
   MEMBER_MONGO_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
@@ -25,7 +25,7 @@ import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
 import {
-  OUTGOING_MESSAGE_SENDER_ID,
+  OUTGOING_MESSAGE_SOURCE,
   OUTGOING_SERVICE_MESSAGE_TYPE,
 } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
@@ -66,7 +66,7 @@ describe('memberBundleIssuance', () => {
     type: BUNDLE_REQUEST_TYPE,
 
     data: {
-      peerId: PEER_ID,
+      peerId: AWALA_PEER_ID,
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
     },
   });
@@ -154,12 +154,12 @@ describe('memberBundleIssuance', () => {
         );
       });
 
-      test('Source should be awala endpoint internet', async () => {
+      test('Source should be URL identifying Awala Internet Endpoint', async () => {
         await postEvent(triggerEvent, server);
 
         expect(publishedEvents).toContainEqual(
           expect.objectContaining({
-            source: OUTGOING_MESSAGE_SENDER_ID,
+            source: OUTGOING_MESSAGE_SOURCE,
           }),
         );
       });
@@ -169,7 +169,7 @@ describe('memberBundleIssuance', () => {
 
         expect(publishedEvents).toContainEqual(
           expect.objectContaining({
-            subject: PEER_ID,
+            subject: AWALA_PEER_ID,
           }),
         );
       });
@@ -194,31 +194,33 @@ describe('memberBundleIssuance', () => {
         );
       });
 
-      test('Time should be the time of creation of the message in iso format', async () => {
+      test('Time should be creation of message in ISO format', async () => {
         const creationDate = new Date();
 
         await postEvent(triggerEvent, server);
 
+        const postEventDate = new Date();
         expect(publishedEvents).toContainEqual(
           expect.objectContaining({
             time: expect.toSatisfy((time: string) => {
               const dateFromTime = parseISO(time);
-              return creationDate <= dateFromTime && dateFromTime <= addSeconds(creationDate, 20);
+              return creationDate <= dateFromTime && dateFromTime <= postEventDate;
             }),
           }),
         );
       });
 
-      test('Expiry should be the date of expiration of the certificate in iso format', async () => {
+      test('Expiry date should be that bundle in ISO format', async () => {
         const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
 
         await postEvent(triggerEvent, server);
 
+        const postEventDate = new Date();
         expect(publishedEvents).toContainEqual(
           expect.objectContaining({
             expiry: expect.toSatisfy((expiry: string) => {
               const dateFromExpiry = parseISO(expiry);
-              return expiryDate <= dateFromExpiry && dateFromExpiry <= addSeconds(expiryDate, 20);
+              return expiryDate <= dateFromExpiry && dateFromExpiry <= postEventDate;
             }),
           }),
         );
@@ -228,7 +230,7 @@ describe('memberBundleIssuance', () => {
     test('Should remove member bundle request', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        peerId: PEER_ID,
+        peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,
@@ -291,7 +293,7 @@ describe('memberBundleIssuance', () => {
     test('Should not remove member public key', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        peerId: PEER_ID,
+        peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,
@@ -326,7 +328,7 @@ describe('memberBundleIssuance', () => {
     test('Should remove member bundle request', async () => {
       const memberBundleRequest = await memberBundleRequestModel.create({
         publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        peerId: PEER_ID,
+        peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
         memberId: MEMBER_MONGO_ID,

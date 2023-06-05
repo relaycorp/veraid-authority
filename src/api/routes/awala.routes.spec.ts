@@ -10,7 +10,7 @@ import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
 import type { MemberProblemType } from '../../MemberProblemType.js';
 import {
-  PEER_ID,
+  AWALA_PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   MEMBER_KEY_IMPORT_TOKEN,
   SIGNATURE,
@@ -75,7 +75,7 @@ describe('awala routes', () => {
     const validPayload = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: '2023-04-13T20:05:38.285Z',
-      peerId: PEER_ID,
+      peerId: AWALA_PEER_ID,
       signature: SIGNATURE,
     };
     const validHeaders = {
@@ -172,7 +172,7 @@ describe('awala routes', () => {
     const validPayload = {
       publicKeyImportToken: MEMBER_KEY_IMPORT_TOKEN,
       publicKey: publicKeyBase64,
-      peerId: PEER_ID,
+      peerId: AWALA_PEER_ID,
     };
     const validHeaders = {
       // eslint-disable-next-line @typescript-eslint/naming-convention

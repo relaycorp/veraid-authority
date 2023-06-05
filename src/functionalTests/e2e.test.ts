@@ -15,7 +15,7 @@ import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
 import { OrgModelSchema } from '../models/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
+import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { VeraidContentType } from '../utilities/veraid.js';
 
@@ -103,7 +103,7 @@ async function claimKeyImportTokenViaAwala(
   const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
   const importMessage: MemberKeyImportRequest = {
     publicKey: publicKeyDer.toString('base64'),
-    peerId: PEER_ID,
+    peerId: AWALA_PEER_ID,
     publicKeyImportToken,
   };
   const requestBody = JSON.stringify(importMessage);
