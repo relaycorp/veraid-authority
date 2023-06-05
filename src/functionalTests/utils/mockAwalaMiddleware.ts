@@ -11,7 +11,7 @@ import { getServiceActiveRevision } from './knative.js';
 
 const SERVICE_PORT = 80;
 
-const PORT_FORWARDING_DELAY_SECONDS = 200;
+const PORT_FORWARDING_DELAY_MS = 400;
 
 const EXPECTATIONS: Expectation[] = [
   {
@@ -48,7 +48,7 @@ async function connectToMockServer(command: Command): Promise<void> {
   const revision = await getServiceActiveRevision('mock-awala-middleware');
   const serviceName = `${revision}-private`;
   await connectToClusterService(serviceName, SERVICE_PORT, async (localPort) => {
-    await sleep(PORT_FORWARDING_DELAY_SECONDS);
+    await sleep(PORT_FORWARDING_DELAY_MS);
 
     const client = mockServerClient('127.0.0.1', localPort);
     await command(client);
