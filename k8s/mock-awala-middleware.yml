@@ -1,16 +1,27 @@
-apiVersion: serving.knative.dev/v1
-kind: Service
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
 metadata:
-  name: mock-awala-middleware
+  name: veraid-authority-awala-sink-binding
 spec:
-  template:
-    metadata:
-      annotations:
-        autoscaling.knative.dev/min-scale: "1"
-    spec:
-      containers:
-        - name: awala-middleware
-          image: mockserver/mockserver:5.15.0
-          env:
-            - name: MOCKSERVER_SERVER_PORT
-              value: "8080"
+  subject:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: mock-awala-middleware
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: authority-broker
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: veraid-authority-awala-trigger
+spec:
+  broker: authority-broker
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: mock-awala-middleware

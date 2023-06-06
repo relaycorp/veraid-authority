@@ -210,12 +210,12 @@ describe('memberBundleIssuance', () => {
         );
       });
 
-      test('Expiry date should be that bundle in ISO format', async () => {
+      test('Expiry date should be that of the bundle in ISO format', async () => {
         const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
 
         await postEvent(triggerEvent, server);
 
-        const postEventDate = new Date();
+        const postEventDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
         expect(publishedEvents).toContainEqual(
           expect.objectContaining({
             expiry: expect.toSatisfy((expiry: string) => {

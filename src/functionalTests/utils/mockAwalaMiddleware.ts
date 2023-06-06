@@ -10,21 +10,9 @@ import { getServiceActiveRevision } from './knative.js';
 
 const SERVICE_PORT = 80;
 
-const PORT_FORWARDING_DELAY_SECONDS = 200;
+const PORT_FORWARDING_DELAY_MS = 400;
 
 const EXPECTATIONS: Expectation[] = [
-  {
-    httpRequest: {
-      method: 'POST',
-      path: '/',
-    },
-
-    httpResponse: {
-      statusCode: HTTP_STATUS_CODES.OK,
-      body: JSON.stringify({ recipientId: 'recipient id' }),
-    },
-  },
-
   {
     httpRequest: {
       method: 'POST',
@@ -45,21 +33,14 @@ async function connectToMockServer(command: Command): Promise<void> {
   const revision = await getServiceActiveRevision('mock-awala-middleware');
   const serviceName = `${revision}-private`;
   await connectToClusterService(serviceName, SERVICE_PORT, async (localPort) => {
-    await sleep(PORT_FORWARDING_DELAY_SECONDS);
+    await sleep(PORT_FORWARDING_DELAY_MS);
 
     const client = mockServerClient('127.0.0.1', localPort);
     await command(client);
   });
 }
 
-export async function mockAwalaMiddleware(): Promise<void> {
-  await connectToMockServer(async (client) => {
-    await client.reset();
-    await client.mockAnyResponse(EXPECTATIONS);
-  });
-}
-
-export async function getMockAwalaMiddlewareRequests(): Promise<HttpResponse[]> {
+async function getMockAwalaMiddlewareRequests(): Promise<HttpResponse[]> {
   let requests: HttpResponse[] | undefined;
   await connectToMockServer(async (client) => {
     requests = await client.retrieveRecordedRequests({ path: '/' });
@@ -69,4 +50,23 @@ export async function getMockAwalaMiddlewareRequests(): Promise<HttpResponse[]> 
     throw new Error('Failed to retrieve Awala Middleware requests');
   }
   return requests;
+}
+
+export async function mockAwalaMiddleware(): Promise<void> {
+  await connectToMockServer(async (client) => {
+    await client.reset();
+    await client.mockAnyResponse(EXPECTATIONS);
+  });
+}
+
+export async function getMockRequestsByContentType(contentType: string): Promise<HttpResponse[]> {
+  const requests = await getMockAwalaMiddlewareRequests();
+  return requests.filter((req) => {
+    if (!req.headers) {
+      return [];
+    }
+    const headers = req.headers as { [key: string]: string[] };
+    const contentTypes = headers['Content-Type'];
+    return contentTypes.find((reqContentType: string) => reqContentType === contentType);
+  });
 }
