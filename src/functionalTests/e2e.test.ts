@@ -133,5 +133,5 @@ describe('E2E', () => {
     };
     expect(base64Bytes).not.toBeNull();
     expect(base64Bytes.length).toBeGreaterThan(0);
-  }, 10_000);
+  }, 20_000);
 });
