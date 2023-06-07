@@ -93,7 +93,7 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['POST'],
-    url: '/awala',
+    url: '/',
 
     async handler(request, reply): Promise<void> {
       const contentType = awalaRequestMessageTypeList.find(

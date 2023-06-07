@@ -31,14 +31,14 @@ jest.unstable_mockModule('../../memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
 }));
 
-const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+const { setUpTestAwalaServer } = await import('../../testUtils/awalaServer.js');
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 describe('awala routes', () => {
-  const getTestServerFixture = makeTestApiServer();
+  const getTestServerFixture = setUpTestAwalaServer();
   let server: FastifyInstance;
   let logs: MockLogSet;
   beforeEach(() => {
