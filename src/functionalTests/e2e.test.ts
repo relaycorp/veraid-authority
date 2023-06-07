@@ -108,7 +108,7 @@ async function claimKeyImportTokenViaAwala(
 }
 
 describe('E2E', () => {
-  test('Get member bundle via Awala1', async () => {
+  test('Get member bundle via Awala', async () => {
     // Create the necessary setup as an admin:
     const { members: membersEndpoint } = await createTestOrg();
     const keyImportTokenEndpoint = await createTestMember(membersEndpoint);
