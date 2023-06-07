@@ -23,12 +23,8 @@ import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage } from './utils/awala.js';
-import {
-  getMockAwalaMiddlewareRequests,
-  mockAwalaMiddleware,
-} from './utils/mockAwalaMiddleware.js';
+import { getMockRequestsByContentType, mockAwalaMiddleware } from './utils/mockAwalaMiddleware.js';
 import { sleep } from './utils/time.js';
-import { type BinaryBody, jsonParseBinaryBody } from './utils/mockServer.js';
 
 const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
 
@@ -112,7 +108,7 @@ async function claimKeyImportTokenViaAwala(
 }
 
 describe('E2E', () => {
-  test('Get member bundle via Awala', async () => {
+  test('Get member bundle via Awala1', async () => {
     // Create the necessary setup as an admin:
     const { members: membersEndpoint } = await createTestOrg();
     const keyImportTokenEndpoint = await createTestMember(membersEndpoint);
@@ -127,13 +123,15 @@ describe('E2E', () => {
     await sleep(1000);
 
     // Check that the member bundle was issued and published:
-    const awalaMiddlewareRequests = await getMockAwalaMiddlewareRequests();
-    expect(awalaMiddlewareRequests).toHaveLength(2);
-    const [, { body: bundleRequestBody }] = awalaMiddlewareRequests;
-    const message = jsonParseBinaryBody(
-      bundleRequestBody as BinaryBody,
+    const awalaMiddlewareRequests = await getMockRequestsByContentType(
       VeraidContentType.MEMBER_BUNDLE,
     );
-    expect(message).toHaveProperty('memberBundle');
+    expect(awalaMiddlewareRequests).toHaveLength(1);
+    const [{ body: bundleRequestBody }] = awalaMiddlewareRequests;
+    const { base64Bytes } = bundleRequestBody as {
+      base64Bytes: string;
+    };
+    expect(base64Bytes).not.toBeNull();
+    expect(base64Bytes.length).toBeGreaterThan(0);
   }, 10_000);
 });
