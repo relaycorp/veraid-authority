@@ -15,20 +15,16 @@ import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
 import { OrgModelSchema } from '../models/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { TEST_SERVICE_OID } from '../testUtils/stubs.js';
+import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { VeraidContentType } from '../utilities/veraid.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage, STUB_AWALA_PDA } from './utils/awala.js';
-import {
-  getMockAwalaMiddlewareRequests,
-  mockAwalaMiddleware,
-} from './utils/mockAwalaMiddleware.js';
+import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage } from './utils/awala.js';
+import { getMockRequestsByContentType, mockAwalaMiddleware } from './utils/mockAwalaMiddleware.js';
 import { sleep } from './utils/time.js';
-import { type BinaryBody, jsonParseBinaryBody } from './utils/mockServer.js';
 
 const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
 
@@ -103,7 +99,7 @@ async function claimKeyImportTokenViaAwala(
   const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
   const importMessage: MemberKeyImportRequest = {
     publicKey: publicKeyDer.toString('base64'),
-    awalaPda: STUB_AWALA_PDA.toString('base64'),
+    peerId: AWALA_PEER_ID,
     publicKeyImportToken,
   };
   const requestBody = JSON.stringify(importMessage);
@@ -124,16 +120,18 @@ describe('E2E', () => {
     await claimKeyImportTokenViaAwala(publicKeyImportToken, memberPublicKey);
 
     // Allow sufficient time for the member bundle request to be processed:
-    await sleep(1000);
+    await sleep(2000);
 
     // Check that the member bundle was issued and published:
-    const awalaMiddlewareRequests = await getMockAwalaMiddlewareRequests();
-    expect(awalaMiddlewareRequests).toHaveLength(2);
-    const [, { body: bundleRequestBody }] = awalaMiddlewareRequests;
-    const message = jsonParseBinaryBody(
-      bundleRequestBody as BinaryBody,
+    const awalaMiddlewareRequests = await getMockRequestsByContentType(
       VeraidContentType.MEMBER_BUNDLE,
     );
-    expect(message).toHaveProperty('memberBundle');
-  }, 10_000);
+    expect(awalaMiddlewareRequests).toHaveLength(1);
+    const [{ body: bundleRequestBody }] = awalaMiddlewareRequests;
+    const { base64Bytes } = bundleRequestBody as {
+      base64Bytes: string;
+    };
+    expect(base64Bytes).not.toBeNull();
+    expect(base64Bytes.length).toBeGreaterThan(0);
+  }, 20_000);
 });

@@ -14,5 +14,5 @@ export class MemberBundleRequestModelSchema {
   public signature!: Buffer;
 
   @prop({ required: true })
-  public awalaPda!: Buffer;
+  public peerId!: string;
 }

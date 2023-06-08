@@ -1,17 +1,19 @@
 import type { CloudEvent } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
+import { addDays } from 'date-fns';
 
 import { MEMBER_BUNDLE_REQUEST_PAYLOAD } from '../../events/bundleRequest.event.js';
-import { postToAwala } from '../../awala.js';
-import { generateMemberBundle } from '../../memberBundle.js';
+import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { validateMessage } from '../../utilities/validateMessage.js';
-
-import type { SinkOptions } from './sinkTypes.js';
+import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
+import type { ServiceOptions } from '../../serviceTypes.js';
 
 export default async function memberBundleIssuance(
   event: CloudEvent<unknown>,
-  options: SinkOptions,
+  options: ServiceOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 
@@ -32,27 +34,21 @@ export default async function memberBundleIssuance(
   if (memberBundle.didSucceed) {
     options.logger.debug(
       { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
-      'Sending member bundle to Awala',
+      'Emitting member bundle event',
     );
 
-    const requestBody = JSON.stringify({
-      memberBundle: Buffer.from(memberBundle.result).toString('base64'),
-      memberPublicKeyId: validatedData.publicKeyId,
+    const now = new Date();
+    const message = makeOutgoingServiceMessageEvent({
+      publicKeyId: validatedData.publicKeyId,
+      peerId: validatedData.peerId,
+      contentType: VeraidContentType.MEMBER_BUNDLE,
+      content: Buffer.from(memberBundle.result),
+      creationDate: now,
+      expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS),
     });
+    const emitter = Emitter.init();
 
-    const awalaResponse = await postToAwala(
-      requestBody,
-      validatedData.awalaPda,
-      options.awalaMiddlewareEndpoint,
-    );
-
-    if (!awalaResponse.didSucceed) {
-      options.logger.info(
-        { eventId: event.id, reason: awalaResponse.context },
-        'Failed to post member bundle to Awala',
-      );
-      return;
-    }
+    await emitter.emit(message);
   }
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
