@@ -13,10 +13,6 @@ function makeAwalaServerPlugin(
   _opts: FastifyPluginOptions,
   done: PluginDone,
 ): void {
-  server.removeAllContentTypeParsers();
-  server.addContentTypeParser('*', { parseAs: 'buffer' }, (_request, payload, next) => {
-    next(null, payload);
-  });
 
   server.get('/', async (_request, reply) => {
     await reply.status(HTTP_STATUS_CODES.OK).send('It works');

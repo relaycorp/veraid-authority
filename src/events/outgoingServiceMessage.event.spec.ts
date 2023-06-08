@@ -8,10 +8,10 @@ import {
   type OutgoingServiceMessageOptions,
   makeOutgoingServiceMessageEvent,
 } from './outgoingServiceMessage.event.js';
-
-const CE_SERVICE_MESSAGE_CONTENT_TYPE = 'application/test';
-
-const CE_SERVICE_MESSAGE_CONTENT = Buffer.from('Test');
+import {
+  CE_SERVICE_MESSAGE_CONTENT,
+  CE_SERVICE_MESSAGE_CONTENT_TYPE,
+} from '../testUtils/eventing/stubs.js';
 
 describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {
