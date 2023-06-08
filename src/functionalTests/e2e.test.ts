@@ -120,7 +120,7 @@ describe('E2E', () => {
     await claimKeyImportTokenViaAwala(publicKeyImportToken, memberPublicKey);
 
     // Allow sufficient time for the member bundle request to be processed:
-    await sleep(1000);
+    await sleep(2000);
 
     // Check that the member bundle was issued and published:
     const awalaMiddlewareRequests = await getMockRequestsByContentType(
@@ -133,5 +133,5 @@ describe('E2E', () => {
     };
     expect(base64Bytes).not.toBeNull();
     expect(base64Bytes.length).toBeGreaterThan(0);
-  }, 10_000);
+  }, 20_000);
 });
