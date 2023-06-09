@@ -3,15 +3,15 @@ import { randomUUID } from 'node:crypto';
 import { addMinutes } from 'date-fns';
 
 import { AWALA_PEER_ID } from '../testUtils/stubs.js';
+import {
+  CE_SERVICE_MESSAGE_CONTENT,
+  CE_SERVICE_MESSAGE_CONTENT_TYPE,
+} from '../testUtils/eventing/stubs.js';
 
 import {
   type OutgoingServiceMessageOptions,
   makeOutgoingServiceMessageEvent,
 } from './outgoingServiceMessage.event.js';
-import {
-  CE_SERVICE_MESSAGE_CONTENT,
-  CE_SERVICE_MESSAGE_CONTENT_TYPE,
-} from '../testUtils/eventing/stubs.js';
 
 describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {

@@ -1,18 +1,21 @@
 import { addDays, formatISO, parseISO, subDays } from 'date-fns';
-import { AWALA_PEER_ID } from '../testUtils/stubs.js';
+import { CloudEvent } from 'cloudevents';
 
-import {
-  type IncomingServiceMessageOptions,
-  getIncomingServiceMessageEvent, INCOMING_SERVICE_MESSAGE_TYPE,
-} from './incomingServiceMessage.event.js';
+import { AWALA_PEER_ID } from '../testUtils/stubs.js';
 import {
   CE_ID,
   CE_SERVICE_MESSAGE_CONTENT,
-  CE_SERVICE_MESSAGE_CONTENT_TYPE, CE_SOURCE,
+  CE_SERVICE_MESSAGE_CONTENT_TYPE,
+  CE_SOURCE,
 } from '../testUtils/eventing/stubs.js';
 import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
-import { CloudEvent } from 'cloudevents';
 import { assertNotNull, assertNull } from '../testUtils/assertions.js';
+
+import {
+  type IncomingServiceMessageOptions,
+  getIncomingServiceMessageEvent,
+  INCOMING_SERVICE_MESSAGE_TYPE,
+} from './incomingServiceMessage.event.js';
 
 describe('getIncomingServiceMessageEvent', () => {
   const mockLogging = makeMockLogging();
@@ -33,7 +36,7 @@ describe('getIncomingServiceMessageEvent', () => {
 
   let incomingServiceMessageOptions: IncomingServiceMessageOptions;
   beforeEach(() => {
-    const result = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger);;
+    const result = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger);
     assertNotNull(result);
     incomingServiceMessageOptions = result;
   });
@@ -84,8 +87,9 @@ describe('getIncomingServiceMessageEvent', () => {
   test('Creation date should be taken from event time', () => {
     const { creationDate: creation } = incomingServiceMessageOptions;
 
-    expect(creation).toStrictEqual(parseISO(cloudEvent.time as string));
+    expect(creation).toStrictEqual(parseISO(cloudEvent.time!));
   });
+
   test('Expiry date should be taken from event expiry', () => {
     const { expiryDate } = incomingServiceMessageOptions;
 

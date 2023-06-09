@@ -1,4 +1,4 @@
-import { type CloudEvent, type CloudEventV1, HTTP, type Message } from 'cloudevents';
+import { type CloudEvent, HTTP, type Message } from 'cloudevents';
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import type { BaseLogger } from 'pino';
 
@@ -24,11 +24,10 @@ function makeQueueServerPlugin(
   _opts: FastifyPluginOptions,
   done: PluginDone,
 ): void {
-  server.addContentTypeParser(
-    'application/cloudevents+json',
-    { parseAs: 'string' },
-    server.getDefaultJsonParser('ignore', 'ignore'),
-  );
+  server.removeAllContentTypeParsers();
+  server.addContentTypeParser('*', { parseAs: 'buffer' }, (_request, payload, next) => {
+    next(null, payload);
+  });
 
   server.get('/', async (_request, reply) => {
     await reply.status(HTTP_STATUS_CODES.OK).send('It works');
@@ -36,9 +35,9 @@ function makeQueueServerPlugin(
 
   server.post('/', async (request, reply) => {
     const message: Message = { headers: request.headers, body: request.body };
-    let events: CloudEventV1<unknown>;
+    let event;
     try {
-      events = HTTP.toEvent(message) as CloudEventV1<unknown>;
+      event = HTTP.toEvent(message) as CloudEvent<unknown>;
     } catch {
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
@@ -46,7 +45,6 @@ function makeQueueServerPlugin(
       return;
     }
 
-    const event = events as CloudEvent;
     const sink = SINK_BY_TYPE[event.type] as Sink | undefined;
     if (sink === undefined) {
       await reply

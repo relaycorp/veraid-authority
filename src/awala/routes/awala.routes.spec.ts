@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals';
 import type { FastifyInstance } from 'fastify';
+import { HTTP, CloudEvent } from 'cloudevents';
+import { addDays, formatISO } from 'date-fns';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { mockSpy } from '../../testUtils/jest.js';
@@ -15,6 +17,9 @@ import {
   MEMBER_KEY_IMPORT_TOKEN,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
+import { CE_ID } from '../../testUtils/eventing/stubs.js';
+import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../events/incomingServiceMessage.event.js';
+import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
@@ -27,8 +32,23 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
 const mockCreateMemberBundleRequest = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
 );
+
+const mockGenerateMemberBundle = mockSpy(
+  jest.fn<
+    () => Promise<
+      Result<
+        ArrayBuffer,
+        {
+          shouldRetry: boolean;
+        }
+      >
+    >
+  >(),
+);
 jest.unstable_mockModule('../../memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
+  generateMemberBundle: mockGenerateMemberBundle,
+  CERTIFICATE_EXPIRY_DAYS: 90,
 }));
 
 const { setUpTestAwalaServer } = await import('../../testUtils/awalaServer.js');
@@ -48,7 +68,7 @@ describe('awala routes', () => {
   test('Invalid content type should resolve to unsupported media type error', async () => {
     const response = await server.inject({
       method: 'POST',
-      url: '/awala',
+      url: '/',
 
       headers: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -61,7 +81,7 @@ describe('awala routes', () => {
   test('Content type application/json should resolve to unsupported media type error', async () => {
     const response = await server.inject({
       method: 'POST',
-      url: '/awala',
+      url: '/',
 
       headers: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -71,48 +91,80 @@ describe('awala routes', () => {
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
   });
 
+  test('Missing headers should resolve into bad request', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/',
+    });
+
+    expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
+  });
+
+  test('Invalid message should should resolve into bad request', async () => {
+    const cloudEvent = new CloudEvent({
+      id: CE_ID,
+      source: AWALA_PEER_ID,
+      type: 'invalid message type',
+      subject: 'https://relaycorp.tech/awala-endpoint-internet',
+      datacontenttype: 'application/vnd.veraid.member-bundle-request',
+    });
+
+    const response = await postEvent(cloudEvent, server);
+
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+    expect(logs).toContainEqual(
+      partialPinoLog('error', 'Refused invalid type', {
+        parcelId: CE_ID,
+      }),
+    );
+  });
+
   describe('Member bundle request', () => {
-    const validPayload = {
+    const expiry = addDays(Date.now(), 5);
+    const validMessageContent = {
       publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       memberBundleStartDate: '2023-04-13T20:05:38.285Z',
-      peerId: AWALA_PEER_ID,
       signature: SIGNATURE,
     };
-    const validHeaders = {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      'content-type': 'application/vnd.veraid.member-bundle-request',
-    };
+
+    const cloudEvent = new CloudEvent({
+      id: CE_ID,
+      source: AWALA_PEER_ID,
+      type: INCOMING_SERVICE_MESSAGE_TYPE,
+      subject: 'https://relaycorp.tech/awala-endpoint-internet',
+      datacontenttype: 'application/vnd.veraid.member-bundle-request',
+      expiry: formatISO(expiry),
+      data: JSON.stringify(validMessageContent),
+    });
 
     test('Valid data should be accepted', async () => {
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: validPayload,
-      });
       mockCreateMemberBundleRequest.mockResolvedValueOnce({
         didSucceed: true,
       });
 
+      const response = await postEvent(cloudEvent, server);
+
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
-      expect(mockCreateMemberBundleRequest).toHaveBeenCalledOnceWith(validPayload, {
-        logger: server.log,
-        dbConnection: server.mongoose,
-      });
+      expect(mockCreateMemberBundleRequest).toHaveBeenCalledOnceWith(
+        { ...validMessageContent, peerId: AWALA_PEER_ID },
+        {
+          logger: expect.anything(),
+          dbConnection: server.mongoose,
+        },
+      );
     });
 
-    test('Malformed date should be refused', async () => {
-      const methodPayload = {
-        ...validPayload,
-        memberBundleStartDate: 'INVALID_DATE',
-      };
+    test('Malformed member bundle start date should be refused', async () => {
+      const event = new CloudEvent({
+        ...cloudEvent,
 
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: methodPayload,
+        data: JSON.stringify({
+          ...validMessageContent,
+          memberBundleStartDate: 'INVALID_DATE',
+        }),
       });
+
+      const response = await postEvent(event, server);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(logs).toContainEqual(
@@ -123,17 +175,32 @@ describe('awala routes', () => {
       );
     });
 
-    test('Empty peer id should be refused', async () => {
-      const methodPayload = {
-        ...validPayload,
-        peerId: '',
-      };
+    test('Malformed content should be refused', async () => {
+      const event = new CloudEvent({
+        ...cloudEvent,
+        data: 'MALFORMED_CONTENT',
+      });
+
+      const response = await postEvent(event, server);
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(logs).toContainEqual(partialPinoLog('info', 'Refused invalid json format'));
+    });
+
+    test('Empty source should be refused', async () => {
+      const message = HTTP.binary(cloudEvent);
 
       const response = await server.inject({
         method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: methodPayload,
+        url: '/',
+
+        headers: {
+          ...message.headers,
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          'ce-source': '',
+        },
+
+        payload: message.body as string,
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
@@ -146,17 +213,16 @@ describe('awala routes', () => {
     });
 
     test('Malformed signature should be refused', async () => {
-      const methodPayload = {
-        ...validPayload,
-        signature: 'INVALID_BASE_64',
-      };
+      const event = new CloudEvent({
+        ...cloudEvent,
 
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: methodPayload,
+        data: JSON.stringify({
+          ...validMessageContent,
+          signature: 'INVALID_BASE_64',
+        }),
       });
+
+      const response = await postEvent(event, server);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(logs).toContainEqual(
@@ -169,46 +235,68 @@ describe('awala routes', () => {
   });
 
   describe('Process member key import request', () => {
-    const validPayload = {
+    const expiry = addDays(Date.now(), 5);
+    const validMessageContent = {
       publicKeyImportToken: MEMBER_KEY_IMPORT_TOKEN,
       publicKey: publicKeyBase64,
-      peerId: AWALA_PEER_ID,
     };
-    const validHeaders = {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      'content-type': 'application/vnd.veraid.member-public-key-import',
-    };
+
+    const cloudEvent = new CloudEvent({
+      id: CE_ID,
+      source: AWALA_PEER_ID,
+      type: INCOMING_SERVICE_MESSAGE_TYPE,
+      subject: 'https://relaycorp.tech/awala-endpoint-internet',
+      datacontenttype: 'application/vnd.veraid.member-public-key-import',
+      expiry: formatISO(expiry),
+      data: JSON.stringify(validMessageContent),
+    });
 
     test('Valid data should be accepted', async () => {
       mockProcessMemberKeyImportToken.mockResolvedValueOnce({
         didSucceed: true,
       });
 
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: validPayload,
-      });
+      const response = await postEvent(cloudEvent, server);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
-      expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(validPayload, {
-        logger: server.log,
-        dbConnection: server.mongoose,
+      expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
+        {
+          ...validMessageContent,
+          peerId: AWALA_PEER_ID,
+        },
+        {
+          logger: expect.anything(),
+          dbConnection: server.mongoose,
+        },
+      );
+    });
+
+    test('Malformed content should be refused', async () => {
+      const event = new CloudEvent({
+        ...cloudEvent,
+        data: 'MALFORMED_CONTENT',
       });
+
+      const response = await postEvent(event, server);
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(logs).toContainEqual(partialPinoLog('info', 'Refused invalid json format'));
     });
 
     test('Empty peer id should be refused', async () => {
-      const methodPayload = {
-        ...validPayload,
-        peerId: '',
-      };
+      const message = HTTP.binary(cloudEvent);
 
       const response = await server.inject({
         method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: methodPayload,
+        url: '/',
+
+        headers: {
+          ...message.headers,
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          'ce-source': '',
+        },
+
+        payload: message.body as string,
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
@@ -220,17 +308,16 @@ describe('awala routes', () => {
     });
 
     test('Missing public key import token should be refused', async () => {
-      const methodPayload = {
-        ...validPayload,
-        publicKeyImportToken: undefined,
-      };
+      const event = new CloudEvent({
+        ...cloudEvent,
 
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: methodPayload,
+        data: JSON.stringify({
+          ...validMessageContent,
+          publicKeyImportToken: undefined,
+        }),
       });
+
+      const response = await postEvent(event, server);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(logs).toContainEqual(
@@ -249,18 +336,19 @@ describe('awala routes', () => {
         context: reason,
       });
 
-      const response = await server.inject({
-        method: 'POST',
-        url: '/awala',
-        headers: validHeaders,
-        payload: validPayload,
-      });
+      const response = await postEvent(cloudEvent, server);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(validPayload, {
-        logger: server.log,
-        dbConnection: server.mongoose,
-      });
+      expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
+        {
+          ...validMessageContent,
+          peerId: AWALA_PEER_ID,
+        },
+        {
+          logger: expect.anything(),
+          dbConnection: server.mongoose,
+        },
+      );
     });
   });
 });

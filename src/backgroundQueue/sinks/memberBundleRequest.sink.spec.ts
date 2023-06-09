@@ -60,15 +60,17 @@ describe('memberBundleIssuance', () => {
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
   let publishedEvents: CloudEvent[];
 
-  const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
+  const validMessageContent = {
+    peerId: AWALA_PEER_ID,
+    publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+  };
+
+  const triggerEvent = new CloudEvent({
     id: MEMBER_PUBLIC_KEY_MONGO_ID,
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
-
-    data: {
-      peerId: AWALA_PEER_ID,
-      publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-    },
+    subject: 'https://relaycorp.tech/awala-endpoint-internet',
+    data: JSON.stringify(validMessageContent),
   });
 
   beforeEach(() => {

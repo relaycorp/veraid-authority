@@ -10,14 +10,16 @@ import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
+import { bufferToJson } from '../../utilities/buffer.js';
 
 export default async function memberBundleIssuance(
   event: CloudEvent<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
+  const data = bufferToJson(event.data as Buffer);
 
-  const validatedData = validateMessage(event.data, MEMBER_BUNDLE_REQUEST_PAYLOAD);
+  const validatedData = validateMessage(data, MEMBER_BUNDLE_REQUEST_PAYLOAD);
   if (typeof validatedData === 'string') {
     options.logger.info(
       { eventId: event.id, validationError: validatedData },

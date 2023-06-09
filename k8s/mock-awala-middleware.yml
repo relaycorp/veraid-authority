@@ -18,7 +18,7 @@ spec:
 apiVersion: sources.knative.dev/v1
 kind: SinkBinding
 metadata:
-  name: veraid-authority-awala-sink-binding
+  name: mock-awala-middleware-sink-binding
 spec:
   subject:
     apiVersion: serving.knative.dev/v1
@@ -33,7 +33,7 @@ spec:
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
-  name: veraid-authority-awala-trigger
+  name: mock-awala-middleware-trigger
 spec:
   broker: authority-broker
   subscriber:

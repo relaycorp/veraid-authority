@@ -1,8 +1,7 @@
-import { CloudEventV1 } from 'cloudevents';
+import type { CloudEventV1 } from 'cloudevents';
 import { differenceInSeconds, isValid, parseISO } from 'date-fns';
-import { BaseLogger } from 'pino';
-import { FastifyBaseLogger } from 'fastify';
-
+import type { BaseLogger } from 'pino';
+import type { FastifyBaseLogger } from 'fastify';
 
 function getExpiryDate(expiry: unknown, creationDate: Date, logger: BaseLogger) {
   if (expiry === undefined) {
@@ -47,8 +46,7 @@ export interface IncomingServiceMessageOptions {
 export function getIncomingServiceMessageEvent(
   event: CloudEventV1<unknown>,
   logger: FastifyBaseLogger,
-  ): IncomingServiceMessageOptions | null {
-
+): IncomingServiceMessageOptions | null {
   const parcelAwareLogger = logger.child({
     parcelId: event.id,
   });

@@ -4,11 +4,6 @@ import type { FastifyInstance } from 'fastify';
 
 import { mockSpy } from '../testUtils/jest.js';
 
-const mockRegisterAwalaRoute = mockSpy(jest.fn());
-jest.unstable_mockModule('./routes/awala.routes.js', () => ({
-  default: mockRegisterAwalaRoute,
-}));
-
 const mockFastify: FastifyInstance = {
   register: mockSpy(jest.fn()),
 } as any;

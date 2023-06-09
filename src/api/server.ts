@@ -9,10 +9,7 @@ import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
 
 export async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
-  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [
-    healthcheckRoutes,
-    orgRoutes,
-  ];
+  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 
   await server.register(jwksPlugin);
   await Promise.all(rootRoutes.map((route) => server.register(route)));

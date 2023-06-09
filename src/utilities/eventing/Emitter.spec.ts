@@ -6,11 +6,18 @@ import { configureMockEnvVars } from '../../testUtils/envVars.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { CE_ID, CE_SOURCE, K_SINK } from '../../testUtils/eventing/stubs.js';
 
+enum CloudEventMode {
+  BINARY = 'binary',
+  STRUCTURED = 'structured',
+  BATCH = 'batch',
+}
 const mockEmitterFunction = mockSpy(jest.fn());
 const mockTransport = Symbol('mockTransport');
 jest.unstable_mockModule('cloudevents', () => ({
   emitterFor: jest.fn<any>().mockReturnValue(mockEmitterFunction),
   httpTransport: jest.fn<any>().mockReturnValue(mockTransport),
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  Mode: CloudEventMode,
 }));
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const { Emitter } = await import('./Emitter.js');
@@ -69,7 +76,15 @@ describe('Emitter', () => {
 
       await emitter.emit(event);
 
-      expect(emitterFor).toHaveBeenCalledWith(mockTransport);
+      expect(emitterFor).toHaveBeenCalledWith(mockTransport, expect.anything());
+    });
+
+    test('Emitter should use binary mode', async () => {
+      const emitter = Emitter.init();
+
+      await emitter.emit(event);
+
+      expect(emitterFor).toHaveBeenCalledWith(expect.anything(), { mode: 'binary' });
     });
 
     test('Emitter function should be cached', async () => {

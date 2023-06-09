@@ -14,13 +14,28 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
 import { validateMessage } from '../../utilities/validateMessage.js';
 import { createMemberBundleRequest } from '../../memberBundle.js';
-import { getIncomingServiceMessageEvent } from '../../events/incomingServiceMessage.event.js';
+import {
+  getIncomingServiceMessageEvent,
+  type IncomingServiceMessageOptions,
+} from '../../events/incomingServiceMessage.event.js';
+import { bufferToJson } from '../../utilities/buffer.js';
 
 async function processMemberBundleRequest(
-  data: unknown,
+  incomingMessage: IncomingServiceMessageOptions,
   options: ServiceOptions,
 ): Promise<boolean> {
-  const validationResult = validateMessage(data, MEMBER_BUNDLE_REQUEST_SCHEMA);
+  const data = bufferToJson(incomingMessage.content);
+  if (!data) {
+    options.logger.info('Refused invalid json format');
+    return false;
+  }
+  const validationResult = validateMessage(
+    {
+      ...data,
+      peerId: incomingMessage.senderId,
+    },
+    MEMBER_BUNDLE_REQUEST_SCHEMA,
+  );
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
@@ -37,10 +52,21 @@ async function processMemberBundleRequest(
 }
 
 async function processMemberKeyImportRequest(
-  data: unknown,
+  incomingMessage: IncomingServiceMessageOptions,
   options: ServiceOptions,
 ): Promise<boolean> {
-  const validationResult = validateMessage(data, MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
+  const data = bufferToJson(incomingMessage.content);
+  if (!data) {
+    options.logger.info('Refused invalid json format');
+    return false;
+  }
+  const validationResult = validateMessage(
+    {
+      ...data,
+      peerId: incomingMessage.senderId,
+    },
+    MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
+  );
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
@@ -70,7 +96,10 @@ enum AwalaRequestMessageType {
 }
 
 const awalaEventToProcessor: {
-  [key in AwalaRequestMessageType]: (data: unknown, options: ServiceOptions) => Promise<boolean>;
+  [key in AwalaRequestMessageType]: (
+    incomingMessage: IncomingServiceMessageOptions,
+    options: ServiceOptions,
+  ) => Promise<boolean>;
 } = {
   [AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST]: processMemberBundleRequest,
   [AwalaRequestMessageType.MEMBER_PUBLIC_KEY_IMPORT]: processMemberKeyImportRequest,
@@ -86,9 +115,11 @@ export default function registerRoutes(
   fastify.removeAllContentTypeParsers();
   fastify.addContentTypeParser(
     awalaRequestMessageTypeList,
-    { parseAs: 'buffer' }, (_request, payload, next) => {
+    { parseAs: 'buffer' },
+    (_request, payload, next) => {
       next(null, payload);
-    });
+    },
+  );
 
   fastify.route({
     method: ['POST'],
@@ -109,25 +140,25 @@ export default function registerRoutes(
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }
 
-      const incomingMessage = getIncomingServiceMessageEvent(event, this.log)
+      const parcelAwareLogger = request.log.child({
+        parcelId: event.id,
+      });
+      const incomingMessage = getIncomingServiceMessageEvent(event, parcelAwareLogger);
 
-      if(!incomingMessage){
+      if (!incomingMessage) {
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }
 
-      const serviceOptions = {
-        logger: this.log,
+      const didSucceed = await processor(incomingMessage, {
+        logger: parcelAwareLogger,
         dbConnection: this.mongoose,
-      };
-
-      const didSucceed = await processor(incomingMessage.content, serviceOptions);
+      });
 
       if (didSucceed) {
-        await reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
-        return;
+        return reply.code(HTTP_STATUS_CODES.ACCEPTED).send();
       }
 
-      await reply.code(HTTP_STATUS_CODES.BAD_REQUEST).send();
+      return reply.code(HTTP_STATUS_CODES.BAD_REQUEST).send();
     },
   });
   done();

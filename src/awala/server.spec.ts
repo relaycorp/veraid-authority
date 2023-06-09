@@ -1,10 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 
-import { setUpTestQueueServer } from '../testUtils/queueServer.js';
+import { setUpTestAwalaServer } from '../testUtils/awalaServer.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 
-describe('makeQueueServer', () => {
-  const getTestServerFixture = setUpTestQueueServer();
+describe('makeAwalaServer', () => {
+  const getTestServerFixture = setUpTestAwalaServer();
   let server: FastifyInstance;
   beforeEach(() => {
     ({ server } = getTestServerFixture());
