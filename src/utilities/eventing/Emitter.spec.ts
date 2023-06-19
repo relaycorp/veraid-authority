@@ -8,8 +8,6 @@ import { CE_ID, CE_SOURCE, K_SINK } from '../../testUtils/eventing/stubs.js';
 
 enum CloudEventMode {
   BINARY = 'binary',
-  STRUCTURED = 'structured',
-  BATCH = 'batch',
 }
 const mockEmitterFunction = mockSpy(jest.fn());
 const mockTransport = Symbol('mockTransport');

@@ -253,7 +253,7 @@ describe('memberBundleIssuance', () => {
     });
   });
 
-  test('Malformed event data should stop execution', async () => {
+  test('Missing event data should be refused', async () => {
     const invalidTriggerEvent = new CloudEvent<MemberBundleRequestPayload>({
       id: MEMBER_PUBLIC_KEY_MONGO_ID,
       source: CE_SOURCE,

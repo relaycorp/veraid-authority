@@ -25,7 +25,7 @@ describe('bufferToJson', () => {
     expect(result).toStrictEqual(json);
   });
 
-  test('Invalid json should return null', () => {
+  test('Invalid JSON should return null', () => {
     const buffer = Buffer.from('INVALID_JSON');
 
     const result = bufferToJson(buffer);
