@@ -30,6 +30,18 @@ function getExpiryDate(expiry: unknown, creationDate: Date, logger: BaseLogger) 
   return expiryDate;
 }
 
+function encodeContent(event: CloudEventV1<unknown>) {
+  let content: Buffer;
+  if (event.data === undefined) {
+    content = Buffer.from([]);
+  } else if (Buffer.isBuffer(event.data)) {
+    content = event.data;
+  } else {
+    content = Buffer.from(JSON.stringify(event.data));
+  }
+  return content;
+}
+
 export const INCOMING_SERVICE_MESSAGE_TYPE =
   'com.relaycorp.awala.endpoint-internet.incoming-service-message';
 
@@ -56,11 +68,6 @@ export function getIncomingServiceMessageEvent(
     return null;
   }
 
-  if (event.data_base64 === undefined && event.data !== undefined) {
-    parcelAwareLogger.info('Got textual data instead of binary');
-    return null;
-  }
-
   if (event.subject === undefined) {
     parcelAwareLogger.info('Refused missing subject');
     return null;
@@ -83,7 +90,7 @@ export function getIncomingServiceMessageEvent(
     senderId: event.source,
     recipientId: event.subject,
     contentType: event.datacontenttype,
-    content: Buffer.from(event.data_base64 ?? '', 'base64'),
+    content: encodeContent(event),
     expiryDate,
     creationDate,
   };

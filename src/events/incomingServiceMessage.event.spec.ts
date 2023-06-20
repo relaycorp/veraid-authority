@@ -9,10 +9,9 @@ import {
   CE_SOURCE,
 } from '../testUtils/eventing/stubs.js';
 import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
-import { assertNotNull, assertNull } from '../testUtils/assertions.js';
+import { assertNull } from '../testUtils/assertions.js';
 
 import {
-  type IncomingServiceMessageOptions,
   getIncomingServiceMessageEvent,
   INCOMING_SERVICE_MESSAGE_TYPE,
 } from './incomingServiceMessage.event.js';
@@ -30,54 +29,51 @@ describe('getIncomingServiceMessageEvent', () => {
     datacontenttype: CE_SERVICE_MESSAGE_CONTENT_TYPE,
     expiry: formatISO(expiry),
     time: formatISO(creationDate),
-    // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
-    data_base64: CE_SERVICE_MESSAGE_CONTENT.toString('base64'),
-  });
-
-  let incomingServiceMessageOptions: IncomingServiceMessageOptions;
-  beforeEach(() => {
-    const result = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger);
-    assertNotNull(result);
-    incomingServiceMessageOptions = result;
+    data: CE_SERVICE_MESSAGE_CONTENT,
   });
 
   test('Parcel id should be the same as event id', () => {
-    const { parcelId } = incomingServiceMessageOptions;
+    const { parcelId } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(parcelId).toBe(cloudEvent.id);
   });
 
   test('Sender id should be the same as source', () => {
-    const { senderId } = incomingServiceMessageOptions;
+    const { senderId } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(senderId).toBe(cloudEvent.source);
   });
 
   test('Recipient id should be the same as subject', () => {
-    const { recipientId } = incomingServiceMessageOptions;
+    const { recipientId } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(recipientId).toBe(cloudEvent.subject);
   });
 
   test('Content type should be the same as datacontenttype', () => {
-    const { contentType } = incomingServiceMessageOptions;
+    const { contentType } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(contentType).toBe(cloudEvent.datacontenttype);
   });
 
-  test('Content should be a buffer with the content of data_base64', () => {
-    const { content } = incomingServiceMessageOptions;
+  test('Content should be event data', () => {
+    const { content } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(content).toStrictEqual(CE_SERVICE_MESSAGE_CONTENT);
   });
 
-  test('Missing data_base64 should be accepted', () => {
-    const event = new CloudEvent({
-      ...cloudEvent,
-      // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
-      data_base64: undefined,
-      data: undefined,
-    });
+  test('Content should be buffer even if Content Type is JSON', () => {
+    const data = { foo: 'bar' };
+    const jsonEvent = cloudEvent.cloneWith({ data, datacontenttype: 'application/json' });
+
+    const { content } = getIncomingServiceMessageEvent(jsonEvent, mockLogging.logger)!;
+
+    expect(content).toStrictEqual(Buffer.from(JSON.stringify(data)));
+  });
+
+  test('Missing data should be accepted', () => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
+    const event = cloudEvent.cloneWith({ data: undefined, data_base64: undefined });
 
     const result = getIncomingServiceMessageEvent(event, mockLogging.logger);
 
@@ -85,13 +81,16 @@ describe('getIncomingServiceMessageEvent', () => {
   });
 
   test('Creation date should be taken from event time', () => {
-    const { creationDate: creation } = incomingServiceMessageOptions;
+    const { creationDate: creation } = getIncomingServiceMessageEvent(
+      cloudEvent,
+      mockLogging.logger,
+    )!;
 
     expect(creation).toStrictEqual(parseISO(cloudEvent.time!));
   });
 
   test('Expiry date should be taken from event expiry', () => {
-    const { expiryDate } = incomingServiceMessageOptions;
+    const { expiryDate } = getIncomingServiceMessageEvent(cloudEvent, mockLogging.logger)!;
 
     expect(expiryDate).toStrictEqual(parseISO(cloudEvent.expiry as string));
   });
@@ -192,25 +191,6 @@ describe('getIncomingServiceMessageEvent', () => {
       assertNull(result);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused expiry less than time', { parcelId: event.id }),
-      );
-    });
-
-    test('Missing data should be refused', () => {
-      const event = new CloudEvent({
-        ...cloudEvent,
-        // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
-        data_base64: undefined,
-        data: undefined,
-      });
-
-      const result = getIncomingServiceMessageEvent(
-        { ...event, data: Buffer.from('') },
-        mockLogging.logger,
-      );
-
-      assertNull(result);
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Got textual data instead of binary', { parcelId: event.id }),
       );
     });
   });

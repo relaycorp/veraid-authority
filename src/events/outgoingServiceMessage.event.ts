@@ -16,7 +16,7 @@ export interface OutgoingServiceMessageOptions {
 
 export function makeOutgoingServiceMessageEvent(
   options: OutgoingServiceMessageOptions,
-): CloudEvent {
+): CloudEvent<Buffer> {
   return new CloudEvent({
     specversion: '1.0',
     type: OUTGOING_SERVICE_MESSAGE_TYPE,
@@ -24,8 +24,7 @@ export function makeOutgoingServiceMessageEvent(
     source: OUTGOING_MESSAGE_SOURCE,
     subject: options.peerId,
     datacontenttype: options.contentType,
-    // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
-    data_base64: options.content.toString('base64'),
+    data: options.content,
     time: options.creationDate.toISOString(),
     expiry: options.expiryDate.toISOString(),
   });

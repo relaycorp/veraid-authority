@@ -59,10 +59,10 @@ describe('makeIncomingServiceMessageEvent', () => {
     expect(contentType).toBe(options.contentType);
   });
 
-  test('Event data should be the service message content, base64-encoded', () => {
-    const { data_base64: dataBase64 } = makeOutgoingServiceMessageEvent(options);
+  test('Event data should be the service message content', () => {
+    const { data } = makeOutgoingServiceMessageEvent(options);
 
-    expect(dataBase64).toBe(options.content.toString('base64'));
+    expect(data).toBe(options.content);
   });
 
   test('Event time should be parcel creation time', () => {

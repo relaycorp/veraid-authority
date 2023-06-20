@@ -70,7 +70,7 @@ describe('memberBundleIssuance', () => {
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
     subject: 'https://relaycorp.tech/awala-endpoint-internet',
-    data: JSON.stringify(validMessageContent),
+    data: Buffer.from(JSON.stringify(validMessageContent)),
   });
 
   beforeEach(() => {
@@ -258,10 +258,25 @@ describe('memberBundleIssuance', () => {
       id: MEMBER_PUBLIC_KEY_MONGO_ID,
       source: CE_SOURCE,
       type: BUNDLE_REQUEST_TYPE,
+    });
 
-      data: {
-        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      } as any,
+    await postEvent(invalidTriggerEvent, server);
+
+    expect(mockGenerateMemberBundle).not.toHaveBeenCalled();
+    expect(logs).toContainEqual(
+      partialPinoLog('info', 'Refusing malformed member bundle request event', {
+        eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        validationError: 'data must be object',
+      }),
+    );
+  });
+
+  test('Malformed event data should be refused', async () => {
+    const invalidTriggerEvent = new CloudEvent<Partial<MemberBundleRequestPayload>>({
+      id: MEMBER_PUBLIC_KEY_MONGO_ID,
+      source: CE_SOURCE,
+      type: BUNDLE_REQUEST_TYPE,
+      data: { publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID },
     });
 
     await postEvent(invalidTriggerEvent, server);
