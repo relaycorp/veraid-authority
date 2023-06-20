@@ -136,15 +136,16 @@ export default function registerRoutes(
       let event;
       try {
         event = HTTP.toEvent(message) as CloudEventV1<unknown>;
-      } catch {
+      } catch (err) {
+        request.log.info({ err }, 'Refused invalid CloudEvent');
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }
 
       const parcelAwareLogger = request.log.child({
         parcelId: event.id,
       });
-      const incomingMessage = getIncomingServiceMessageEvent(event, parcelAwareLogger);
 
+      const incomingMessage = getIncomingServiceMessageEvent(event, parcelAwareLogger);
       if (!incomingMessage) {
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }

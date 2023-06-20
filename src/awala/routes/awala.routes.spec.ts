@@ -57,7 +57,7 @@ const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
-describe('awala routes', () => {
+describe('Awala routes', () => {
   const getTestServerFixture = setUpTestAwalaServer();
   let server: FastifyInstance;
   let logs: MockLogSet;
@@ -98,9 +98,14 @@ describe('awala routes', () => {
     });
 
     expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
+    expect(logs).toContainEqual(
+      partialPinoLog('info', 'Refused invalid CloudEvent', {
+        err: expect.objectContaining({ message: 'no cloud event detected' }),
+      }),
+    );
   });
 
-  test('Invalid message should should resolve into bad request', async () => {
+  test('Invalid service message event should should be refused', async () => {
     const cloudEvent = new CloudEvent({
       id: CE_ID,
       source: AWALA_PEER_ID,
