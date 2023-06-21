@@ -20,6 +20,7 @@ import {
 import { CE_ID } from '../../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../events/incomingServiceMessage.event.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
+import type { MemberKeyImportRequest } from '../../schemas/awala.schema.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
@@ -241,7 +242,7 @@ describe('Awala routes', () => {
 
   describe('Process member key import request', () => {
     const expiry = addDays(Date.now(), 5);
-    const validMessageContent = {
+    const importRequest: MemberKeyImportRequest = {
       publicKeyImportToken: MEMBER_KEY_IMPORT_TOKEN,
       publicKey: publicKeyBase64,
     };
@@ -253,7 +254,7 @@ describe('Awala routes', () => {
       subject: 'https://relaycorp.tech/awala-endpoint-internet',
       datacontenttype: 'application/vnd.veraid.member-public-key-import',
       expiry: formatISO(expiry),
-      data: JSON.stringify(validMessageContent),
+      data: JSON.stringify(importRequest),
     });
 
     test('Valid data should be accepted', async () => {
@@ -265,14 +266,9 @@ describe('Awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.ACCEPTED);
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
-        {
-          ...validMessageContent,
-          peerId: AWALA_PEER_ID,
-        },
-        {
-          logger: expect.anything(),
-          dbConnection: server.mongoose,
-        },
+        AWALA_PEER_ID,
+        importRequest,
+        { logger: expect.anything(), dbConnection: server.mongoose },
       );
     });
 
@@ -288,36 +284,12 @@ describe('Awala routes', () => {
       expect(logs).toContainEqual(partialPinoLog('info', 'Refused invalid json format'));
     });
 
-    test('Empty peer id should be refused', async () => {
-      const message = HTTP.binary(cloudEvent);
-
-      const response = await server.inject({
-        method: 'POST',
-        url: '/',
-
-        headers: {
-          ...message.headers,
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          'ce-source': '',
-        },
-
-        payload: message.body as string,
-      });
-
-      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(logs).toContainEqual(
-        partialPinoLog('info', 'Refused invalid member bundle request', {
-          reason: expect.stringContaining('peerId'),
-        }),
-      );
-    });
-
     test('Missing public key import token should be refused', async () => {
       const event = new CloudEvent({
         ...cloudEvent,
 
         data: JSON.stringify({
-          ...validMessageContent,
+          ...importRequest,
           publicKeyImportToken: undefined,
         }),
       });
@@ -345,10 +317,8 @@ describe('Awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
-        {
-          ...validMessageContent,
-          peerId: AWALA_PEER_ID,
-        },
+        AWALA_PEER_ID,
+        importRequest,
         {
           logger: expect.anything(),
           dbConnection: server.mongoose,

@@ -1,22 +1,13 @@
-import { CloudEvent, HTTP } from 'cloudevents';
+import { CloudEvent } from 'cloudevents';
 
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
 import { getServiceUrl } from './utils/knative.js';
+import { postEvent } from './utils/events.js';
 
 const QUEUE_URL = await getServiceUrl('veraid-authority-queue');
-
-async function postEvent(event: CloudEvent<unknown>): Promise<Response> {
-  const message = HTTP.structured(event);
-
-  return fetch(QUEUE_URL, {
-    method: 'POST',
-    headers: message.headers as HeadersInit,
-    body: message.body as string,
-  });
-}
 
 describe('Background queue', () => {
   test('Supported event should be accepted', async () => {
@@ -26,7 +17,7 @@ describe('Background queue', () => {
       source: CE_SOURCE,
     });
 
-    const response = await postEvent(event);
+    const response = await postEvent(event, QUEUE_URL);
 
     expect(response.status).toBe(HTTP_STATUS_CODES.NO_CONTENT);
   });
@@ -38,7 +29,7 @@ describe('Background queue', () => {
       source: CE_SOURCE,
     });
 
-    const response = await postEvent(event);
+    const response = await postEvent(event, QUEUE_URL);
 
     expect(response.status).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
   });

@@ -2,47 +2,39 @@ import type { CloudEvent } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 
-import { MEMBER_BUNDLE_REQUEST_PAYLOAD } from '../../events/bundleRequest.event.js';
 import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
-import { validateMessage } from '../../utilities/validateMessage.js';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { bufferToJson } from '../../utilities/buffer.js';
 
 export default async function memberBundleIssuance(
   event: CloudEvent<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
-  options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
-  const data = bufferToJson(event.data as Buffer);
+  const publicKeyId = event.id;
+  const keyAwareLogger = options.logger.child({ publicKeyId });
 
-  const validatedData = validateMessage(data, MEMBER_BUNDLE_REQUEST_PAYLOAD);
-  if (typeof validatedData === 'string') {
-    options.logger.info(
-      { eventId: event.id, validationError: validatedData },
-      'Refusing malformed member bundle request event',
-    );
+  keyAwareLogger.debug('Starting member bundle request trigger');
+
+  if (event.subject === undefined) {
+    keyAwareLogger.info('Refusing member bundle request with missing subject');
     return;
   }
 
-  const memberBundle = await generateMemberBundle(validatedData.publicKeyId, options);
+  const memberBundle = await generateMemberBundle(publicKeyId, options);
   if (!memberBundle.didSucceed && memberBundle.context.shouldRetry) {
     return;
   }
 
   if (memberBundle.didSucceed) {
-    options.logger.debug(
-      { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
-      'Emitting member bundle event',
-    );
+    keyAwareLogger.debug('Emitting member bundle event');
 
     const now = new Date();
     const message = makeOutgoingServiceMessageEvent({
-      publicKeyId: validatedData.publicKeyId,
-      peerId: validatedData.peerId,
+      publicKeyId,
+      peerId: event.subject,
       contentType: VeraidContentType.MEMBER_BUNDLE,
       content: Buffer.from(memberBundle.result),
       creationDate: now,
@@ -56,11 +48,6 @@ export default async function memberBundleIssuance(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  await memberBundleRequestModel.deleteOne({
-    publicKeyId: validatedData.publicKeyId,
-  });
-  options.logger.info(
-    { eventId: event.id, memberPublicKeyId: validatedData.publicKeyId },
-    'Removed Bundle Request',
-  );
+  await memberBundleRequestModel.deleteOne({ publicKeyId });
+  keyAwareLogger.info('Deleted bundle request');
 }

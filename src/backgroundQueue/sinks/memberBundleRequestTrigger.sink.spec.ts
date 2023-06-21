@@ -12,10 +12,7 @@ import {
   type MemberBundleRequestTriggerPayload,
 } from '../../events/bundleRequestTrigger.event.js';
 import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
-import {
-  BUNDLE_REQUEST_TYPE,
-  type MemberBundleRequestPayload,
-} from '../../events/bundleRequest.event.js';
+import { BUNDLE_REQUEST_TYPE } from '../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
   MEMBER_MONGO_ID,
@@ -70,27 +67,19 @@ describe('triggerBundleRequest', () => {
     const publishedEvents = getEvents();
     expect(publishedEvents).toHaveLength(2);
     expect(publishedEvents).toContainEqual(
-      expect.objectContaining<Partial<CloudEvent<MemberBundleRequestPayload>>>({
+      expect.objectContaining<Partial<CloudEvent>>({
         id: MEMBER_PUBLIC_KEY_MONGO_ID,
         source: 'https://veraid.net/authority/bundle-request-trigger',
         type: BUNDLE_REQUEST_TYPE,
-
-        data: {
-          peerId: AWALA_PEER_ID,
-          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        },
+        subject: AWALA_PEER_ID,
       }),
     );
     expect(publishedEvents).toContainEqual(
-      expect.objectContaining<Partial<CloudEvent<MemberBundleRequestPayload>>>({
+      expect.objectContaining<Partial<CloudEvent>>({
         id: mongoId,
         source: 'https://veraid.net/authority/bundle-request-trigger',
         type: BUNDLE_REQUEST_TYPE,
-
-        data: {
-          peerId: AWALA_PEER_ID,
-          publicKeyId: mongoId,
-        },
+        subject: AWALA_PEER_ID,
       }),
     );
   });

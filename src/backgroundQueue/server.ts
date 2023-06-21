@@ -54,7 +54,7 @@ function makeQueueServerPlugin(
     }
 
     await sink(event, {
-      logger: server.log,
+      logger: request.log,
       dbConnection: server.mongoose,
     });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();

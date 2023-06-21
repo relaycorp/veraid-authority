@@ -60,18 +60,11 @@ async function processMemberKeyImportRequest(
     options.logger.info('Refused invalid json format');
     return false;
   }
-  const validationResult = validateMessage(
-    {
-      ...data,
-      peerId: incomingMessage.senderId,
-    },
-    MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
-  );
+  const validationResult = validateMessage(data, MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
   if (typeof validationResult === 'string') {
     options.logger.info(
       {
         publicKeyImportToken: (data as MemberKeyImportRequest).publicKeyImportToken,
-
         reason: validationResult,
       },
       'Refused invalid member bundle request',
@@ -80,10 +73,10 @@ async function processMemberKeyImportRequest(
   }
 
   const result = await processMemberKeyImportToken(
+    incomingMessage.senderId,
     {
       publicKey: validationResult.publicKey,
       publicKeyImportToken: validationResult.publicKeyImportToken,
-      peerId: validationResult.peerId,
     },
     options,
   );
