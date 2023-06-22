@@ -9,10 +9,7 @@ import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemT
 import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { Emitter } from './utilities/eventing/Emitter.js';
-import {
-  BUNDLE_REQUEST_TYPE,
-  type MemberBundleRequestPayload,
-} from './events/bundleRequest.event.js';
+import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -79,12 +76,14 @@ export async function processMemberKeyImportToken(
     };
   }
 
-  const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
-  const event = new CloudEvent<MemberBundleRequestPayload>({
+  const emitter = Emitter.init() as Emitter<string>;
+  const event = new CloudEvent<string>({
     id: publicKeyCreationResult.result.id,
     source: 'https://veraid.net/authority/awala-member-key-import',
     type: BUNDLE_REQUEST_TYPE,
     subject: peerId,
+    datacontenttype: 'application/vnd.veraid.member-public-key-import',
+    data: '',
   });
   await emitter.emit(event);
 

@@ -82,7 +82,8 @@ describe('org', () => {
     });
 
     test('Clash with existing name should be refused', async () => {
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const name = `duplicated-${ORG_NAME}`;
+      const orgData: OrgSchema = { name };
       await createOrg(orgData, serviceOptions);
 
       const methodResult = await createOrg(orgData, serviceOptions);
@@ -90,9 +91,7 @@ describe('org', () => {
       requireFailureResult(methodResult);
       expect(methodResult.context).toBe(OrgProblemType.EXISTING_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Refused duplicated org name', {
-          orgName: ORG_NAME,
-        }),
+        partialPinoLog('info', 'Refused duplicated org name', { orgName: name }),
       );
     });
 
