@@ -10,6 +10,8 @@ import {
 } from '@relaycorp/veraid-authority';
 import { getModelForClass } from '@typegoose/typegoose';
 import { createConnection } from 'mongoose';
+import { CloudEvent } from 'cloudevents';
+import { addMinutes, formatISO } from 'date-fns';
 
 import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
 import { OrgModelSchema } from '../models/Org.model.js';
@@ -18,15 +20,20 @@ import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { VeraidContentType } from '../utilities/veraid.js';
+import { CE_ID } from '../testUtils/eventing/stubs.js';
+import { INCOMING_SERVICE_MESSAGE_TYPE } from '../events/incomingServiceMessage.event.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { KEY_IMPORT_CONTENT_TYPE, postAwalaMessage } from './utils/awala.js';
 import { getMockRequestsByContentType, mockAwalaMiddleware } from './utils/mockAwalaMiddleware.js';
 import { sleep } from './utils/time.js';
+import { getServiceUrl } from './utils/knative.js';
+import { postEvent } from './utils/events.js';
 
 const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
+
+const AWALA_SERVER_URL = await getServiceUrl('veraid-authority-awala');
 
 const MONGODB_PORT = 27_017;
 const MONGODB_LOCAL_BASE_URI = 'mongodb://root:password123@localhost';
@@ -97,18 +104,27 @@ async function claimKeyImportTokenViaAwala(
   memberPublicKey: CryptoKey,
 ) {
   const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
-  const importMessage: MemberKeyImportRequest = {
+  const importRequest: MemberKeyImportRequest = {
     publicKey: publicKeyDer.toString('base64'),
-    peerId: AWALA_PEER_ID,
     publicKeyImportToken,
   };
-  const requestBody = JSON.stringify(importMessage);
-  const response = await postAwalaMessage(KEY_IMPORT_CONTENT_TYPE, requestBody);
+  const now = new Date();
+  const event = new CloudEvent({
+    id: CE_ID,
+    source: AWALA_PEER_ID,
+    type: INCOMING_SERVICE_MESSAGE_TYPE,
+    subject: 'https://relaycorp.tech/awala-endpoint-internet',
+    time: formatISO(now),
+    expiry: formatISO(addMinutes(now, 1)),
+    datacontenttype: 'application/vnd.veraid.member-public-key-import',
+    data: importRequest,
+  });
+  const response = await postEvent(event, AWALA_SERVER_URL);
   expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
 }
 
-describe('E2E', () => {
-  test('Get member bundle via Awala', async () => {
+describe('Awala', () => {
+  test('Get member bundle', async () => {
     // Create the necessary setup as an admin:
     const { members: membersEndpoint } = await createTestOrg();
     const keyImportTokenEndpoint = await createTestMember(membersEndpoint);

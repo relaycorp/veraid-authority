@@ -15,27 +15,12 @@ spec:
             - name: MOCKSERVER_SERVER_PORT
               value: "8080"
 ---
-apiVersion: sources.knative.dev/v1
-kind: SinkBinding
-metadata:
-  name: mock-awala-middleware-sink-binding
-spec:
-  subject:
-    apiVersion: serving.knative.dev/v1
-    kind: Service
-    name: mock-awala-middleware
-  sink:
-    ref:
-      apiVersion: eventing.knative.dev/v1
-      kind: Broker
-      name: authority-broker
----
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: mock-awala-middleware-trigger
 spec:
-  broker: authority-broker
+  broker: authority-awala-broker
   subscriber:
     ref:
       apiVersion: serving.knative.dev/v1

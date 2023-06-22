@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: veraid-authority-queue
+  name: veraid-authority-awala
 spec:
   template:
     metadata:
@@ -11,7 +11,7 @@ spec:
       containers:
         - name: queue
           image: dev.local/veraid-authority
-          args: [queue]
+          args: [awala]
           readinessProbe:
             httpGet:
               path: /
@@ -56,26 +56,14 @@ spec:
 apiVersion: sources.knative.dev/v1
 kind: SinkBinding
 metadata:
-  name: veraid-authority-queue-sink-binding
+  name: veraid-authority-awala-sink-binding
 spec:
   subject:
     apiVersion: serving.knative.dev/v1
     kind: Service
-    name: veraid-authority-queue
+    name: veraid-authority-awala
   sink:
     ref:
       apiVersion: eventing.knative.dev/v1
       kind: Broker
-      name: authority-api-broker
----
-apiVersion: eventing.knative.dev/v1
-kind: Trigger
-metadata:
-  name: veraid-authority-queue-trigger
-spec:
-  broker: authority-api-broker
-  subscriber:
-    ref:
-      apiVersion: serving.knative.dev/v1
-      kind: Service
-      name: veraid-authority-queue
+      name: authority-awala-broker

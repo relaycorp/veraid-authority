@@ -78,4 +78,4 @@ spec:
     ref:
       apiVersion: eventing.knative.dev/v1
       kind: Broker
-      name: authority-broker
+      name: authority-api-broker
