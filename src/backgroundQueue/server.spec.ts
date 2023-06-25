@@ -29,8 +29,8 @@ describe('makeQueueServer', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/',
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        headers: { 'content-type': 'application/cloudevents+json' },
+
+        headers: {},
         payload: 'null',
       });
 

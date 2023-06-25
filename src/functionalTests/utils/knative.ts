@@ -12,10 +12,6 @@ async function getServiceOutput(serviceName: string, output: string) {
   return stdout.trim();
 }
 
-export async function getServiceActiveRevision(serviceName: string): Promise<string> {
-  return getServiceOutput(serviceName, 'jsonpath={.status.latestReadyRevisionName}');
-}
-
 export async function getServiceUrl(serviceName: string): Promise<string> {
   const output = 'url';
   return getServiceOutput(serviceName, output);

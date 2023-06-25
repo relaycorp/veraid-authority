@@ -7,14 +7,9 @@ import jwksPlugin from '../utilities/fastify/plugins/jwksAuthentication.js';
 
 import healthcheckRoutes from './routes/healthcheck.routes.js';
 import orgRoutes from './routes/org.routes.js';
-import awalaRoutes from './routes/awala.routes.js';
 
 export async function makeApiServerPlugin(server: FastifyInstance): Promise<void> {
-  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [
-    healthcheckRoutes,
-    orgRoutes,
-    awalaRoutes,
-  ];
+  const rootRoutes: FastifyPluginCallback<RouteOptions>[] = [healthcheckRoutes, orgRoutes];
 
   await server.register(jwksPlugin);
   await Promise.all(rootRoutes.map((route) => server.register(route)));

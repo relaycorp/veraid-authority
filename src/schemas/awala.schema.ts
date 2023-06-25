@@ -21,10 +21,9 @@ export const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
   properties: {
     publicKeyImportToken: { type: 'string' },
     publicKey: { type: 'string' },
-    peerId: { type: 'string', minLength: 1 },
   },
 
-  required: ['publicKeyImportToken', 'publicKey', 'peerId'],
+  required: ['publicKeyImportToken', 'publicKey'],
 } as const;
 
 export type MemberBundleRequest = FromSchema<typeof MEMBER_BUNDLE_REQUEST_SCHEMA>;

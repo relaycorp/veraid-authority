@@ -1,10 +1,16 @@
-import { type CloudEvent, emitterFor, type EmitterFunction, httpTransport } from 'cloudevents';
+import {
+  type CloudEvent,
+  emitterFor,
+  type EmitterFunction,
+  httpTransport,
+  Mode,
+} from 'cloudevents';
 import envVar from 'env-var';
 
 function makeEmitterFunction() {
   const sinkUrl = envVar.get('K_SINK').required().asUrlString();
   const transport = httpTransport(sinkUrl);
-  return emitterFor(transport);
+  return emitterFor(transport, { mode: Mode.BINARY });
 }
 
 /**

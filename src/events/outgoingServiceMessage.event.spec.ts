@@ -3,15 +3,15 @@ import { randomUUID } from 'node:crypto';
 import { addMinutes } from 'date-fns';
 
 import { AWALA_PEER_ID } from '../testUtils/stubs.js';
+import {
+  CE_SERVICE_MESSAGE_CONTENT,
+  CE_SERVICE_MESSAGE_CONTENT_TYPE,
+} from '../testUtils/eventing/stubs.js';
 
 import {
   type OutgoingServiceMessageOptions,
   makeOutgoingServiceMessageEvent,
 } from './outgoingServiceMessage.event.js';
-
-const CE_SERVICE_MESSAGE_CONTENT_TYPE = 'application/test';
-
-const CE_SERVICE_MESSAGE_CONTENT = Buffer.from('Test');
 
 describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {
@@ -59,10 +59,10 @@ describe('makeIncomingServiceMessageEvent', () => {
     expect(contentType).toBe(options.contentType);
   });
 
-  test('Event data should be the service message content, base64-encoded', () => {
-    const { data_base64: dataBase64 } = makeOutgoingServiceMessageEvent(options);
+  test('Event data should be the service message content', () => {
+    const { data } = makeOutgoingServiceMessageEvent(options);
 
-    expect(dataBase64).toBe(options.content.toString('base64'));
+    expect(data).toBe(options.content);
   });
 
   test('Event time should be parcel creation time', () => {

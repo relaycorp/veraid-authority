@@ -1,7 +1,7 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 import { jest } from '@jest/globals';
-import type { CloudEventV1 } from 'cloudevents';
+import type { CloudEvent } from 'cloudevents';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
@@ -22,10 +22,7 @@ import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { mockEmitter } from './testUtils/eventing/mockEmitter.js';
-import {
-  type MemberBundleRequestPayload,
-  BUNDLE_REQUEST_TYPE,
-} from './events/bundleRequest.event.js';
+import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -120,11 +117,8 @@ describe('member key import token', () => {
       });
 
       const result = await processMemberKeyImportToken(
-        {
-          publicKey: publicKeyBase64,
-          publicKeyImportToken: keyImportToken._id.toString(),
-          peerId: AWALA_PEER_ID,
-        },
+        AWALA_PEER_ID,
+        { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
         serviceOptions,
       );
 
@@ -160,25 +154,20 @@ describe('member key import token', () => {
       });
 
       const result = await processMemberKeyImportToken(
-        {
-          publicKey: publicKeyBase64,
-          publicKeyImportToken: keyImportToken._id.toString(),
-          peerId: AWALA_PEER_ID,
-        },
+        AWALA_PEER_ID,
+        { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
         serviceOptions,
       );
 
       requireSuccessfulResult(result);
       expect(getEvents()).toContainEqual(
-        expect.objectContaining<Partial<CloudEventV1<MemberBundleRequestPayload>>>({
-          id: MEMBER_MONGO_ID,
+        expect.objectContaining<Partial<CloudEvent<string>>>({
+          id: MEMBER_PUBLIC_KEY_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
           type: BUNDLE_REQUEST_TYPE,
-
-          data: {
-            publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-            peerId: AWALA_PEER_ID,
-          },
+          subject: AWALA_PEER_ID,
+          datacontenttype: 'application/vnd.veraid.member-public-key-import',
+          data: '',
         }),
       );
     });
@@ -187,11 +176,8 @@ describe('member key import token', () => {
       const invalidToken = '111111111111111111111111';
 
       const result = await processMemberKeyImportToken(
-        {
-          publicKey: publicKeyBase64,
-          publicKeyImportToken: invalidToken,
-          peerId: AWALA_PEER_ID,
-        },
+        AWALA_PEER_ID,
+        { publicKey: publicKeyBase64, publicKeyImportToken: invalidToken },
         serviceOptions,
       );
 
@@ -215,11 +201,8 @@ describe('member key import token', () => {
       });
 
       const result = await processMemberKeyImportToken(
-        {
-          publicKey: publicKeyBase64,
-          publicKeyImportToken: keyImportToken._id.toString(),
-          peerId: AWALA_PEER_ID,
-        },
+        AWALA_PEER_ID,
+        { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
         serviceOptions,
       );
 

@@ -64,11 +64,7 @@ describe('memberBundleIssuance', () => {
     id: MEMBER_PUBLIC_KEY_MONGO_ID,
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
-
-    data: {
-      peerId: AWALA_PEER_ID,
-      publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-    },
+    subject: AWALA_PEER_ID,
   });
 
   beforeEach(() => {
@@ -94,7 +90,7 @@ describe('memberBundleIssuance', () => {
 
       expect(logs).toContainEqual(
         partialPinoLog('debug', 'Starting member bundle request trigger', {
-          eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
@@ -105,7 +101,7 @@ describe('memberBundleIssuance', () => {
       expect(mockGenerateMemberBundle).toHaveBeenCalledOnceWith(
         MEMBER_PUBLIC_KEY_MONGO_ID,
         expect.objectContaining<ServiceOptions>({
-          logger: server.log,
+          logger: expect.anything(),
           dbConnection: server.mongoose,
         }),
       );
@@ -117,8 +113,7 @@ describe('memberBundleIssuance', () => {
 
         expect(logs).toContainEqual(
           partialPinoLog('debug', 'Emitting member bundle event', {
-            eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-            memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+            publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
         );
         expect(publishedEvents).toHaveLength(1);
@@ -127,11 +122,7 @@ describe('memberBundleIssuance', () => {
       test('Version should be 1.0', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
-          expect.objectContaining({
-            specversion: '1.0',
-          }),
-        );
+        expect(publishedEvents).toContainEqual(expect.objectContaining({ specversion: '1.0' }));
       });
 
       test('Type should be outgoing service message', async () => {
@@ -243,32 +234,26 @@ describe('memberBundleIssuance', () => {
       );
       expect(memberBundleRequestCheck).toBeNull();
       expect(logs).toContainEqual(
-        partialPinoLog('info', 'Removed Bundle Request', {
-          eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        partialPinoLog('info', 'Deleted bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });
   });
 
-  test('Malformed event data should stop execution', async () => {
+  test('Event with missing subject should be refused', async () => {
     const invalidTriggerEvent = new CloudEvent<MemberBundleRequestPayload>({
       id: MEMBER_PUBLIC_KEY_MONGO_ID,
       source: CE_SOURCE,
       type: BUNDLE_REQUEST_TYPE,
-
-      data: {
-        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-      } as any,
     });
 
     await postEvent(invalidTriggerEvent, server);
 
     expect(mockGenerateMemberBundle).not.toHaveBeenCalled();
     expect(logs).toContainEqual(
-      partialPinoLog('info', 'Refusing malformed member bundle request event', {
-        eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-        validationError: expect.stringContaining('peerId'),
+      partialPinoLog('info', 'Refusing member bundle request with missing subject', {
+        publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
       }),
     );
   });
@@ -341,9 +326,8 @@ describe('memberBundleIssuance', () => {
       );
       expect(memberBundleRequestCheck).toBeNull();
       expect(logs).toContainEqual(
-        partialPinoLog('info', 'Removed Bundle Request', {
-          eventId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
+        partialPinoLog('info', 'Deleted bundle request', {
+          publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });

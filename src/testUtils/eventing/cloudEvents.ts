@@ -5,7 +5,7 @@ export async function postEvent(
   event: CloudEvent<unknown>,
   fastify: FastifyInstance,
 ): Promise<LightMyRequestResponse> {
-  const message = HTTP.structured(event);
+  const message = HTTP.binary(event);
 
   return fastify.inject({
     method: 'POST',

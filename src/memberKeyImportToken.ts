@@ -9,10 +9,7 @@ import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemT
 import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { Emitter } from './utilities/eventing/Emitter.js';
-import {
-  BUNDLE_REQUEST_TYPE,
-  type MemberBundleRequestPayload,
-} from './events/bundleRequest.event.js';
+import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -42,19 +39,19 @@ export async function createMemberKeyImportToken(
 }
 
 export async function processMemberKeyImportToken(
-  keyImportData: MemberKeyImportRequest,
+  peerId: string,
+  keyImportRequest: MemberKeyImportRequest,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberPublicKeyImportProblemType>> {
   const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
     existingConnection: options.dbConnection,
   });
-
   const memberKeyImportToken = await memberKeyImportTokenModel.findById(
-    keyImportData.publicKeyImportToken,
+    keyImportRequest.publicKeyImportToken,
   );
   if (!memberKeyImportToken) {
     options.logger.info(
-      { memberKeyImportToken: keyImportData.publicKeyImportToken },
+      { memberKeyImportToken: keyImportRequest.publicKeyImportToken },
       'Member public key import token not found',
     );
     return {
@@ -66,7 +63,7 @@ export async function processMemberKeyImportToken(
   const publicKeyCreationResult = await createMemberPublicKey(
     memberKeyImportToken.memberId,
     {
-      publicKey: keyImportData.publicKey,
+      publicKey: keyImportRequest.publicKey,
       serviceOid: memberKeyImportToken.serviceOid,
     },
     options,
@@ -79,22 +76,20 @@ export async function processMemberKeyImportToken(
     };
   }
 
-  const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
-  const event = new CloudEvent({
-    id: memberKeyImportToken.memberId,
+  const emitter = Emitter.init() as Emitter<string>;
+  const event = new CloudEvent<string>({
+    id: publicKeyCreationResult.result.id,
     source: 'https://veraid.net/authority/awala-member-key-import',
     type: BUNDLE_REQUEST_TYPE,
-
-    data: {
-      publicKeyId: publicKeyCreationResult.result.id,
-      peerId: keyImportData.peerId,
-    },
+    subject: peerId,
+    datacontenttype: 'application/vnd.veraid.member-public-key-import',
+    data: '',
   });
   await emitter.emit(event);
 
-  await memberKeyImportTokenModel.findByIdAndDelete(keyImportData.publicKeyImportToken);
+  await memberKeyImportTokenModel.findByIdAndDelete(keyImportRequest.publicKeyImportToken);
   options.logger.info(
-    { memberKeyImportToken: keyImportData.publicKeyImportToken },
+    { memberKeyImportToken: keyImportRequest.publicKeyImportToken },
     'Member public key import token deleted',
   );
   return {

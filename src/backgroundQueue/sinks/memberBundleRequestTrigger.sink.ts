@@ -11,23 +11,20 @@ import {
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 
-const triggerMemberBundleIssuance = async (
+async function triggerMemberBundleIssuance(
   memberBundleRequest: HydratedDocument<MemberBundleRequestModelSchema>,
   emitter: Emitter<MemberBundleRequestPayload>,
-) => {
+): Promise<void> {
   await emitter.emit(
     new CloudEvent<MemberBundleRequestPayload>({
       id: memberBundleRequest.publicKeyId,
       source: 'https://veraid.net/authority/bundle-request-trigger',
       type: BUNDLE_REQUEST_TYPE,
-
-      data: {
-        peerId: memberBundleRequest.peerId,
-        publicKeyId: memberBundleRequest.publicKeyId,
-      },
+      subject: memberBundleRequest.peerId,
     }),
   );
-};
+}
+
 export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
 export default async function triggerBundleRequest(

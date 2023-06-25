@@ -1,4 +1,4 @@
-import { bufferToArrayBuffer } from './buffer.js';
+import { bufferToArrayBuffer, bufferToJson } from './buffer.js';
 
 describe('bufferToArrayBuffer', () => {
   test('Buffer should be converted to ArrayBuffer', () => {
@@ -9,5 +9,27 @@ describe('bufferToArrayBuffer', () => {
 
     const arrayBufferView = new Uint8Array(arrayBuffer);
     expect(arrayBufferView).toStrictEqual(new Uint8Array(array));
+  });
+});
+
+describe('bufferToJson', () => {
+  test('Buffer should be converted to object', () => {
+    const json = {
+      test: 1,
+    };
+    const jsonString = JSON.stringify(json);
+    const buffer = Buffer.from(jsonString);
+
+    const result = bufferToJson(buffer);
+
+    expect(result).toStrictEqual(json);
+  });
+
+  test('Invalid JSON should return null', () => {
+    const buffer = Buffer.from('INVALID_JSON');
+
+    const result = bufferToJson(buffer);
+
+    expect(result).toBeNull();
   });
 });
