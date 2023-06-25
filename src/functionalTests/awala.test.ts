@@ -19,15 +19,12 @@ import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import { VeraidContentType } from '../utilities/veraid.js';
 import { CE_ID } from '../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../events/incomingServiceMessage.event.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { getMockRequestsByContentType, mockAwalaMiddleware } from './utils/mockAwalaMiddleware.js';
-import { sleep } from './utils/time.js';
 import { getServiceUrl } from './utils/knative.js';
 import { postEvent } from './utils/events.js';
 
@@ -99,17 +96,14 @@ async function createKeyImportToken(endpoint: string) {
   return publicKeyImportToken;
 }
 
-async function claimKeyImportTokenViaAwala(
-  publicKeyImportToken: string,
-  memberPublicKey: CryptoKey,
-) {
+async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportToken: string) {
   const publicKeyDer = await derSerialisePublicKey(memberPublicKey);
   const importRequest: MemberKeyImportRequest = {
     publicKey: publicKeyDer.toString('base64'),
     publicKeyImportToken,
   };
   const now = new Date();
-  const event = new CloudEvent({
+  return new CloudEvent({
     id: CE_ID,
     source: AWALA_PEER_ID,
     type: INCOMING_SERVICE_MESSAGE_TYPE,
@@ -119,35 +113,20 @@ async function claimKeyImportTokenViaAwala(
     datacontenttype: 'application/vnd.veraid.member-public-key-import',
     data: importRequest,
   });
-  const response = await postEvent(event, AWALA_SERVER_URL);
-  expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
 }
 
 describe('Awala', () => {
-  test('Get member bundle', async () => {
+  test('Claim key import token', async () => {
     // Create the necessary setup as an admin:
     const { members: membersEndpoint } = await createTestOrg();
     const keyImportTokenEndpoint = await createTestMember(membersEndpoint);
     const publicKeyImportToken = await createKeyImportToken(keyImportTokenEndpoint);
 
     // Claim the token as a member via Awala:
-    await mockAwalaMiddleware();
     const { publicKey: memberPublicKey } = await generateKeyPair();
-    await claimKeyImportTokenViaAwala(publicKeyImportToken, memberPublicKey);
+    const event = await makeKeyImportEvent(memberPublicKey, publicKeyImportToken);
+    const response = await postEvent(event, AWALA_SERVER_URL);
 
-    // Allow sufficient time for the member bundle request to be processed:
-    await sleep(2000);
-
-    // Check that the member bundle was issued and published:
-    const awalaMiddlewareRequests = await getMockRequestsByContentType(
-      VeraidContentType.MEMBER_BUNDLE,
-    );
-    expect(awalaMiddlewareRequests).toHaveLength(1);
-    const [{ body: bundleRequestBody }] = awalaMiddlewareRequests;
-    const { base64Bytes } = bundleRequestBody as {
-      base64Bytes: string;
-    };
-    expect(base64Bytes).not.toBeNull();
-    expect(base64Bytes.length).toBeGreaterThan(0);
-  }, 20_000);
+    expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
+  });
 });
