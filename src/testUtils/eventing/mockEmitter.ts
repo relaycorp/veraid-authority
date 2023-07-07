@@ -3,9 +3,11 @@ import type { CloudEvent } from 'cloudevents';
 
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 
+import { CE_TRANSPORT } from './stubs.js';
+
 class MockEmitter extends Emitter<unknown> {
   public constructor(private readonly events: CloudEvent[]) {
-    super();
+    super(CE_TRANSPORT);
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await

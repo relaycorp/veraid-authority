@@ -19,6 +19,7 @@
     "@fastify/routes": "^5.1.0",
     "@fastify/type-provider-json-schema-to-ts": "^2.2.2",
     "@peculiar/webcrypto": "^1.4.3",
+    "@relaycorp/cloudevents-transport": "^1.3.0",
     "@relaycorp/dnssec": "^1.11.4",
     "@relaycorp/pino-cloud": "^1.0.28",
     "@relaycorp/veraid": "^1.14.2",

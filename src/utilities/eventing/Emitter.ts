@@ -1,17 +1,8 @@
-import {
-  type CloudEvent,
-  emitterFor,
-  type EmitterFunction,
-  httpTransport,
-  Mode,
-} from 'cloudevents';
+import type { CloudEvent, EmitterFunction } from 'cloudevents';
+import { makeEmitter } from '@relaycorp/cloudevents-transport';
 import envVar from 'env-var';
 
-function makeEmitterFunction() {
-  const sinkUrl = envVar.get('K_SINK').required().asUrlString();
-  const transport = httpTransport(sinkUrl);
-  return emitterFor(transport, { mode: Mode.BINARY });
-}
+import { DEFAULT_TRANSPORT } from './transport.js';
 
 /**
  * Wrapper around CloudEvents Emitter.
@@ -21,15 +12,17 @@ function makeEmitterFunction() {
  */
 export class Emitter<Payload> {
   public static init(): Emitter<unknown> {
-    // No processing needed, but this is implemented as a static method to facilitate unit testing
-    return new Emitter();
+    const transport = envVar.get('CE_TRANSPORT').default(DEFAULT_TRANSPORT).asString();
+    return new Emitter(transport);
   }
 
   protected emitterFunction: EmitterFunction | undefined;
 
+  public constructor(public readonly transport: string) {}
+
   public async emit(event: CloudEvent<Payload>): Promise<void> {
     if (this.emitterFunction === undefined) {
-      this.emitterFunction = makeEmitterFunction();
+      this.emitterFunction = await makeEmitter(this.transport);
     }
     await this.emitterFunction(event);
   }
