@@ -1,4 +1,4 @@
-import { CloudEvent } from 'cloudevents';
+import { CloudEvent, type CloudEventV1 } from 'cloudevents';
 import { addDays } from 'date-fns';
 import { getModelForClass } from '@typegoose/typegoose';
 import type { HydratedDocument } from 'mongoose';
@@ -28,7 +28,7 @@ async function triggerMemberBundleIssuance(
 export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
 export default async function triggerBundleRequest(
-  event: CloudEvent<unknown>,
+  event: CloudEventV1<unknown>,
   ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<void> {

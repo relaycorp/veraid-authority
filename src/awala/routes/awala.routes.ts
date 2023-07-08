@@ -1,5 +1,4 @@
 import type { RouteOptions } from 'fastify';
-import { type CloudEventV1, HTTP, type Message } from 'cloudevents';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
@@ -20,6 +19,7 @@ import {
 } from '../../events/incomingServiceMessage.event.js';
 import { bufferToJson } from '../../utilities/buffer.js';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { convertMessageToEvent } from '../../utilities/eventing/receiver.js';
 
 async function processMemberBundleRequest(
   incomingMessage: IncomingServiceMessageOptions,
@@ -131,10 +131,9 @@ export default function registerRoutes(
 
       const processor = awalaEventToProcessor[contentType!];
 
-      const message: Message = { headers: request.headers, body: request.body };
       let event;
       try {
-        event = HTTP.toEvent(message) as CloudEventV1<unknown>;
+        event = convertMessageToEvent(request.headers, request.body as Buffer);
       } catch (err) {
         request.log.info({ err }, 'Refused invalid CloudEvent');
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();

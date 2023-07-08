@@ -1,4 +1,4 @@
-import type { CloudEvent } from 'cloudevents';
+import type { CloudEventV1 } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 
@@ -10,7 +10,7 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 import type { Emitter } from '../../utilities/eventing/Emitter.js';
 
 export default async function memberBundleIssuance(
-  event: CloudEvent<unknown>,
+  event: CloudEventV1<unknown>,
   ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
