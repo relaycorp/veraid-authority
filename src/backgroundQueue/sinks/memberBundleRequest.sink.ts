@@ -4,13 +4,14 @@ import { addDays } from 'date-fns';
 
 import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
-import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
+import type { Emitter } from '../../utilities/eventing/Emitter.js';
 
 export default async function memberBundleIssuance(
   event: CloudEvent<unknown>,
+  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
   const publicKeyId = event.id;
@@ -40,9 +41,8 @@ export default async function memberBundleIssuance(
       creationDate: now,
       expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS),
     });
-    const emitter = Emitter.init();
 
-    await emitter.emit(message);
+    await ceEmitter.emit(message);
   }
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {

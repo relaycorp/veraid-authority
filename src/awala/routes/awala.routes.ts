@@ -19,9 +19,11 @@ import {
   type IncomingServiceMessageOptions,
 } from '../../events/incomingServiceMessage.event.js';
 import { bufferToJson } from '../../utilities/buffer.js';
+import { Emitter } from '../../utilities/eventing/Emitter.js';
 
 async function processMemberBundleRequest(
   incomingMessage: IncomingServiceMessageOptions,
+  _ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<boolean> {
   const data = bufferToJson(incomingMessage.content);
@@ -53,6 +55,7 @@ async function processMemberBundleRequest(
 
 async function processMemberKeyImportRequest(
   incomingMessage: IncomingServiceMessageOptions,
+  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<boolean> {
   const data = bufferToJson(incomingMessage.content);
@@ -78,6 +81,7 @@ async function processMemberKeyImportRequest(
       publicKey: validationResult.publicKey,
       publicKeyImportToken: validationResult.publicKeyImportToken,
     },
+    ceEmitter,
     options,
   );
   return result.didSucceed;
@@ -91,6 +95,7 @@ enum AwalaRequestMessageType {
 const awalaEventToProcessor: {
   [key in AwalaRequestMessageType]: (
     incomingMessage: IncomingServiceMessageOptions,
+    ceEmitter: Emitter<unknown>,
     options: ServiceOptions,
   ) => Promise<boolean>;
 } = {
@@ -114,6 +119,7 @@ export default function registerRoutes(
     },
   );
 
+  const ceEmitter = Emitter.init();
   fastify.route({
     method: ['POST'],
     url: '/',
@@ -143,7 +149,7 @@ export default function registerRoutes(
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }
 
-      const didSucceed = await processor(incomingMessage, {
+      const didSucceed = await processor(incomingMessage, ceEmitter, {
         logger: parcelAwareLogger,
         dbConnection: this.mongoose,
       });

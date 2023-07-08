@@ -3,7 +3,7 @@ import { addDays } from 'date-fns';
 import { getModelForClass } from '@typegoose/typegoose';
 import type { HydratedDocument } from 'mongoose';
 
-import { Emitter } from '../../utilities/eventing/Emitter.js';
+import type { Emitter } from '../../utilities/eventing/Emitter.js';
 import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
@@ -29,6 +29,7 @@ export const BUNDLE_REQUEST_DATE_RANGE = 3;
 
 export default async function triggerBundleRequest(
   event: CloudEvent<unknown>,
+  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
@@ -42,11 +43,9 @@ export default async function triggerBundleRequest(
     },
   });
 
-  const emitter = Emitter.init() as Emitter<MemberBundleRequestPayload>;
-
   for (const memberBundleRequest of memberBundleRequests) {
     // eslint-disable-next-line no-await-in-loop
-    await triggerMemberBundleIssuance(memberBundleRequest, emitter);
+    await triggerMemberBundleIssuance(memberBundleRequest, ceEmitter);
     options.logger.info(
       {
         eventId: event.id,

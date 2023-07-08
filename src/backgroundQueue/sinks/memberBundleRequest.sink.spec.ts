@@ -53,13 +53,11 @@ const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
 
 describe('memberBundleIssuance', () => {
   const getTestServerFixture = setUpTestQueueServer();
-  const getEvents = mockEmitter();
+  const emitter = mockEmitter();
   let server: FastifyTypedInstance;
   let logs: object[];
   let dbConnection: Connection;
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-  let publishedEvents: CloudEvent[];
-
   const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
     id: MEMBER_PUBLIC_KEY_MONGO_ID,
     source: CE_SOURCE,
@@ -72,7 +70,6 @@ describe('memberBundleIssuance', () => {
     memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
       existingConnection: dbConnection,
     });
-    publishedEvents = getEvents();
   });
 
   describe('Success path', () => {
@@ -116,19 +113,19 @@ describe('memberBundleIssuance', () => {
             publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
         );
-        expect(publishedEvents).toHaveLength(1);
+        expect(emitter.events).toHaveLength(1);
       });
 
       test('Version should be 1.0', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(expect.objectContaining({ specversion: '1.0' }));
+        expect(emitter.events).toContainEqual(expect.objectContaining({ specversion: '1.0' }));
       });
 
       test('Type should be outgoing service message', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             type: OUTGOING_SERVICE_MESSAGE_TYPE,
           }),
@@ -138,7 +135,7 @@ describe('memberBundleIssuance', () => {
       test('Id should be member public key id', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             id: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
@@ -148,7 +145,7 @@ describe('memberBundleIssuance', () => {
       test('Source should be URL identifying Awala Internet Endpoint', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             source: OUTGOING_MESSAGE_SOURCE,
           }),
@@ -158,7 +155,7 @@ describe('memberBundleIssuance', () => {
       test('Subject should be peer id', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             subject: AWALA_PEER_ID,
           }),
@@ -168,7 +165,7 @@ describe('memberBundleIssuance', () => {
       test('Data content type should be member bundle', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             datacontenttype: VeraidContentType.MEMBER_BUNDLE,
           }),
@@ -178,7 +175,7 @@ describe('memberBundleIssuance', () => {
       test('Data should be buffer from member bundle', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             data: Buffer.from(memberBundle),
           }),
@@ -191,7 +188,7 @@ describe('memberBundleIssuance', () => {
         await postEvent(triggerEvent, server);
 
         const postEventDate = new Date();
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             time: expect.toSatisfy((time: string) => {
               const dateFromTime = parseISO(time);
@@ -207,7 +204,7 @@ describe('memberBundleIssuance', () => {
         await postEvent(triggerEvent, server);
 
         const postEventDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
-        expect(publishedEvents).toContainEqual(
+        expect(emitter.events).toContainEqual(
           expect.objectContaining({
             expiry: expect.toSatisfy((expiry: string) => {
               const dateFromExpiry = parseISO(expiry);
@@ -272,7 +269,7 @@ describe('memberBundleIssuance', () => {
     test('Should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(publishedEvents).toHaveLength(0);
+      expect(emitter.events).toHaveLength(0);
     });
 
     test('Should not remove member public key', async () => {
@@ -307,7 +304,7 @@ describe('memberBundleIssuance', () => {
     test('Should retry false should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(publishedEvents).toHaveLength(0);
+      expect(emitter.events).toHaveLength(0);
     });
 
     test('Should remove member bundle request', async () => {
