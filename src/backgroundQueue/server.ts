@@ -1,4 +1,3 @@
-import { type CloudEvent, HTTP, type Message } from 'cloudevents';
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import type { BaseLogger } from 'pino';
 
@@ -8,6 +7,8 @@ import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
+import { Emitter } from '../utilities/eventing/Emitter.js';
+import { convertMessageToEvent } from '../utilities/eventing/receiver.js';
 
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
@@ -33,11 +34,11 @@ function makeQueueServerPlugin(
     await reply.status(HTTP_STATUS_CODES.OK).send('It works');
   });
 
+  const ceEmitter = Emitter.init();
   server.post('/', async (request, reply) => {
-    const message: Message = { headers: request.headers, body: request.body };
     let event;
     try {
-      event = HTTP.toEvent(message) as CloudEvent<unknown>;
+      event = convertMessageToEvent(request.headers, request.body as Buffer);
     } catch {
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
@@ -53,10 +54,7 @@ function makeQueueServerPlugin(
       return;
     }
 
-    await sink(event, {
-      logger: request.log,
-      dbConnection: server.mongoose,
-    });
+    await sink(event, ceEmitter, { logger: request.log, dbConnection: server.mongoose });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });
 

@@ -43,6 +43,7 @@ const { createMemberKeyImportToken, processMemberKeyImportToken } = await import
 describe('member key import token', () => {
   const getConnection = setUpTestDbConnection();
 
+  const emitter = mockEmitter();
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
@@ -101,8 +102,6 @@ describe('member key import token', () => {
   });
 
   describe('processMemberKeyImportToken', () => {
-    const getEvents = mockEmitter();
-
     test('Valid data should return be processed', async () => {
       const keyImportToken = await memberKeyImportTokenModel.create({
         memberId: MEMBER_MONGO_ID,
@@ -119,6 +118,7 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
+        emitter,
         serviceOptions,
       );
 
@@ -156,11 +156,12 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
+        emitter,
         serviceOptions,
       );
 
       requireSuccessfulResult(result);
-      expect(getEvents()).toContainEqual(
+      expect(emitter.events).toContainEqual(
         expect.objectContaining<Partial<CloudEvent<string>>>({
           id: MEMBER_PUBLIC_KEY_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
@@ -178,6 +179,7 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: invalidToken },
+        emitter,
         serviceOptions,
       );
 
@@ -203,6 +205,7 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
+        emitter,
         serviceOptions,
       );
 

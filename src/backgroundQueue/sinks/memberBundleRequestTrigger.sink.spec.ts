@@ -24,7 +24,7 @@ import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';
 
 describe('triggerBundleRequest', () => {
-  const getEvents = mockEmitter();
+  const emitter = mockEmitter();
 
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
@@ -64,9 +64,8 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    const publishedEvents = getEvents();
-    expect(publishedEvents).toHaveLength(2);
-    expect(publishedEvents).toContainEqual(
+    expect(emitter.events).toHaveLength(2);
+    expect(emitter.events).toContainEqual(
       expect.objectContaining<Partial<CloudEvent>>({
         id: MEMBER_PUBLIC_KEY_MONGO_ID,
         source: 'https://veraid.net/authority/bundle-request-trigger',
@@ -74,7 +73,7 @@ describe('triggerBundleRequest', () => {
         subject: AWALA_PEER_ID,
       }),
     );
-    expect(publishedEvents).toContainEqual(
+    expect(emitter.events).toContainEqual(
       expect.objectContaining<Partial<CloudEvent>>({
         id: mongoId,
         source: 'https://veraid.net/authority/bundle-request-trigger',
@@ -93,8 +92,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    const publishedEvents = getEvents();
-    expect(publishedEvents).toHaveLength(0);
+    expect(emitter.events).toHaveLength(0);
   });
 
   test.each([
@@ -117,8 +115,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    const publishedEvents = getEvents();
-    expect(publishedEvents).toHaveLength(1);
+    expect(emitter.events).toHaveLength(1);
   });
 
   test('Bundle start date more then 3 days into the future should not be sent', async () => {
@@ -138,8 +135,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    const publishedEvents = getEvents();
-    expect(publishedEvents).toHaveLength(0);
+    expect(emitter.events).toHaveLength(0);
     const futureBundleRequestCheck = memberBundleRequestModel.findById(futureBundleRequest._id);
     expect(futureBundleRequestCheck).not.toBeNull();
   });
