@@ -38,6 +38,7 @@ All processes require the following variables:
 - KMS-related variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
   - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
+- `CE_TRANSPORT` (default: `ce-http-binary`): The [`@relaycorp/cloudevents-transport`](https://www.npmjs.com/package/@relaycorp/cloudevents-transport) transport to use. Each transport has its own set of environment variables.
 
 ## Example with Knative
 
