@@ -7,7 +7,6 @@ src/**.js
 coverage
 **/.DS_Store
 
-
 docs/.bundle
 docs/.jekyll-cache
 docs/.sass-cache
