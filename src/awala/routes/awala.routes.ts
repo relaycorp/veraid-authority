@@ -1,3 +1,4 @@
+import type { CloudEventV1 } from 'cloudevents';
 import type { RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
@@ -125,13 +126,7 @@ export default function registerRoutes(
     url: '/',
 
     async handler(request, reply): Promise<void> {
-      const contentType = awalaRequestMessageTypeList.find(
-        (messageType) => messageType === request.headers['content-type'],
-      );
-
-      const processor = awalaEventToProcessor[contentType!];
-
-      let event;
+      let event: CloudEventV1<unknown>;
       try {
         event = convertMessageToEvent(request.headers, request.body as Buffer);
       } catch (err) {
@@ -148,6 +143,8 @@ export default function registerRoutes(
         return reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send();
       }
 
+      const contentType = event.datacontenttype as AwalaRequestMessageType;
+      const processor = awalaEventToProcessor[contentType];
       const didSucceed = await processor(incomingMessage, ceEmitter, {
         logger: parcelAwareLogger,
         dbConnection: this.mongoose,
@@ -160,5 +157,6 @@ export default function registerRoutes(
       return reply.code(HTTP_STATUS_CODES.BAD_REQUEST).send();
     },
   });
+
   done();
 }
