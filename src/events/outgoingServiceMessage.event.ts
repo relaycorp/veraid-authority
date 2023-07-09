@@ -1,7 +1,7 @@
 import { CloudEvent } from 'cloudevents';
 
 export const OUTGOING_SERVICE_MESSAGE_TYPE =
-  'com.relaycorp.awala.endpoint-internet.outgoing-service-message';
+  'tech.relaycorp.awala.endpoint-internet.outgoing-service-message';
 
 export const OUTGOING_MESSAGE_SOURCE = 'https://relaycorp.tech/awala-endpoint-internet';
 

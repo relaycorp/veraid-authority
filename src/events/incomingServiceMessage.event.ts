@@ -43,7 +43,7 @@ function encodeContent(event: CloudEventV1<unknown>) {
 }
 
 export const INCOMING_SERVICE_MESSAGE_TYPE =
-  'com.relaycorp.awala.endpoint-internet.incoming-service-message';
+  'tech.relaycorp.awala.endpoint-internet.incoming-service-message';
 
 export interface IncomingServiceMessageOptions {
   readonly creationDate: Date;
