@@ -1,8 +1,10 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
+import { compileSchema } from '../utilities/ajv.js';
+
 import { BASE_64_REGEX } from './validation.js';
 
-export const MEMBER_BUNDLE_REQUEST_SCHEMA = {
+const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   type: 'object',
 
   properties: {
@@ -15,7 +17,7 @@ export const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   required: ['publicKeyId', 'memberBundleStartDate', 'signature', 'peerId'],
 } as const;
 
-export const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
+const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
   type: 'object',
 
   properties: {
@@ -27,4 +29,7 @@ export const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
 } as const;
 
 export type MemberBundleRequest = FromSchema<typeof MEMBER_BUNDLE_REQUEST_SCHEMA>;
+export const isMemberBundleRequest = compileSchema(MEMBER_BUNDLE_REQUEST_SCHEMA);
+
 export type MemberKeyImportRequest = FromSchema<typeof MEMBER_KEY_IMPORT_REQUEST_SCHEMA>;
+export const isMemberKeyImportRequest = compileSchema(MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
