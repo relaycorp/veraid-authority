@@ -8,6 +8,9 @@ plugins:
     - prepareCmd: docker tag relaycorp/veraid-authority:ci ghcr.io/relaycorp/veraid-authority:${nextRelease.version}
       publishCmd: docker push ghcr.io/relaycorp/veraid-authority:${nextRelease.version}
   - - "@semantic-release/exec"
+    - prepareCmd: docker tag relaycorp/veraid-authority:ci relaycorp/veraid-authority:${nextRelease.version}
+      publishCmd: docker push relaycorp/veraid-authority:${nextRelease.version}
+  - - "@semantic-release/exec"
   - - "@semantic-release/github"
     - assets:
         - path: k8s/*.yml
