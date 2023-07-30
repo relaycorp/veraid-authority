@@ -177,7 +177,6 @@ describe('Awala routes', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          reason: expect.stringContaining('memberBundleStartDate'),
         }),
       );
     });
@@ -214,7 +213,6 @@ describe('Awala routes', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          reason: expect.stringContaining('peerId'),
         }),
       );
     });
@@ -235,7 +233,6 @@ describe('Awala routes', () => {
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refused invalid member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
-          reason: expect.stringContaining('signature'),
         }),
       );
     });
@@ -300,9 +297,7 @@ describe('Awala routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(logs).toContainEqual(
-        partialPinoLog('info', 'Refused invalid member bundle request', {
-          reason: expect.stringContaining('publicKeyImportToken'),
-        }),
+        partialPinoLog('info', 'Refused invalid member key import request'),
       );
     });
 

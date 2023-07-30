@@ -5,14 +5,13 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import {
-  MEMBER_BUNDLE_REQUEST_SCHEMA,
-  MEMBER_KEY_IMPORT_REQUEST_SCHEMA,
+  isMemberBundleRequest,
+  isMemberKeyImportRequest,
   type MemberBundleRequest,
   type MemberKeyImportRequest,
 } from '../../schemas/awala.schema.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
-import { validateMessage } from '../../utilities/validateMessage.js';
 import { createMemberBundleRequest } from '../../memberBundle.js';
 import {
   getIncomingServiceMessageEvent,
@@ -32,26 +31,18 @@ async function processMemberBundleRequest(
     options.logger.info('Refused invalid json format');
     return false;
   }
-  const validationResult = validateMessage(
-    {
-      ...data,
-      peerId: incomingMessage.senderId,
-    },
-    MEMBER_BUNDLE_REQUEST_SCHEMA,
-  );
-  if (typeof validationResult === 'string') {
-    options.logger.info(
-      {
-        publicKeyId: (data as MemberBundleRequest).publicKeyId,
-        reason: validationResult,
-      },
-      'Refused invalid member bundle request',
-    );
-    return false;
+
+  const finalData = { ...data, peerId: incomingMessage.senderId };
+  if (isMemberBundleRequest(finalData)) {
+    await createMemberBundleRequest(finalData, options);
+    return true;
   }
 
-  await createMemberBundleRequest(validationResult, options);
-  return true;
+  options.logger.info(
+    { publicKeyId: (data as MemberBundleRequest).publicKeyId },
+    'Refused invalid member bundle request',
+  );
+  return false;
 }
 
 async function processMemberKeyImportRequest(
@@ -64,28 +55,25 @@ async function processMemberKeyImportRequest(
     options.logger.info('Refused invalid json format');
     return false;
   }
-  const validationResult = validateMessage(data, MEMBER_KEY_IMPORT_REQUEST_SCHEMA);
-  if (typeof validationResult === 'string') {
-    options.logger.info(
+  if (isMemberKeyImportRequest(data)) {
+    const result = await processMemberKeyImportToken(
+      incomingMessage.senderId,
       {
-        publicKeyImportToken: (data as MemberKeyImportRequest).publicKeyImportToken,
-        reason: validationResult,
+        publicKey: data.publicKey,
+        publicKeyImportToken: data.publicKeyImportToken,
       },
-      'Refused invalid member bundle request',
+      ceEmitter,
+      options,
     );
-    return false;
+    return result.didSucceed;
   }
-
-  const result = await processMemberKeyImportToken(
-    incomingMessage.senderId,
+  options.logger.info(
     {
-      publicKey: validationResult.publicKey,
-      publicKeyImportToken: validationResult.publicKeyImportToken,
+      publicKeyImportToken: (data as MemberKeyImportRequest).publicKeyImportToken,
     },
-    ceEmitter,
-    options,
+    'Refused invalid member key import request',
   );
-  return result.didSucceed;
+  return false;
 }
 
 enum AwalaRequestMessageType {

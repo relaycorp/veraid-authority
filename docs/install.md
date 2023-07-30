@@ -33,7 +33,6 @@ The Docker container must use the image above and specify the following argument
 All processes require the following variables:
 
 - `AUTHORITY_VERSION` (required). The version of this server.
-- `K_SINK` (required). The URL to the Knative Eventing endpoint where events should be published.
 - `MONGODB_URI` (required).
 - KMS-related variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).

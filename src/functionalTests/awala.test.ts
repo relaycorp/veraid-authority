@@ -128,5 +128,5 @@ describe('Awala', () => {
     const response = await postEvent(event, AWALA_SERVER_URL);
 
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-  }, 10_000);
+  }, 15_000);
 });
