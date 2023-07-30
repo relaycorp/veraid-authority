@@ -16,3 +16,7 @@ jobs:
   release:
     needs: ci
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-release.yml@main
+    with:
+      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
