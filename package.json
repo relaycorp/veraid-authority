@@ -11,6 +11,7 @@
     "static-checks": "run-p static-checks:*",
     "static-checks:lint": "eslint -c .eslintrc.cjs src",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
+    "start": "skaffold dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:functional": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config src/functionalTests/jest.config.cjs --runInBand --detectOpenHandles",
     "clean": "del-cli build test coverage"

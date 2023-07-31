@@ -5,6 +5,7 @@ import type { AuthorizationHeader } from '@relaycorp/veraid-authority';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 import { getServiceUrl } from './knative.js';
+import { post } from './http.js';
 
 const AUTH_SERVER_URL = await getServiceUrl('mock-authz-server');
 const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
@@ -18,8 +19,7 @@ export async function authenticate(clientId: string): Promise<AuthorizationHeade
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     client_secret: 's3cr3t',
   };
-  const response = await fetch(AUTH_ENDPOINT_URL, {
-    method: 'POST',
+  const response = await post(AUTH_ENDPOINT_URL, {
     headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
     body: stringify(body),
   });

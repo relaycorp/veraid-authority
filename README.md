@@ -18,7 +18,7 @@ This app requires the following system dependencies:
 To start the app, simply get Skaffold to deploy the [relevant Kubernetes resources](./k8s) by running:
 
 ```
-skaffold dev
+npm start
 ```
 
 ### Automated testing
