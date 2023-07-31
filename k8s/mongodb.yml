@@ -31,15 +31,21 @@ spec:
                   key: mongodb_password
           livenessProbe:
             exec:
-              command: ["mongo", "--eval", "db.adminCommand('ping')"]
-            initialDelaySeconds: 10
+              command:
+              - mongosh
+              - "--eval"
+              - db.adminCommand('ping')
+            initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
             timeoutSeconds: 3
           readinessProbe:
             exec:
-              command: ["mongo", "--eval", "db.adminCommand('ping')"]
-            initialDelaySeconds: 10
+              command:
+                - mongosh
+                - "--eval"
+                - db.adminCommand('ping')
+            initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
             timeoutSeconds: 3
