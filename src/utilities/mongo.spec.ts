@@ -29,7 +29,20 @@ describe('createMongooseConnectionFromEnv', () => {
   test('Connection should use MONGODB_URI', () => {
     createMongooseConnectionFromEnv();
 
-    expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(MONGO_ENV_VARS.MONGODB_URI);
+    expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
+      MONGO_ENV_VARS.MONGODB_URI,
+      expect.anything(),
+    );
+  });
+
+  test('Connection timeout should be set to 3s', () => {
+    createMongooseConnectionFromEnv();
+
+    expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
+      expect.anything(),
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      expect.objectContaining({ connectTimeoutMS: 3000 }),
+    );
   });
 
   test('Mongoose connection should be returned', () => {
