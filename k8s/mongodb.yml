@@ -23,7 +23,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: credentials
-                  key: mongodb_username
+                  key: MONGODB_USERNAME
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:

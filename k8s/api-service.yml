@@ -18,18 +18,11 @@ spec:
             - name: AUTHORITY_SUPERADMIN
               value: admin@veraid.example
 
-            - name: MONGODB_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: credentials
-                  key: mongodb_username
             - name: MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: credentials
                   key: mongodb_password
-            - name: MONGODB_URI
-              value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb.default
 
             - name: OAUTH2_JWKS_URL
               value: http://mock-authz-server.default/default/jwks
@@ -58,6 +51,9 @@ spec:
                   key: endpoint
             - name: AWS_KMS_REGION
               value: eu-west-2
+          envFrom:
+            - configMapRef:
+                name: mongodb
           livenessProbe:
             httpGet:
               path: /
