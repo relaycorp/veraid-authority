@@ -11,7 +11,7 @@ import env from 'env-var';
 import type { BaseLogger } from 'pino';
 
 import { makeLogger } from '../logging.js';
-import { configureExitHandling } from '../exitHandling.js';
+import { configureErrorHandling } from '../errorHandling.js';
 
 import fastifyMongoose from './plugins/fastifyMongoose.js';
 import notFoundHandler from './plugins/notFoundHandler.js';
@@ -36,7 +36,7 @@ export async function makeFastify(
   customLogger?: BaseLogger,
 ) {
   const logger = customLogger ?? makeLogger();
-  configureExitHandling(logger);
+  configureErrorHandling(logger);
 
   const server = fastify({
     logger,

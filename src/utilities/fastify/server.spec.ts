@@ -24,9 +24,9 @@ jest.unstable_mockModule('fastify', () => ({
 const mockMakeLogger = jest.fn().mockReturnValue({});
 jest.unstable_mockModule('../../utilities/logging.js', () => ({ makeLogger: mockMakeLogger }));
 
-const mockExitHandler = jest.fn().mockReturnValue({});
-jest.unstable_mockModule('../../utilities/exitHandling.js', () => ({
-  configureExitHandling: mockExitHandler,
+const mockErrorHandler = jest.fn().mockReturnValue({});
+jest.unstable_mockModule('../../utilities/errorHandling.js', () => ({
+  configureErrorHandling: mockErrorHandler,
 }));
 
 const { makeFastify, runFastify } = await import('./server.js');
@@ -47,7 +47,7 @@ describe('makeFastify', () => {
     expect(mockMakeLogger).toHaveBeenCalledWith();
     const logger = getMockContext(mockMakeLogger).results[0].value;
     expect(fastify).toHaveBeenCalledWith(expect.objectContaining({ logger }));
-    expect(mockExitHandler).toHaveBeenCalledWith(logger);
+    expect(mockErrorHandler).toHaveBeenCalledWith(logger);
   });
 
   test('Any explicit logger should be honored', async () => {
@@ -56,7 +56,7 @@ describe('makeFastify', () => {
     await makeFastify(mockPlugin, logger);
 
     expect(fastify).toHaveBeenCalledWith(expect.objectContaining({ logger }));
-    expect(mockExitHandler).toHaveBeenCalledWith(logger);
+    expect(mockErrorHandler).toHaveBeenCalledWith(logger);
   });
 
   test('It should wait for the Fastify server to be ready', async () => {
