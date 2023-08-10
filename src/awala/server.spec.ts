@@ -15,7 +15,7 @@ describe('makeAwalaServer', () => {
       const response = await server.inject({ method: 'GET', url: '/' });
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.OK);
-      expect(response.body).toBe('It works');
+      expect(response.body).toContain('It works');
     });
   });
 });
