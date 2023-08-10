@@ -15,7 +15,7 @@ The Docker container must use the image above and specify the following argument
   - Authentication-related variables:
     - `OAUTH2_JWKS_URL` (required). The URL to the JWKS endpoint of the authorisation server.
     - Either `OAUTH2_TOKEN_ISSUER` or `OAUTH2_TOKEN_ISSUER_REGEX` (required). The (URL of the) authorisation server.
-    - `OAUTH2_TOKEN_AUDIENC[example.sink.spec.ts](src%2FbackgroundQueue%2Fsinks%2Fexample.sink.spec.ts)E` (required). The identifier of the current instance of this server (typically its public URL).
+    - `OAUTH2_TOKEN_AUDIENCE` (required). The identifier of the current instance of this server (typically its public URL).
   - Authorisation-related variables:
     - `AUTHORITY_SUPERADMIN` (optional): The JWT _subject id_ of the super admin, which in this app we require it to be an email address. When unset, routes that require super admin role (e.g., `POST /orgs`) won't work by design. This is desirable in cases where an instance of this server will only ever support a handful of domain names (they could set the `AUTHORITY_SUPERADMIN`  to create the orgs, and then unset the super admin var).
   - `AWALA_MIDDLEWARE_ENDPOINT` (optional). If set, the [Awala integration](./awala.md) is enabled.
