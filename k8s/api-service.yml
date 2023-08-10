@@ -62,17 +62,15 @@ spec:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            failureThreshold: 12
+            periodSeconds: 5
+            failureThreshold: 2
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            failureThreshold: 12
+            periodSeconds: 5
+            failureThreshold: 2
             timeoutSeconds: 3
 ---
 apiVersion: sources.knative.dev/v1

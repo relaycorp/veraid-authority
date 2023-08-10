@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import type { FastifyInstance } from 'fastify';
+import fastifyGracefulShutdown from 'fastify-graceful-shutdown';
 import pino from 'pino';
 
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
@@ -98,6 +99,14 @@ describe('makeFastify', () => {
 
     const [[fastifyCallArguments]] = getMockContext(fastify).calls;
     expect(fastifyCallArguments).toHaveProperty('trustProxy', true);
+  });
+
+  test('fastify-graceful-shutdown plugin should be registered', async () => {
+    await makeFastify(mockPlugin);
+
+    expect(mockFastify.register).toHaveBeenCalledWith(fastifyGracefulShutdown, {
+      resetHandlersOnInit: true,
+    });
   });
 
   test('fastifyMongoose plugin should be configured', async () => {

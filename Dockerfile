@@ -12,7 +12,6 @@ COPY --from=build /tmp/veraid-authority ./
 USER node
 ENTRYPOINT [ \
   "node", \
-  "--unhandled-rejections=strict", \
   "--experimental-vm-modules", \
   "--enable-source-maps", \
   "build/main/bin/server.js" \
