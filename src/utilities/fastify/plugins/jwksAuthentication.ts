@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import fastifyJwtJwks, { type FastifyJwtJwksOptions } from 'fastify-jwt-jwks';
 import env from 'env-var';
@@ -26,5 +26,5 @@ async function registerJwksPlugin(fastify: FastifyInstance): Promise<void> {
 
 const jwksPlugin = fastifyPlugin(registerJwksPlugin, {
   name: 'jwks-authentication',
-});
+}) as FastifyPluginAsync;
 export default jwksPlugin;
