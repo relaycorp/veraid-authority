@@ -4,5 +4,5 @@ metadata:
   name: mongodb
 data:
   MONGODB_URI: "mongodb://mongodb.default"
-  MONGODB_USERNAME: "root"
+  MONGODB_USER: "root"
   MONGODB_DB: "endpoint"
