@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { mockSpy } from '../testUtils/jest.js';
 import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
 
-import { configureExitHandling } from './exitHandling.js';
+import { configureErrorHandling } from './errorHandling.js';
 
 const ERROR = new Error('Oh noes');
 
@@ -11,9 +11,9 @@ const mockLogging = makeMockLogging();
 
 const mockProcessOn = mockSpy(jest.spyOn(process, 'on'));
 
-describe('configureExitHandling', () => {
+describe('configureErrorHandling', () => {
   beforeEach(() => {
-    configureExitHandling(mockLogging.logger);
+    configureErrorHandling(mockLogging.logger);
   });
   afterEach(() => {
     process.exitCode = undefined;

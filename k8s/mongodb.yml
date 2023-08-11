@@ -22,8 +22,8 @@ spec:
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
                 configMapKeyRef:
-                  name: credentials
-                  key: mongodb_username
+                  name: mongodb
+                  key: MONGODB_USER
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -44,3 +44,4 @@ spec:
   selector:
     app: mongodb
   type: ClusterIP
+  clusterIP: None

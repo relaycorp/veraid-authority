@@ -1,14 +1,14 @@
-import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import type { BaseLogger } from 'pino';
 
 import { makeFastify } from '../utilities/fastify/server.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
 import { Emitter } from '../utilities/eventing/Emitter.js';
 import { convertMessageToEvent } from '../utilities/eventing/receiver.js';
+import registerHealthCheck from '../utilities/fastify/plugins/healthCheck.js';
 
 import type { Sink } from './Sink.js';
 import { QueueProblemType } from './QueueProblemType.js';
@@ -20,19 +20,13 @@ const SINK_BY_TYPE: { [type: string]: Sink } = {
   [BUNDLE_REQUEST_TYPE]: memberBundleRequest,
 };
 
-function makeQueueServerPlugin(
-  server: FastifyTypedInstance,
-  _opts: FastifyPluginOptions,
-  done: PluginDone,
-): void {
+async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void> {
   server.removeAllContentTypeParsers();
   server.addContentTypeParser('*', { parseAs: 'buffer' }, (_request, payload, next) => {
     next(null, payload);
   });
 
-  server.get('/', async (_request, reply) => {
-    await reply.status(HTTP_STATUS_CODES.OK).send('It works');
-  });
+  await server.register(registerHealthCheck);
 
   const ceEmitter = Emitter.init();
   server.post('/', async (request, reply) => {
@@ -57,8 +51,6 @@ function makeQueueServerPlugin(
     await sink(event, ceEmitter, { logger: request.log, dbConnection: server.mongoose });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });
-
-  done();
 }
 
 export async function makeQueueServer(logger?: BaseLogger): Promise<FastifyInstance> {

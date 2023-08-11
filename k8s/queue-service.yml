@@ -12,25 +12,15 @@ spec:
         - name: queue
           image: dev.local/veraid-authority
           args: [queue]
-          readinessProbe:
-            httpGet:
-              path: /
-            initialDelaySeconds: 1
           env:
             - name: AUTHORITY_VERSION
               value: "1.0.0dev1"
-            - name: MONGODB_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: credentials
-                  key: mongodb_username
+
             - name: MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: credentials
                   key: mongodb_password
-            - name: MONGODB_URI
-              value: mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@mongodb
 
             # Mock AWS KMS (used by WebCrypto KMS)
             - name: KMS_ADAPTER
@@ -52,6 +42,24 @@ spec:
                   key: endpoint
             - name: AWS_KMS_REGION
               value: eu-west-2
+          envFrom:
+            - configMapRef:
+                name: mongodb
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+            timeoutSeconds: 3
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+            timeoutSeconds: 3
 ---
 apiVersion: sources.knative.dev/v1
 kind: SinkBinding

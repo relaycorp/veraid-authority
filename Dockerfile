@@ -1,7 +1,7 @@
 FROM node:18.14.0 as build
 WORKDIR /tmp/veraid-authority
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . ./
 RUN npm run build && npm prune --omit=dev && rm -r src
 
@@ -12,7 +12,6 @@ COPY --from=build /tmp/veraid-authority ./
 USER node
 ENTRYPOINT [ \
   "node", \
-  "--unhandled-rejections=strict", \
   "--experimental-vm-modules", \
   "--enable-source-maps", \
   "build/main/bin/server.js" \
