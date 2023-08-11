@@ -18,4 +18,4 @@ jobs:
     with:
       dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
     secrets:
-      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PUSH_PASSWORD }}
