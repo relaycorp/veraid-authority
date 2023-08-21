@@ -90,16 +90,15 @@ describe('jwks-authentication', () => {
     );
   });
 
-  test('OAUTH2_TOKEN_ISSUER should be a well-formed URL', async () => {
-    const malformedUrl = 'not a url';
-    mockEnvVars({
-      ...AUTHN_ENV_VARS,
-      OAUTH2_TOKEN_ISSUER: malformedUrl,
-    });
+  test('OAUTH2_TOKEN_ISSUER should not have trailing slash appended', async () => {
+    const issuer = 'https://idp.example'; // No trailing slash
+    mockEnvVars({ ...AUTHN_ENV_VARS, OAUTH2_TOKEN_ISSUER: issuer });
 
-    await expect(jwksPlugin(mockFastify, {})).rejects.toThrowWithMessage(
-      envVar.EnvVarError,
-      /OAUTH2_TOKEN_ISSUER/u,
+    await jwksPlugin(mockFastify, {});
+
+    expect(mockFastify.register).toHaveBeenCalledWith(
+      fastifyJwtJwks,
+      expect.objectContaining({ issuer }),
     );
   });
 

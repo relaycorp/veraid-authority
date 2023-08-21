@@ -7,7 +7,7 @@ function getOauth2PluginOptions(): FastifyJwtJwksOptions {
   const audience = env.get('OAUTH2_TOKEN_AUDIENCE').required().asString();
   const jwksUrl = env.get('OAUTH2_JWKS_URL').required().asUrlString();
 
-  const issuer = env.get('OAUTH2_TOKEN_ISSUER').asUrlString();
+  const issuer = env.get('OAUTH2_TOKEN_ISSUER').asString();
   const issuerRegex = env.get('OAUTH2_TOKEN_ISSUER_REGEX').asRegExp('u');
   if (
     (issuer === undefined && issuerRegex === undefined) ||
