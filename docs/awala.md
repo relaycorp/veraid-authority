@@ -6,7 +6,7 @@ nav_order: 4
 
 [Awala](https://awala.network) is a computer network where compatible apps can use the Internet when it's available, or switch to a fallback medium when it's unavailable. **VeraId Authority comes with built-in Awala support**, so that VeraId members can get their bundles with and without the Internet.
 
-Support for Awala is disabled by default as our implementation requires the [Awala Endpoint Middleware](https://github.com/relaycorp/relayverse/issues/28). To enable it, once you have an instance of the middleware running in the local network, you simply need to set the URL to it in the environment variable `AWALA_MIDDLEWARE_ENDPOINT` in both the [API](./api-server.md) and [background queue](./queue-server.md) servers.
+Support for Awala is disabled by default as our implementation requires the [Awala Endpoint Middleware](https://docs.relaycorp.tech/awala-endpoint-internet/). To enable it, once you have an instance of the middleware running in the local network, you simply need to set the URL to it in the environment variable `AWALA_MIDDLEWARE_ENDPOINT` in both the [API](./api-server.md) and [background queue](./queue-server.md) servers.
 
 ## Onboarding Awala users
 
