@@ -9,7 +9,7 @@ spec:
         autoscaling.knative.dev/min-scale: "1"
     spec:
       containers:
-        - name: queue
+        - name: awala
           image: dev.local/veraid-authority
           args: [awala]
           env:

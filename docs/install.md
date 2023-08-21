@@ -18,15 +18,20 @@ The Docker container must use the image above and specify the following argument
     - `OAUTH2_TOKEN_AUDIENCE` (required). The identifier of the current instance of this server (typically its public URL).
   - Authorisation-related variables:
     - `AUTHORITY_SUPERADMIN` (optional): The JWT _subject id_ of the super admin, which in this app we require it to be an email address. When unset, routes that require super admin role (e.g., `POST /orgs`) won't work by design. This is desirable in cases where an instance of this server will only ever support a handful of domain names (they could set the `AUTHORITY_SUPERADMIN`  to create the orgs, and then unset the super admin var).
-  - `AWALA_MIDDLEWARE_ENDPOINT` (optional). If set, the [Awala integration](./awala.md) is enabled.
 
 ## Deploying the background queue
 
 The Docker container must use the image above and specify the following arguments:
 
-- Command arguments: `api`. Do NOT specify a command.
-- Environment variables: In addition to the common variables listed below, the following are used:
-  - `AWALA_MIDDLEWARE_ENDPOINT` (required). The URL to the Awala endpoint middleware.
+- Command arguments: `queue`. Do NOT specify a command.
+- Environment variables: Only the [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables.
+
+## Deploying the Awala backend
+
+The Docker container must use the image above and specify the following arguments:
+
+- Command arguments: `awala`. Do NOT specify a command.
+- Environment variables: Only the [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables.
 
 ## Common environment variables
 
@@ -41,6 +46,9 @@ All processes require the following variables:
 - KMS-related variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
   - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
+
+## CloudEvents environment variables
+
 - `CE_TRANSPORT` (default: `ce-http-binary`): The [`@relaycorp/cloudevents-transport`](https://www.npmjs.com/package/@relaycorp/cloudevents-transport) transport to use. Each transport has its own set of environment variables.
 
 ## Example with Knative
