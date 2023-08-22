@@ -46,6 +46,9 @@ All processes require the following variables:
 - KMS-related variables:
   - `KMS_ADAPTER` (required; e.g., `AWS`, `GCP`).
   - Any other variable required by the specific adapter in use. Refer to the [`@relaycorp/webcrypto-kms` documentation](https://www.npmjs.com/package/@relaycorp/webcrypto-kms).
+- Logging-related variables:
+  - `LOG_TARGET` (optional): The [`@relaycorp/pino-cloud`](https://www.npmjs.com/package/@relaycorp/pino-cloud) target (e.g., `gcp`).
+  - `LOG_LEVEL` (default: `info`): The [`pino` log level](https://github.com/pinojs/pino/blob/master/docs/api.md#levels).
 
 ## CloudEvents environment variables
 
