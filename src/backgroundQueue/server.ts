@@ -33,7 +33,8 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
     let event;
     try {
       event = convertMessageToEvent(request.headers, request.body as Buffer);
-    } catch {
+    } catch (err) {
+      request.log.info({ err }, 'Refusing invalid event');
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
         .send({ type: QueueProblemType.INVALID_EVENT });
@@ -42,6 +43,7 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
 
     const sink = SINK_BY_TYPE[event.type] as Sink | undefined;
     if (sink === undefined) {
+      request.log.info({ eventType: event.type }, 'Refusing unsupported event type');
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
         .send({ type: QueueProblemType.UNSUPPORTED_EVENT });

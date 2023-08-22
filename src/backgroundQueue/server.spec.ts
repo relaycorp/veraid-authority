@@ -1,22 +1,20 @@
 import { CloudEvent } from 'cloudevents';
-import type { FastifyInstance } from 'fastify';
 
 import { setUpTestQueueServer } from '../testUtils/queueServer.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
+import { partialPinoLog } from '../testUtils/logging.js';
 
 import { QueueProblemType } from './QueueProblemType.js';
 
 describe('makeQueueServer', () => {
   const getTestServerFixture = setUpTestQueueServer();
-  let server: FastifyInstance;
-  beforeEach(() => {
-    ({ server } = getTestServerFixture());
-  });
 
   describe('GET', () => {
     test('Response should be 200 OK', async () => {
+      const { server } = getTestServerFixture();
+
       const response = await server.inject({ method: 'GET', url: '/' });
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.OK);
@@ -26,6 +24,8 @@ describe('makeQueueServer', () => {
 
   describe('POST', () => {
     test('Malformed CloudEvent should be refused', async () => {
+      const { server, logs } = getTestServerFixture();
+
       const response = await server.inject({
         method: 'POST',
         url: '/',
@@ -36,9 +36,13 @@ describe('makeQueueServer', () => {
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', QueueProblemType.INVALID_EVENT);
+      expect(logs).toContainEqual(
+        partialPinoLog('info', 'Refusing invalid event', { err: expect.anything() }),
+      );
     });
 
     test('Unsupported CloudEvent type should be refused', async () => {
+      const { server, logs } = getTestServerFixture();
       const event = new CloudEvent({
         type: 'net.veraid.invalid',
         id: CE_ID,
@@ -50,6 +54,9 @@ describe('makeQueueServer', () => {
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty('type', QueueProblemType.UNSUPPORTED_EVENT);
+      expect(logs).toContainEqual(
+        partialPinoLog('info', 'Refusing unsupported event type', { eventType: event.type }),
+      );
     });
   });
 });
