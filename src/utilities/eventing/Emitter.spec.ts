@@ -1,8 +1,9 @@
 import { jest } from '@jest/globals';
 import { CloudEvent } from 'cloudevents';
+import envVar from 'env-var';
 
 import { mockSpy } from '../../testUtils/jest.js';
-import { CE_ID, CE_SOURCE, CE_TRANSPORT } from '../../testUtils/eventing/stubs.js';
+import { CE_ID, CE_SOURCE, CE_TRANSPORT, K_SINK } from '../../testUtils/eventing/stubs.js';
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
 
 const mockEmitterFunction = mockSpy(jest.fn());
@@ -14,9 +15,9 @@ const { Emitter } = await import('./Emitter.js');
 const { makeEmitter } = await import('@relaycorp/cloudevents-transport');
 
 describe('Emitter', () => {
-  describe('init', () => {
-    const mockEnvVars = configureMockEnvVars({ CE_TRANSPORT });
+  const mockEnvVars = configureMockEnvVars({ CE_TRANSPORT, K_SINK });
 
+  describe('init', () => {
     test('Emitter function should not be initialised', () => {
       Emitter.init();
 
@@ -61,7 +62,22 @@ describe('Emitter', () => {
 
       await emitter.emit(event);
 
-      expect(makeEmitter).toHaveBeenCalledWith(CE_TRANSPORT);
+      expect(makeEmitter).toHaveBeenCalledWith(CE_TRANSPORT, expect.anything());
+    });
+
+    test('Channel specified in K_SINK should be used', async () => {
+      const emitter = new Emitter(CE_TRANSPORT);
+
+      await emitter.emit(event);
+
+      expect(makeEmitter).toHaveBeenCalledWith(expect.anything(), K_SINK);
+    });
+
+    test('Environment variable K_SINK should be defined', async () => {
+      mockEnvVars({ K_SINK: undefined });
+      const emitter = new Emitter(CE_TRANSPORT);
+
+      await expect(emitter.emit(event)).rejects.toThrowWithMessage(envVar.EnvVarError, /K_SINK/u);
     });
   });
 });
