@@ -69,18 +69,3 @@ spec:
             periodSeconds: 5
             failureThreshold: 2
             timeoutSeconds: 3
----
-apiVersion: sources.knative.dev/v1
-kind: SinkBinding
-metadata:
-  name: veraid-authority-sink-binding
-spec:
-  subject:
-    apiVersion: serving.knative.dev/v1
-    kind: Service
-    name: veraid-authority
-  sink:
-    ref:
-      apiVersion: eventing.knative.dev/v1
-      kind: Broker
-      name: authority-api-broker
