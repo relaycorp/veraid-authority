@@ -22,7 +22,8 @@ export class Emitter<Payload> {
 
   public async emit(event: CloudEvent<Payload>): Promise<void> {
     if (this.emitterFunction === undefined) {
-      this.emitterFunction = await makeEmitter(this.transport);
+      const channel = envVar.get('K_SINK').required().asString();
+      this.emitterFunction = await makeEmitter(this.transport, channel);
     }
     await this.emitterFunction(event);
   }

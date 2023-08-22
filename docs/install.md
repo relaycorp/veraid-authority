@@ -52,8 +52,10 @@ All processes require the following variables:
 
 ## CloudEvents environment variables
 
-- `CE_TRANSPORT` (default: `ce-http-binary`): The [`@relaycorp/cloudevents-transport`](https://www.npmjs.com/package/@relaycorp/cloudevents-transport) transport to use. Each transport has its own set of environment variables.
+[`@relaycorp/cloudevents-transport`](https://www.npmjs.com/package/@relaycorp/cloudevents-transport) configuration:
 
+- `CE_TRANSPORT` (default: `ce-http-binary`): The transport to use.
+- `K_SINK` (required): The transport channel to use. It can be a URL to a CloudEvents server or the name of a Google PubSub topic, for example. (This is called `K_SINK` for compatibility with Knative Eventing, which doesn't allow overriding the `K_SINK` variable name as of this writing.)
 ## Example with Knative
 
 We use Knative to run the app in development and CI, so you can refer to [the Kubernetes resources in the repository](https://github.com/relaycorp/veraid-authority/tree/main/k8s) to see a fully-operation example.
