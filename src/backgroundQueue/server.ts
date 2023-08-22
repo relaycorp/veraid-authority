@@ -28,7 +28,7 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
 
   await server.register(registerHealthCheck);
 
-  const ceEmitter = Emitter.init();
+  const ceEmitter = await Emitter.init();
   server.post('/', async (request, reply) => {
     let event;
     try {

@@ -1,8 +1,6 @@
 import type { CloudEventV1 } from 'cloudevents';
-import type { RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import {
   isMemberBundleRequest,
@@ -94,11 +92,7 @@ const awalaEventToProcessor: {
 const awalaRequestMessageTypeList: AwalaRequestMessageType[] =
   Object.values(AwalaRequestMessageType);
 
-export default function registerRoutes(
-  fastify: FastifyTypedInstance,
-  _opts: RouteOptions,
-  done: PluginDone,
-): void {
+export default async function registerRoutes(fastify: FastifyTypedInstance): Promise<void> {
   fastify.removeAllContentTypeParsers();
   fastify.addContentTypeParser(
     awalaRequestMessageTypeList,
@@ -108,7 +102,7 @@ export default function registerRoutes(
     },
   );
 
-  const ceEmitter = Emitter.init();
+  const ceEmitter = await Emitter.init();
   fastify.route({
     method: ['POST'],
     url: '/',
@@ -145,6 +139,4 @@ export default function registerRoutes(
       return reply.code(HTTP_STATUS_CODES.BAD_REQUEST).send();
     },
   });
-
-  done();
 }
