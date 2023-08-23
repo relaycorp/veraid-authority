@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 import envVar from 'env-var';
 
-import { CE_CHANNEL } from './eventing/stubs.js';
 import { MONGODB_URI } from './db.js';
 
 export interface EnvVarSet {
@@ -10,7 +9,6 @@ export interface EnvVarSet {
 
 export const REQUIRED_ENV_VARS = {
   AUTHORITY_VERSION: '1.2.3',
-  K_SINK: CE_CHANNEL,
   MONGODB_URI,
 };
 
