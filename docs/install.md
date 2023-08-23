@@ -24,14 +24,14 @@ The Docker container must use the image above and specify the following argument
 The Docker container must use the image above and specify the following arguments:
 
 - Command arguments: `queue`. Do NOT specify a command.
-- Environment variables: Only the [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables.
+- Environment variables: The [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables (both `CE_CHANNEL_AWALA_OUTGOING_MESSAGES` and `CE_CHANNEL_BACKGROUND_QUEUE`).
 
 ## Deploying the Awala backend
 
 The Docker container must use the image above and specify the following arguments:
 
 - Command arguments: `awala`. Do NOT specify a command.
-- Environment variables: Only the [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables.
+- Environment variables: The [common](#common-environment-variables) and [CloudEvents](#cloudevents-environment-variables) variables (only `CE_CHANNEL_AWALA_OUTGOING_MESSAGES`).
 
 ## Common environment variables
 
@@ -55,7 +55,9 @@ All processes require the following variables:
 [`@relaycorp/cloudevents-transport`](https://www.npmjs.com/package/@relaycorp/cloudevents-transport) configuration:
 
 - `CE_TRANSPORT` (default: `ce-http-binary`): The transport to use.
-- `K_SINK` (required): The transport channel to use. It can be a URL to a CloudEvents server or the name of a Google PubSub topic, for example. (This is called `K_SINK` for compatibility with Knative Eventing, which doesn't allow overriding the `K_SINK` variable name as of this writing.)
+- One or more of the following variables (refer to the specific process above):
+  - `CE_CHANNEL_AWALA_OUTGOING_MESSAGES`: The transport channel to use for outgoing Awala service messages.
+  - `CE_CHANNEL_BACKGROUND_QUEUE`: The transport channel to use for the background queue.
 ## Example with Knative
 
 We use Knative to run the app in development and CI, so you can refer to [the Kubernetes resources in the repository](https://github.com/relaycorp/veraid-authority/tree/main/k8s) to see a fully-operation example.

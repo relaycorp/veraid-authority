@@ -9,7 +9,8 @@ import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemT
 import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
-import type { Emitter } from './utilities/eventing/Emitter.js';
+import { Emitter } from './utilities/eventing/Emitter.js';
+import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,
@@ -41,7 +42,6 @@ export async function createMemberKeyImportToken(
 export async function processMemberKeyImportToken(
   peerId: string,
   keyImportRequest: MemberKeyImportRequest,
-  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberPublicKeyImportProblemType>> {
   const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
@@ -85,6 +85,7 @@ export async function processMemberKeyImportToken(
     datacontenttype: 'application/vnd.veraid.member-public-key-import',
     data: '',
   });
+  const ceEmitter = await Emitter.init(EmitterChannel.AWALA_OUTGOING_MESSAGES);
   await ceEmitter.emit(event);
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportRequest.publicKeyImportToken);

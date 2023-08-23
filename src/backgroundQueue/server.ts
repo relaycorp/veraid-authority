@@ -6,7 +6,6 @@ import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
-import { Emitter } from '../utilities/eventing/Emitter.js';
 import { convertMessageToEvent } from '../utilities/eventing/receiver.js';
 import registerHealthCheck from '../utilities/fastify/plugins/healthCheck.js';
 
@@ -28,7 +27,6 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
 
   await server.register(registerHealthCheck);
 
-  const ceEmitter = Emitter.init();
   server.post('/', async (request, reply) => {
     let event;
     try {
@@ -50,7 +48,7 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
       return;
     }
 
-    await sink(event, ceEmitter, { logger: request.log, dbConnection: server.mongoose });
+    await sink(event, { logger: request.log, dbConnection: server.mongoose });
     await reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
   });
 }

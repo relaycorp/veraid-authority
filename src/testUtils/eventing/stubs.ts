@@ -1,6 +1,5 @@
-export const K_SINK = 'https://example.com/sink';
-
 export const CE_TRANSPORT = 'mock-transport';
+export const CE_CHANNEL = 'https://example.com/sink';
 
 export const CE_ID = 'ce-id';
 

@@ -9,6 +9,7 @@ jobs:
     with:
       docker_image_local_name: dev.local/veraid-authority
       dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+      knative_eventing_enabled: false
     secrets:
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 

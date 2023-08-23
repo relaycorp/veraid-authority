@@ -41,6 +41,9 @@ spec:
                   key: endpoint
             - name: AWS_KMS_REGION
               value: eu-west-2
+
+            - name: CE_CHANNEL_AWALA_OUTGOING_MESSAGES
+              value: http://mock-awala-middleware.default
           envFrom:
             - configMapRef:
                 name: mongodb
@@ -59,18 +62,3 @@ spec:
             periodSeconds: 5
             failureThreshold: 2
             timeoutSeconds: 3
----
-apiVersion: sources.knative.dev/v1
-kind: SinkBinding
-metadata:
-  name: veraid-authority-awala-sink-binding
-spec:
-  subject:
-    apiVersion: serving.knative.dev/v1
-    kind: Service
-    name: veraid-authority-awala
-  sink:
-    ref:
-      apiVersion: eventing.knative.dev/v1
-      kind: Broker
-      name: authority-awala-broker
