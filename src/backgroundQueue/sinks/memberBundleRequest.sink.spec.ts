@@ -23,12 +23,13 @@ import type { ServiceOptions } from '../../serviceTypes.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
-import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
+import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
 import {
   OUTGOING_MESSAGE_SOURCE,
   OUTGOING_SERVICE_MESSAGE_TYPE,
 } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
+import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
@@ -53,7 +54,7 @@ const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
 
 describe('memberBundleIssuance', () => {
   const getTestServerFixture = setUpTestQueueServer();
-  const emitter = mockEmitter();
+  const getEvents = mockEmitters();
   let server: FastifyTypedInstance;
   let logs: object[];
   let dbConnection: Connection;
@@ -113,19 +114,21 @@ describe('memberBundleIssuance', () => {
             publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
         );
-        expect(emitter.events).toHaveLength(1);
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toHaveLength(1);
       });
 
       test('Version should be 1.0', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(expect.objectContaining({ specversion: '1.0' }));
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
+          expect.objectContaining({ specversion: '1.0' }),
+        );
       });
 
       test('Type should be outgoing service message', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             type: OUTGOING_SERVICE_MESSAGE_TYPE,
           }),
@@ -135,7 +138,7 @@ describe('memberBundleIssuance', () => {
       test('Id should be member public key id', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             id: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
@@ -145,7 +148,7 @@ describe('memberBundleIssuance', () => {
       test('Source should be URL identifying Awala Internet Endpoint', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             source: OUTGOING_MESSAGE_SOURCE,
           }),
@@ -155,7 +158,7 @@ describe('memberBundleIssuance', () => {
       test('Subject should be peer id', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             subject: AWALA_PEER_ID,
           }),
@@ -165,7 +168,7 @@ describe('memberBundleIssuance', () => {
       test('Data content type should be member bundle', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             datacontenttype: VeraidContentType.MEMBER_BUNDLE,
           }),
@@ -175,7 +178,7 @@ describe('memberBundleIssuance', () => {
       test('Data should be buffer from member bundle', async () => {
         await postEvent(triggerEvent, server);
 
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             data: Buffer.from(memberBundle),
           }),
@@ -188,7 +191,7 @@ describe('memberBundleIssuance', () => {
         await postEvent(triggerEvent, server);
 
         const postEventDate = new Date();
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             time: expect.toSatisfy((time: string) => {
               const dateFromTime = parseISO(time);
@@ -204,7 +207,7 @@ describe('memberBundleIssuance', () => {
         await postEvent(triggerEvent, server);
 
         const postEventDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
-        expect(emitter.events).toContainEqual(
+        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             expiry: expect.toSatisfy((expiry: string) => {
               const dateFromExpiry = parseISO(expiry);
@@ -269,7 +272,7 @@ describe('memberBundleIssuance', () => {
     test('Should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(emitter.events).toHaveLength(0);
+      expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toHaveLength(0);
     });
 
     test('Should not remove member public key', async () => {
@@ -304,7 +307,7 @@ describe('memberBundleIssuance', () => {
     test('Should retry false should not emit outgoing message', async () => {
       await postEvent(triggerEvent, server);
 
-      expect(emitter.events).toHaveLength(0);
+      expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toHaveLength(0);
     });
 
     test('Should remove member bundle request', async () => {

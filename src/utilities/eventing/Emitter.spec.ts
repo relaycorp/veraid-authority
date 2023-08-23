@@ -3,8 +3,10 @@ import { CloudEvent } from 'cloudevents';
 import envVar from 'env-var';
 
 import { mockSpy } from '../../testUtils/jest.js';
-import { CE_ID, CE_SOURCE, CE_TRANSPORT, K_SINK } from '../../testUtils/eventing/stubs.js';
+import { CE_CHANNEL, CE_ID, CE_SOURCE, CE_TRANSPORT } from '../../testUtils/eventing/stubs.js';
 import { configureMockEnvVars } from '../../testUtils/envVars.js';
+
+import { EmitterChannel } from './EmitterChannel.js';
 
 const mockEmitterFunction = mockSpy(jest.fn());
 jest.unstable_mockModule('@relaycorp/cloudevents-transport', () => ({
@@ -12,72 +14,66 @@ jest.unstable_mockModule('@relaycorp/cloudevents-transport', () => ({
 }));
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const { Emitter } = await import('./Emitter.js');
-const { makeEmitter } = await import('@relaycorp/cloudevents-transport');
+const { makeEmitter: ceMakeEmitter } = await import('@relaycorp/cloudevents-transport');
 
 describe('Emitter', () => {
-  const mockEnvVars = configureMockEnvVars({ CE_TRANSPORT, K_SINK });
+  const channelEnvVarName = EmitterChannel.BACKGROUND_QUEUE;
+  const baseEnvVars = { CE_TRANSPORT, [channelEnvVarName]: CE_CHANNEL };
+  const mockEnvVars = configureMockEnvVars(baseEnvVars);
+
+  beforeEach(() => {
+    Emitter.clearCache();
+  });
 
   describe('init', () => {
-    test('Emitter function should not be initialised', () => {
-      Emitter.init();
+    test('Transport should be CE binary mode if CE_TRANSPORT unset', async () => {
+      mockEnvVars({ ...baseEnvVars, CE_TRANSPORT: undefined });
+      await Emitter.init(channelEnvVarName);
 
-      expect(makeEmitter).not.toHaveBeenCalled();
+      expect(ceMakeEmitter).toHaveBeenCalledWith('ce-http-binary', expect.anything());
     });
 
-    test('Emitter should be output', () => {
-      const emitter = Emitter.init();
+    test('Transport should be taken from CE_TRANSPORT if present', async () => {
+      await Emitter.init(channelEnvVarName);
 
-      expect(emitter).toBeInstanceOf(Emitter);
+      expect(ceMakeEmitter).toHaveBeenCalledWith(CE_TRANSPORT, expect.anything());
     });
 
-    test('Transport should be CE binary mode if CE_TRANSPORT unset', () => {
-      mockEnvVars({ CE_TRANSPORT: undefined });
+    test('Channel should be taken from specified environment variable', async () => {
+      await Emitter.init(channelEnvVarName);
 
-      const emitter = Emitter.init();
-
-      expect(emitter.transport).toBe('ce-http-binary');
+      expect(ceMakeEmitter).toHaveBeenCalledWith(expect.anything(), CE_CHANNEL);
     });
 
-    test('Transport name should be taken from CE_TRANSPORT', () => {
-      const emitter = Emitter.init();
+    test('Error should be thrown if specified channel env var is missing', async () => {
+      mockEnvVars({ ...baseEnvVars, [channelEnvVarName]: undefined });
 
-      expect(emitter.transport).toBe(CE_TRANSPORT);
+      await expect(Emitter.init(channelEnvVarName)).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /CE_CHANNEL/u,
+      );
+    });
+
+    test('Emitter should be cached', async () => {
+      expect(ceMakeEmitter).toHaveBeenCalledTimes(0);
+      await Emitter.init(channelEnvVarName);
+      expect(ceMakeEmitter).toHaveBeenCalledTimes(1);
+
+      await Emitter.init(channelEnvVarName);
+
+      expect(ceMakeEmitter).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('emit', () => {
     const event = new CloudEvent({ id: CE_ID, source: CE_SOURCE, type: 'type' });
 
-    test('Emitter function should be cached', async () => {
-      const emitter = Emitter.init();
-
-      await emitter.emit(event);
-      await emitter.emit(event);
-
-      expect(makeEmitter).toHaveBeenCalledTimes(1);
-    });
-
-    test('Specified transport should be used', async () => {
-      const emitter = new Emitter(CE_TRANSPORT);
+    test('should call underlying emitter with event', async () => {
+      const emitter = await Emitter.init(channelEnvVarName);
 
       await emitter.emit(event);
 
-      expect(makeEmitter).toHaveBeenCalledWith(CE_TRANSPORT, expect.anything());
-    });
-
-    test('Channel specified in K_SINK should be used', async () => {
-      const emitter = new Emitter(CE_TRANSPORT);
-
-      await emitter.emit(event);
-
-      expect(makeEmitter).toHaveBeenCalledWith(expect.anything(), K_SINK);
-    });
-
-    test('Environment variable K_SINK should be defined', async () => {
-      mockEnvVars({ K_SINK: undefined });
-      const emitter = new Emitter(CE_TRANSPORT);
-
-      await expect(emitter.emit(event)).rejects.toThrowWithMessage(envVar.EnvVarError, /K_SINK/u);
+      expect(mockEmitterFunction).toHaveBeenCalledWith(event);
     });
   });
 });

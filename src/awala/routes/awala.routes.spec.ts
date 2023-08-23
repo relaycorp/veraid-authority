@@ -21,7 +21,6 @@ import { CE_ID } from '../../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../events/incomingServiceMessage.event.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import type { MemberKeyImportRequest } from '../../schemas/awala.schema.js';
-import { Emitter } from '../../utilities/eventing/Emitter.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
@@ -266,7 +265,6 @@ describe('Awala routes', () => {
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
         AWALA_PEER_ID,
         importRequest,
-        expect.any(Emitter),
         { logger: expect.anything(), dbConnection: server.mongoose },
       );
     });
@@ -316,11 +314,7 @@ describe('Awala routes', () => {
       expect(mockProcessMemberKeyImportToken).toHaveBeenCalledOnceWith(
         AWALA_PEER_ID,
         importRequest,
-        expect.any(Emitter),
-        {
-          logger: expect.anything(),
-          dbConnection: server.mongoose,
-        },
+        { logger: expect.anything(), dbConnection: server.mongoose },
       );
     });
   });

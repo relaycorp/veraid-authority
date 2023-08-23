@@ -7,11 +7,11 @@ import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import type { Emitter } from '../../utilities/eventing/Emitter.js';
+import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 export default async function memberBundleIssuance(
   event: CloudEventV1<unknown>,
-  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<void> {
   const publicKeyId = event.id;
@@ -42,7 +42,8 @@ export default async function memberBundleIssuance(
       expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS),
     });
 
-    await ceEmitter.emit(message);
+    const emitter = await Emitter.init(EmitterChannel.AWALA_OUTGOING_MESSAGES);
+    await emitter.emit(message);
   }
 
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {

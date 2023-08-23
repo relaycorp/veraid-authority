@@ -1,30 +1,37 @@
 import type { CloudEvent, EmitterFunction } from 'cloudevents';
-import { makeEmitter } from '@relaycorp/cloudevents-transport';
+import { makeEmitter as ceMakeEmitter } from '@relaycorp/cloudevents-transport';
 import envVar from 'env-var';
 
 import { DEFAULT_TRANSPORT } from './transport.js';
+import type { EmitterChannel } from './EmitterChannel.js';
 
-/**
- * Wrapper around CloudEvents Emitter.
- *
- * This initialises the underlying emitter lazily, to allow enough time for Knative Eventing to
- * patch the current container to inject the K_SINK environment variable.
- */
 export class Emitter<Payload> {
-  public static init(): Emitter<unknown> {
-    const transport = envVar.get('CE_TRANSPORT').default(DEFAULT_TRANSPORT).asString();
-    return new Emitter(transport);
+  protected static readonly cache = new Map<EmitterChannel, Emitter<unknown>>();
+
+  /**
+   * For unit testing only.
+   */
+  public static clearCache(): void {
+    Emitter.cache.clear();
   }
 
-  protected emitterFunction: EmitterFunction | undefined;
+  public static async init(channelEnvVar: EmitterChannel): Promise<Emitter<unknown>> {
+    const cachedEmitter = Emitter.cache.get(channelEnvVar);
+    if (cachedEmitter) {
+      return cachedEmitter;
+    }
 
-  public constructor(public readonly transport: string) {}
+    const transport = envVar.get('CE_TRANSPORT').default(DEFAULT_TRANSPORT).asString();
+    const channel = envVar.get(channelEnvVar).required().asString();
+    const emitterFunction = await ceMakeEmitter(transport, channel);
+    const emitter = new Emitter(emitterFunction);
+    Emitter.cache.set(channelEnvVar, emitter);
+    return emitter;
+  }
+
+  public constructor(protected readonly func: EmitterFunction) {}
 
   public async emit(event: CloudEvent<Payload>): Promise<void> {
-    if (this.emitterFunction === undefined) {
-      const channel = envVar.get('K_SINK').required().asString();
-      this.emitterFunction = await makeEmitter(this.transport, channel);
-    }
-    await this.emitterFunction(event);
+    await this.func(event);
   }
 }

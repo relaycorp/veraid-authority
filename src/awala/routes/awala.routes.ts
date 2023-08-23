@@ -18,12 +18,10 @@ import {
   type IncomingServiceMessageOptions,
 } from '../../events/incomingServiceMessage.event.js';
 import { bufferToJson } from '../../utilities/buffer.js';
-import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { convertMessageToEvent } from '../../utilities/eventing/receiver.js';
 
 async function processMemberBundleRequest(
   incomingMessage: IncomingServiceMessageOptions,
-  _ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<boolean> {
   const data = bufferToJson(incomingMessage.content);
@@ -47,7 +45,6 @@ async function processMemberBundleRequest(
 
 async function processMemberKeyImportRequest(
   incomingMessage: IncomingServiceMessageOptions,
-  ceEmitter: Emitter<unknown>,
   options: ServiceOptions,
 ): Promise<boolean> {
   const data = bufferToJson(incomingMessage.content);
@@ -62,7 +59,6 @@ async function processMemberKeyImportRequest(
         publicKey: data.publicKey,
         publicKeyImportToken: data.publicKeyImportToken,
       },
-      ceEmitter,
       options,
     );
     return result.didSucceed;
@@ -84,7 +80,6 @@ enum AwalaRequestMessageType {
 const awalaEventToProcessor: {
   [key in AwalaRequestMessageType]: (
     incomingMessage: IncomingServiceMessageOptions,
-    ceEmitter: Emitter<unknown>,
     options: ServiceOptions,
   ) => Promise<boolean>;
 } = {
@@ -108,7 +103,6 @@ export default function registerRoutes(
     },
   );
 
-  const ceEmitter = Emitter.init();
   fastify.route({
     method: ['POST'],
     url: '/',
@@ -133,7 +127,7 @@ export default function registerRoutes(
 
       const contentType = event.datacontenttype as AwalaRequestMessageType;
       const processor = awalaEventToProcessor[contentType];
-      const didSucceed = await processor(incomingMessage, ceEmitter, {
+      const didSucceed = await processor(incomingMessage, {
         logger: parcelAwareLogger,
         dbConnection: this.mongoose,
       });

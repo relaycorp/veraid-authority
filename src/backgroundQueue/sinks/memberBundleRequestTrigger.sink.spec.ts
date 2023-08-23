@@ -11,7 +11,7 @@ import {
   BUNDLE_REQUEST_TRIGGER_TYPE,
   type MemberBundleRequestTriggerPayload,
 } from '../../events/bundleRequestTrigger.event.js';
-import { mockEmitter } from '../../testUtils/eventing/mockEmitter.js';
+import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from '../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
@@ -20,11 +20,12 @@ import {
   SIGNATURE,
 } from '../../testUtils/stubs.js';
 import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';
 
 describe('triggerBundleRequest', () => {
-  const emitter = mockEmitter();
+  const getEvents = mockEmitters();
 
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
@@ -64,8 +65,8 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    expect(emitter.events).toHaveLength(2);
-    expect(emitter.events).toContainEqual(
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toHaveLength(2);
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
       expect.objectContaining<Partial<CloudEvent>>({
         id: MEMBER_PUBLIC_KEY_MONGO_ID,
         source: 'https://veraid.net/authority/bundle-request-trigger',
@@ -73,7 +74,7 @@ describe('triggerBundleRequest', () => {
         subject: AWALA_PEER_ID,
       }),
     );
-    expect(emitter.events).toContainEqual(
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
       expect.objectContaining<Partial<CloudEvent>>({
         id: mongoId,
         source: 'https://veraid.net/authority/bundle-request-trigger',
@@ -92,7 +93,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    expect(emitter.events).toHaveLength(0);
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toHaveLength(0);
   });
 
   test.each([
@@ -115,7 +116,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    expect(emitter.events).toHaveLength(1);
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toHaveLength(1);
   });
 
   test('Bundle start date more then 3 days into the future should not be sent', async () => {
@@ -135,7 +136,7 @@ describe('triggerBundleRequest', () => {
 
     await postEvent(triggerEvent, server);
 
-    expect(emitter.events).toHaveLength(0);
+    expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toHaveLength(0);
     const futureBundleRequestCheck = memberBundleRequestModel.findById(futureBundleRequest._id);
     expect(futureBundleRequestCheck).not.toBeNull();
   });

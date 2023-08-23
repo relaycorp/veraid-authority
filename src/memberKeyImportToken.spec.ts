@@ -21,8 +21,9 @@ import type { Result } from './utilities/result.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
-import { mockEmitter } from './testUtils/eventing/mockEmitter.js';
+import { mockEmitters } from './testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
+import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -43,7 +44,7 @@ const { createMemberKeyImportToken, processMemberKeyImportToken } = await import
 describe('member key import token', () => {
   const getConnection = setUpTestDbConnection();
 
-  const emitter = mockEmitter();
+  const getEvents = mockEmitters();
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
@@ -118,7 +119,6 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
-        emitter,
         serviceOptions,
       );
 
@@ -156,12 +156,11 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
-        emitter,
         serviceOptions,
       );
 
       requireSuccessfulResult(result);
-      expect(emitter.events).toContainEqual(
+      expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
         expect.objectContaining<Partial<CloudEvent<string>>>({
           id: MEMBER_PUBLIC_KEY_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
@@ -179,7 +178,6 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: invalidToken },
-        emitter,
         serviceOptions,
       );
 
@@ -205,7 +203,6 @@ describe('member key import token', () => {
       const result = await processMemberKeyImportToken(
         AWALA_PEER_ID,
         { publicKey: publicKeyBase64, publicKeyImportToken: keyImportToken._id.toString() },
-        emitter,
         serviceOptions,
       );
 
