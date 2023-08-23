@@ -6,6 +6,8 @@ nav_order: 1
 
 The servers that comprise the app are distributed in the same Docker image: [`ghcr.io/relaycorp/veraid-authority`](https://github.com/relaycorp/veraid-authority/pkgs/container/veraid-authority).
 
+If you're deploying the app to Google Cloud Platform, you should use the official module [`relaycorp/veraid-authority/google`](https://registry.terraform.io/modules/relaycorp/veraid-authority/google/latest) and skip the rest of this document.
+
 ## Deploying the API server
 
 The Docker container must use the image above and specify the following arguments:
