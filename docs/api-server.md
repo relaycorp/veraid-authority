@@ -77,7 +77,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - HTTP response: `202 Accepted` (no content) if the input was valid and the request was successfully processed, or `400 Bad Request` if the input was invalid.
   - Awala service messages:
     - `MemberBundleRequest`.
-      - HTTP request body (JSON, with content type `application/vnd.veraid.member-bundle-request`):
+      - HTTP request body (JSON, with content type `application/vnd.veraid-authority.member-bundle-request`):
         - The id for the respective member public key.
         - The future start date of the bundle. (Bundles will be issued at that time or later, but never before)
         - Digital signature for the parameters above, produced with the private key associated with the public key.
@@ -85,7 +85,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
       - Successful outcome: Create new DB record to **schedule** the issuance and delivery of a member id bundle. This DB record will contain the data in the request.
         - Any public key must have a maximum of 1 request at any time, so if we get a duplicate, we should replace the old request with the new one.
     - `MemberPublicKeyImport`.
-      - Payload (JSON, with content type `application/vnd.veraid.member-public-key-import`):
+      - Payload (JSON, with content type `application/vnd.veraid-authority.member-public-key-import`):
         - The single-use import token.
         - The DER-encoded public key.
         - The Awala Parcel Delivery Authorisation (PDA).

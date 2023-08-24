@@ -166,7 +166,7 @@ describe('member key import token', () => {
           source: 'https://veraid.net/authority/awala-member-key-import',
           type: BUNDLE_REQUEST_TYPE,
           subject: AWALA_PEER_ID,
-          datacontenttype: 'application/vnd.veraid.member-public-key-import',
+          datacontenttype: 'application/vnd.veraid-authority.member-public-key-import',
           data: '',
         }),
       );
