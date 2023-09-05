@@ -1,4 +1,4 @@
-import type { RouteOptions } from 'fastify';
+import type { FastifyReply, RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
@@ -10,6 +10,8 @@ import {
 } from '../../memberPublicKey.js';
 import { MEMBER_PUBLIC_KEY_SCHEMA } from '../../schemas/memberPublicKey.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { generateMemberBundle } from '../../memberBundle.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberPublicKeyProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
@@ -44,6 +46,7 @@ const MEMBER_PUBLIC_KEY_PARAMS = {
 
 interface MemberPublicKeyUrls {
   self: string;
+  bundle: string;
 }
 
 function makeUrls(
@@ -51,8 +54,10 @@ function makeUrls(
   memberId: string,
   memberPublicKeyId: string,
 ): MemberPublicKeyUrls {
+  const self = `/orgs/${orgName}/members/${memberId}/public-keys/${memberPublicKeyId}`;
   return {
-    self: `/orgs/${orgName}/members/${memberId}/public-keys/${memberPublicKeyId}`,
+    self,
+    bundle: `${self}/bundle`,
   };
 }
 export default function registerRoutes(
@@ -112,6 +117,33 @@ export default function registerRoutes(
       await deleteMemberPublicKey(memberPublicKeyId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
+    },
+  });
+
+  fastify.route({
+    method: ['GET'],
+    url: '/:memberPublicKeyId/bundle',
+
+    schema: {
+      params: MEMBER_PUBLIC_KEY_PARAMS,
+    },
+
+    async handler(request, reply): Promise<FastifyReply> {
+      const result = await generateMemberBundle(request.params.memberPublicKeyId, {
+        logger: request.log,
+        dbConnection: this.mongoose,
+      });
+      if (result.didSucceed) {
+        return reply
+          .code(HTTP_STATUS_CODES.OK)
+          .header('Content-Type', VeraidContentType.MEMBER_BUNDLE)
+          .send(Buffer.from(result.result));
+      }
+
+      if (result.context.chainRetrievalFailed) {
+        return reply.code(HTTP_STATUS_CODES.SERVICE_UNAVAILABLE).send();
+      }
+      return reply.code(HTTP_STATUS_CODES.NOT_FOUND).send();
     },
   });
 

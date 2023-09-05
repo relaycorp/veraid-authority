@@ -30,21 +30,12 @@ import {
 } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
+import type { BundleCreationFailure } from '../../memberBundle.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
-  jest.fn<
-    () => Promise<
-      Result<
-        ArrayBuffer,
-        {
-          shouldRetry: boolean;
-        }
-      >
-    >
-  >(),
+  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
 );
-
 jest.unstable_mockModule('../../memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS,
@@ -264,7 +255,7 @@ describe('memberBundleIssuance', () => {
         didSucceed: false,
 
         context: {
-          shouldRetry: true,
+          chainRetrievalFailed: true,
         },
       });
     });
@@ -299,7 +290,7 @@ describe('memberBundleIssuance', () => {
         didSucceed: false,
 
         context: {
-          shouldRetry: false,
+          chainRetrievalFailed: false,
         },
       });
     });

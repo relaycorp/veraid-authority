@@ -16,6 +16,9 @@ import type { MemberPublicKeySchema } from '../../schemas/memberPublicKey.schema
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { bufferToArrayBuffer } from '../../utilities/buffer.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
+import type { BundleCreationFailure } from '../../memberBundle.js';
 
 const mockCreateMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
@@ -32,6 +35,16 @@ jest.unstable_mockModule('../../memberPublicKey.js', () => ({
   getMemberPublicKey: mockGetMemberPublicKey,
   deleteMemberPublicKey: mockDeleteMemberPublicKey,
 }));
+
+const CERTIFICATE_EXPIRY_DAYS = 90;
+const mockGenerateMemberBundle = mockSpy(
+  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
+);
+jest.unstable_mockModule('../../memberBundle.js', () => ({
+  generateMemberBundle: mockGenerateMemberBundle,
+  CERTIFICATE_EXPIRY_DAYS,
+}));
+
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -82,6 +95,7 @@ describe('member public keys routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
         self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
+        bundle: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
       });
     });
 
@@ -178,6 +192,62 @@ describe('member public keys routes', () => {
         'type',
         MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
       );
+    });
+  });
+
+  describe('bundle', () => {
+    const injectOptions: InjectOptions = {
+      method: 'GET',
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
+    };
+
+    const bundleSerialised = Buffer.from('bundle');
+    beforeEach(() => {
+      mockGenerateMemberBundle.mockResolvedValue({
+        didSucceed: true,
+        result: bufferToArrayBuffer(bundleSerialised),
+      });
+    });
+
+    test('Bundle should be generated for the specified public key', async () => {
+      await serverInstance.inject(injectOptions);
+
+      expect(mockGenerateMemberBundle).toHaveBeenCalledWith(PUBLIC_KEY_ID, expect.anything());
+    });
+
+    test('Response body should be generated bundle', async () => {
+      const response = await serverInstance.inject(injectOptions);
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+      expect(response.rawPayload).toMatchObject(bundleSerialised);
+    });
+
+    test('Content type should be that of a bundle', async () => {
+      const response = await serverInstance.inject(injectOptions);
+
+      expect(response.headers).toHaveProperty('content-type', VeraidContentType.MEMBER_BUNDLE);
+    });
+
+    test('HTTP Not Found should be returned if DB records do not exist', async () => {
+      mockGenerateMemberBundle.mockResolvedValue({
+        didSucceed: false,
+        context: { chainRetrievalFailed: false },
+      });
+
+      const response = await serverInstance.inject(injectOptions);
+
+      expect(response.statusCode).toBe(HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    test('HTTP Service Unavailable should be returned if bundle generation fails', async () => {
+      mockGenerateMemberBundle.mockResolvedValue({
+        didSucceed: false,
+        context: { chainRetrievalFailed: true },
+      });
+
+      const response = await serverInstance.inject(injectOptions);
+
+      expect(response.statusCode).toBe(HTTP_STATUS_CODES.SERVICE_UNAVAILABLE);
     });
   });
 });

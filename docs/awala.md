@@ -48,4 +48,4 @@ Your app MUST process incoming member bundle messages, which is a JSON document 
 - `memberPublicKeyId`: The id of the public key that your app MUST use when requesting member bundles in the future. This is unique for every public key and never changes, so you only need to store it the first time you receive this message.
 - `memberBundle`: The base64-encoded member bundle.
 
-This service message uses the content type `application/vnd.veraid-authority.member-bundle`.
+This service message uses the content type `application/vnd.veraid.member-bundle`.
