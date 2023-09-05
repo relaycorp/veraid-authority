@@ -80,6 +80,10 @@ async function generateBundle(
 
 export const CERTIFICATE_EXPIRY_DAYS = 90;
 
+export interface BundleCreationFailure {
+  chainRetrievalFailed: boolean;
+}
+
 export async function createMemberBundleRequest(
   requestData: MemberBundleRequest,
   options: ServiceOptions,
@@ -131,14 +135,7 @@ export async function createMemberBundleRequest(
 export async function generateMemberBundle(
   publicKeyId: string,
   options: ServiceOptions,
-): Promise<
-  Result<
-    ArrayBuffer,
-    {
-      shouldRetry: boolean;
-    }
-  >
-> {
+): Promise<Result<ArrayBuffer, BundleCreationFailure>> {
   const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
     existingConnection: options.dbConnection,
   });
@@ -163,7 +160,7 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        shouldRetry: false,
+        chainRetrievalFailed: false,
       },
     };
   }
@@ -179,7 +176,7 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        shouldRetry: false,
+        chainRetrievalFailed: false,
       },
     };
   }
@@ -196,7 +193,7 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        shouldRetry: false,
+        chainRetrievalFailed: false,
       },
     };
   }
@@ -219,7 +216,7 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        shouldRetry: true,
+        chainRetrievalFailed: true,
       },
     };
   }

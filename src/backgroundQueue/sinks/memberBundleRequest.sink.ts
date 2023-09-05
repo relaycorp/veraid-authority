@@ -25,7 +25,7 @@ export default async function memberBundleIssuance(
   }
 
   const memberBundle = await generateMemberBundle(publicKeyId, options);
-  if (!memberBundle.didSucceed && memberBundle.context.shouldRetry) {
+  if (!memberBundle.didSucceed && memberBundle.context.chainRetrievalFailed) {
     return;
   }
 
