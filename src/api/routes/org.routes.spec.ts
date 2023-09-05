@@ -224,7 +224,7 @@ describe('org routes', () => {
       });
 
       expect(mockGetOrg).toHaveBeenCalledWith(name, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
@@ -244,7 +244,7 @@ describe('org routes', () => {
       });
 
       expect(mockGetOrg).toHaveBeenCalledWith(ORG_NAME, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
@@ -288,7 +288,7 @@ describe('org routes', () => {
       });
 
       expect(mockDeleteOrg).toHaveBeenCalledWith(ORG_NAME, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);

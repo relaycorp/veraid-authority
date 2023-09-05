@@ -155,11 +155,11 @@ describe('member public keys routes', () => {
       const response = await serverInstance.inject(injectionOptions);
 
       expect(mockGetMemberPublicKey).toHaveBeenCalledWith(MEMBER_MONGO_ID, PUBLIC_KEY_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(mockDeleteMemberPublicKey).toHaveBeenCalledWith(PUBLIC_KEY_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);

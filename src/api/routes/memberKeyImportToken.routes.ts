@@ -36,7 +36,7 @@ export default function registerRoutes(
         request.params.memberId,
         request.body.serviceOid,
         {
-          logger: this.log,
+          logger: request.log,
           dbConnection: this.mongoose,
         },
       );

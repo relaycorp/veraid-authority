@@ -72,7 +72,7 @@ export default function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { memberId, orgName } = request.params;
       const result = await createMemberPublicKey(memberId, request.body, {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       });
       if (!result.didSucceed) {
@@ -97,7 +97,7 @@ export default function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { memberId, memberPublicKeyId } = request.params;
       const serviceOptions = {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       };
 
