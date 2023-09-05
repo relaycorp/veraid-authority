@@ -112,7 +112,7 @@ describe('Awala routes', () => {
       source: AWALA_PEER_ID,
       type: 'invalid message type',
       subject: 'https://relaycorp.tech/awala-endpoint-internet',
-      datacontenttype: 'application/vnd.veraid.member-bundle-request',
+      datacontenttype: 'application/vnd.veraid-authority.member-bundle-request',
     });
 
     const response = await postEvent(cloudEvent, server);
@@ -138,7 +138,7 @@ describe('Awala routes', () => {
       source: AWALA_PEER_ID,
       type: INCOMING_SERVICE_MESSAGE_TYPE,
       subject: 'https://relaycorp.tech/awala-endpoint-internet',
-      datacontenttype: 'application/vnd.veraid.member-bundle-request',
+      datacontenttype: 'application/vnd.veraid-authority.member-bundle-request',
       expiry: formatISO(expiry),
       data: JSON.stringify(validMessageContent),
     });
@@ -249,7 +249,7 @@ describe('Awala routes', () => {
       source: AWALA_PEER_ID,
       type: INCOMING_SERVICE_MESSAGE_TYPE,
       subject: 'https://relaycorp.tech/awala-endpoint-internet',
-      datacontenttype: 'application/vnd.veraid.member-public-key-import',
+      datacontenttype: 'application/vnd.veraid-authority.member-public-key-import',
       expiry: formatISO(expiry),
       data: JSON.stringify(importRequest),
     });

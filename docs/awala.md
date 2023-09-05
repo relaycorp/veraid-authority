@@ -28,7 +28,7 @@ Your app MUST send a member public key import message in order to import the mem
 - `publicKey`: The base64-encoded, ASN.1 DER serialisation of the member's public key.
 - `awalaPda`: The Awala Parcel Delivery Authorisation (PDA) to be used to deliver the member bundle eventually.
 
-This service message MUST use the content type `application/vnd.veraid.member-public-key-import`.
+This service message MUST use the content type `application/vnd.veraid-authority.member-public-key-import`.
 
 ### Member bundle request
 
@@ -39,7 +39,7 @@ Your app MUST send a member bundle request to renew the member's existing bundle
 - `awalaPda`: The Awala Parcel Delivery Authorisation (PDA) to be used to deliver the member bundle eventually.
 - `signature`: The digital signature for the request, with the input being the other fields concatenated as follows: `publicKeyId || memberBundleStartDate || awalaPda`.
 
-This service message MUST use the content type `application/vnd.veraid.member-bundle-request`.
+This service message MUST use the content type `application/vnd.veraid-authority.member-bundle-request`.
 
 ### Member bundle
 

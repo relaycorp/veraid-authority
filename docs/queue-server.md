@@ -35,6 +35,6 @@ The events above are consumed by the following Knative Eventing sinks:
     3. Post bundle to Awala recipient via the Awala Endpoint Middleware.
 - `member-public-key-import-ack`:
   - Event triggers: `member-public-key-import`.
-  - Outcome: Same as in `member-bundle-issuer`, but the payload to be posted to the Awala Endpoint Middleware should be a JSON document (content type `application/vnd.veraid.member-public-key-import-ack`) with the following fields:
+  - Outcome: Same as in `member-bundle-issuer`, but the payload to be posted to the Awala Endpoint Middleware should be a JSON document (content type `application/vnd.veraid-authority.member-public-key-import-ack`) with the following fields:
     - The id for the member public key. This is to be passed in subsequent `MemberBundleRequest` messages.
     - The VeraId Member Bundle (base64-encoded).

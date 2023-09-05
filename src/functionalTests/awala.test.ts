@@ -110,7 +110,7 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
     subject: 'https://relaycorp.tech/awala-endpoint-internet',
     time: formatISO(now),
     expiry: formatISO(addMinutes(now, 1)),
-    datacontenttype: 'application/vnd.veraid.member-public-key-import',
+    datacontenttype: 'application/vnd.veraid-authority.member-public-key-import',
     data: importRequest,
   });
 }

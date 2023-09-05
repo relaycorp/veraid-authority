@@ -73,8 +73,8 @@ async function processMemberKeyImportRequest(
 }
 
 enum AwalaRequestMessageType {
-  MEMBER_BUNDLE_REQUEST = 'application/vnd.veraid.member-bundle-request',
-  MEMBER_PUBLIC_KEY_IMPORT = 'application/vnd.veraid.member-public-key-import',
+  MEMBER_BUNDLE_REQUEST = 'application/vnd.veraid-authority.member-bundle-request',
+  MEMBER_PUBLIC_KEY_IMPORT = 'application/vnd.veraid-authority.member-public-key-import',
 }
 
 const awalaEventToProcessor: {
