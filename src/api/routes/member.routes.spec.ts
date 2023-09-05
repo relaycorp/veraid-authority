@@ -249,7 +249,7 @@ describe('member routes', () => {
       const response = await serverInstance.inject(injectionOptions);
 
       expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
@@ -266,7 +266,7 @@ describe('member routes', () => {
       const response = await serverInstance.inject(injectionOptions);
 
       expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
@@ -305,7 +305,7 @@ describe('member routes', () => {
       const response = await serverInstance.inject(injectionOptions);
 
       expect(mockDeleteMember).toHaveBeenCalledWith(MEMBER_MONGO_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NO_CONTENT);
@@ -464,7 +464,7 @@ describe('member routes', () => {
       });
 
       expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
-        logger: serverInstance.log,
+        logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
       expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);

@@ -65,7 +65,7 @@ describe('member key import token routes', () => {
         MEMBER_MONGO_ID,
         TEST_SERVICE_OID,
         {
-          logger: serverInstance.log,
+          logger: expect.anything(),
           dbConnection: serverInstance.mongoose,
         },
       );

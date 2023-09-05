@@ -74,7 +74,7 @@ export default async function registerRoutes(
 
     async handler(request, reply): Promise<void> {
       const result = await createMember(request.params.orgName, request.body, {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       });
       if (result.didSucceed) {
@@ -104,7 +104,7 @@ export default async function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { orgName, memberId } = request.params;
       const serviceOptions = {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       };
 
@@ -132,7 +132,7 @@ export default async function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { orgName, memberId } = request.params;
       const serviceOptions = {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       };
 
@@ -163,7 +163,7 @@ export default async function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { orgName, memberId } = request.params;
       const serviceOptions = {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       };
 
@@ -176,7 +176,7 @@ export default async function registerRoutes(
       }
 
       const result = await updateMember(orgName, request.body, {
-        logger: this.log,
+        logger: request.log,
         dbConnection: this.mongoose,
       });
       if (result.didSucceed) {
