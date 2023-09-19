@@ -39,6 +39,9 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input: Same as `POST /orgs`, but org name can't be changed.
 - `DELETE /orgs/{orgName}`: Delete org.
   - Auth: Org admin.
+- `GET /orgs/{orgName}/public-key`: Get public key of the org.
+  - Auth: Org admin.
+  - Output: DER-encoded `SubjectPublicKeyInfo` serialisation of the public key.
 - `POST /orgs/{orgName}/members`: Create member.
   - Auth: Org admin.
   - Input:
