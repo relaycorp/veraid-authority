@@ -1,10 +1,11 @@
-import { index, prop, Severity } from '@typegoose/typegoose';
+import { index, modelOptions, prop, Severity } from '@typegoose/typegoose';
 
 export enum Role {
   ORG_ADMIN = 'org_admin',
   REGULAR = 'regular',
 }
 
+@modelOptions({ schemaOptions: { collection: 'members' } })
 @index(
   { orgName: 1, name: 1 },
   { unique: true, partialFilterExpression: { name: { $type: 'string' } } },

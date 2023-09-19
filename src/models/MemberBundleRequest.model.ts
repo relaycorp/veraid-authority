@@ -1,5 +1,6 @@
-import { prop } from '@typegoose/typegoose';
+import { modelOptions, prop } from '@typegoose/typegoose';
 
+@modelOptions({ schemaOptions: { collection: 'member_bundle_requests' } })
 export class MemberBundleRequestModelSchema {
   @prop({ required: true, unique: true })
   public publicKeyId!: string;
