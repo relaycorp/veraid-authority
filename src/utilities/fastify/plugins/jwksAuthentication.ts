@@ -4,7 +4,7 @@ import fastifyJwtJwks, { type FastifyJwtJwksOptions } from 'fastify-jwt-jwks';
 import env from 'env-var';
 
 function getOauth2PluginOptions(): FastifyJwtJwksOptions {
-  const audience = env.get('OAUTH2_TOKEN_AUDIENCE').required().asString();
+  const audience = env.get('OAUTH2_TOKEN_AUDIENCE').required().asArray(',');
   const jwksUrl = env.get('OAUTH2_JWKS_URL').required().asUrlString();
 
   const issuer = env.get('OAUTH2_TOKEN_ISSUER').asString();
