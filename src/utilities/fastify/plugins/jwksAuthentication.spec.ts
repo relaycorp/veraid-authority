@@ -132,21 +132,36 @@ describe('jwks-authentication', () => {
     );
   });
 
-  test('OAUTH2_TOKEN_AUDIENCE should be defined', async () => {
-    mockEnvVars({ ...AUTHN_ENV_VARS, OAUTH2_TOKEN_AUDIENCE: undefined });
+  describe('OAUTH2_TOKEN_AUDIENCE', () => {
+    test('should be defined', async () => {
+      mockEnvVars({ ...AUTHN_ENV_VARS, OAUTH2_TOKEN_AUDIENCE: undefined });
 
-    await expect(jwksPlugin(mockFastify, {})).rejects.toThrowWithMessage(
-      envVar.EnvVarError,
-      /OAUTH2_TOKEN_AUDIENCE/u,
-    );
-  });
+      await expect(jwksPlugin(mockFastify, {})).rejects.toThrowWithMessage(
+        envVar.EnvVarError,
+        /OAUTH2_TOKEN_AUDIENCE/u,
+      );
+    });
 
-  test('OAUTH2_TOKEN_AUDIENCE should be used as the audience', async () => {
-    await jwksPlugin(mockFastify, {});
+    test('should be used as the audience', async () => {
+      await jwksPlugin(mockFastify, {});
 
-    expect(mockFastify.register).toHaveBeenCalledWith(
-      fastifyJwtJwks,
-      expect.objectContaining({ audience: OAUTH2_TOKEN_AUDIENCE }),
-    );
+      const [audience] = OAUTH2_TOKEN_AUDIENCE.split(',');
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyJwtJwks,
+        expect.objectContaining({ audience: [audience] }),
+      );
+    });
+
+    test('should be support multiple values', async () => {
+      const audiences = ['audience1', 'audience2'];
+      mockEnvVars({ ...AUTHN_ENV_VARS, OAUTH2_TOKEN_AUDIENCE: audiences.join(',') });
+
+      await jwksPlugin(mockFastify, {});
+
+      expect(mockFastify.register).toHaveBeenCalledWith(
+        fastifyJwtJwks,
+        expect.objectContaining({ audience: audiences }),
+      );
+    });
   });
 });
