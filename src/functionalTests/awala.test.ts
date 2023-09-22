@@ -23,12 +23,13 @@ import { CE_ID } from '../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../events/incomingServiceMessage.event.js';
 
 import { connectToClusterService } from './utils/kubernetes.js';
-import { makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
+import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { getServiceUrl } from './utils/knative.js';
 import { postEvent } from './utils/events.js';
+import { AuthScope } from './utils/authServer.js';
 
-const CLIENT = await makeClient(SUPER_ADMIN_EMAIL);
+const CLIENT = await makeClient(AuthScope.SUPER_ADMIN);
 
 const AWALA_SERVER_URL = await getServiceUrl('veraid-authority-awala');
 
