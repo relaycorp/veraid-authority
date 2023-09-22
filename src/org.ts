@@ -6,7 +6,6 @@ import { OrgModelSchema } from './models/Org.model.js';
 import type { OrgSchema, OrgSchemaPatch } from './schemas/org.schema.js';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import type { OrgCreationResult } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
@@ -66,7 +65,7 @@ async function removeLastRelatedMember(
 export async function createOrg(
   orgData: OrgSchema,
   options: ServiceOptions,
-): Promise<Result<OrgCreationResult, OrgProblemType>> {
+): Promise<Result<OrgSchema, OrgProblemType>> {
   const validationFailure = validateOrgData(orgData, options);
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,

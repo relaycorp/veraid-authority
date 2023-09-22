@@ -4,14 +4,13 @@ import { jest } from '@jest/globals';
 
 import { NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { OrgSchema, OrgSchemaPatch } from '../../schemas/org.schema.js';
-import type { OrgCreationResult } from '../../orgTypes.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
-const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
+const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
