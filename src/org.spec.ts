@@ -4,7 +4,7 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { OrgModelSchema } from './models/Org.model.js';
-import type { OrgSchema } from './schemas/org.schema.js';
+import type { OrgCreationSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
@@ -46,7 +46,7 @@ describe('org', () => {
 
   describe('createOrg', () => {
     test('Minimum required data should be stored', async () => {
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const orgData: OrgCreationSchema = { name: ORG_NAME };
 
       await createOrg(orgData, serviceOptions);
 
@@ -59,7 +59,7 @@ describe('org', () => {
 
     test('Non ASCII name should be allowed', async () => {
       const nonAsciiName = 'はじめよう.みんな';
-      const orgData: OrgSchema = { name: nonAsciiName };
+      const orgData: OrgCreationSchema = { name: nonAsciiName };
 
       const result = await createOrg(orgData, serviceOptions);
 
@@ -68,7 +68,7 @@ describe('org', () => {
 
     test('Malformed name should be refused', async () => {
       const malformedName = '192.168.0.0';
-      const orgData: OrgSchema = { name: malformedName };
+      const orgData: OrgCreationSchema = { name: malformedName };
 
       const result = await createOrg(orgData, serviceOptions);
 
@@ -83,7 +83,7 @@ describe('org', () => {
 
     test('Clash with existing name should be refused', async () => {
       const name = `duplicated-${ORG_NAME}`;
-      const orgData: OrgSchema = { name };
+      const orgData: OrgCreationSchema = { name };
       await createOrg(orgData, serviceOptions);
 
       const methodResult = await createOrg(orgData, serviceOptions);
@@ -96,7 +96,7 @@ describe('org', () => {
     });
 
     test('Returned id should match that of the database', async () => {
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const orgData: OrgCreationSchema = { name: ORG_NAME };
 
       const methodResult = await createOrg(orgData, serviceOptions);
 
@@ -109,7 +109,7 @@ describe('org', () => {
 
     test('Record creation errors should be propagated', async () => {
       await connection.close();
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const orgData: OrgCreationSchema = { name: ORG_NAME };
 
       const error = await getPromiseRejection(
         async () => createOrg(orgData, serviceOptions),
@@ -120,7 +120,7 @@ describe('org', () => {
     });
 
     describe('Key pair', () => {
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const orgData: OrgCreationSchema = { name: ORG_NAME };
 
       test('Key pair should be generated', async () => {
         const { kms } = getMockKms();
@@ -150,6 +150,16 @@ describe('org', () => {
         const [{ publicKey: generatedPublicKey }] = kms.generatedKeyPairRefs;
         const expectedPublicKey = await derSerialisePublicKey(generatedPublicKey);
         expect(Buffer.from(dbResult!.publicKey)).toStrictEqual(expectedPublicKey);
+      });
+
+      test('Public key should be output DER-encoded', async () => {
+        const result = await createOrg(orgData, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { kms } = getMockKms();
+        const [{ publicKey: generatedPublicKey }] = kms.generatedKeyPairRefs;
+        const expectedPublicKey = await derSerialisePublicKey(generatedPublicKey);
+        expect(Buffer.from(result.result.publicKey, 'base64')).toMatchObject(expectedPublicKey);
       });
     });
   });
@@ -217,7 +227,7 @@ describe('org', () => {
 
     test('Record update errors should be propagated', async () => {
       await connection.close();
-      const orgData: OrgSchema = { name: ORG_NAME };
+      const orgData: OrgCreationSchema = { name: ORG_NAME };
 
       const error = await getPromiseRejection(
         async () => updateOrg(ORG_NAME, orgData, serviceOptions),
@@ -229,13 +239,24 @@ describe('org', () => {
   });
 
   describe('getOrg', () => {
-    test('Existing name should return the corresponding data', async () => {
-      await orgModel.create({ name: ORG_NAME });
+    const publicKey = Buffer.from('the public key');
+
+    test('Org name should be output if org exists', async () => {
+      await orgModel.create({ name: ORG_NAME, publicKey });
 
       const result = await getOrg(ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
-      expect(result.result).toMatchObject({ name: ORG_NAME });
+      expect(result.result.name).toBe(ORG_NAME);
+    });
+
+    test('Public key should be output if org exists', async () => {
+      await orgModel.create({ name: ORG_NAME, publicKey });
+
+      const result = await getOrg(ORG_NAME, serviceOptions);
+
+      requireSuccessfulResult(result);
+      expect(result.result.publicKey).toBe(publicKey.toString('base64'));
     });
 
     test('Invalid name should return non existing error', async () => {
@@ -255,7 +276,7 @@ describe('org', () => {
   });
 
   describe('deleteOrg', () => {
-    const orgData: OrgSchema = { name: ORG_NAME };
+    const orgData: OrgCreationSchema = { name: ORG_NAME };
 
     test('Existing name should remove org', async () => {
       await createOrg(orgData, serviceOptions);

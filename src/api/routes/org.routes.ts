@@ -1,5 +1,9 @@
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import { ORG_SCHEMA, ORG_SCHEMA_PATCH } from '../../schemas/org.schema.js';
+import {
+  ORG_CREATION_SCHEMA,
+  ORG_PATCH_SCHEMA,
+  type OrgCreationSchema,
+} from '../../schemas/org.schema.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
@@ -31,15 +35,11 @@ const ORG_ROUTE_PARAMS = {
   required: ['orgName'],
 } as const;
 
-interface OrgUrls {
-  self: string;
-  members: string;
-}
-
-function makeUrls(name: string): OrgUrls {
+function makeCreationResponse(org: OrgCreationSchema): object {
   return {
-    self: `/orgs/${name}`,
-    members: `/orgs/${name}/members`,
+    self: `/orgs/${org.name}`,
+    members: `/orgs/${org.name}/members`,
+    publicKey: org.publicKey,
   };
 }
 
@@ -54,7 +54,7 @@ export default async function registerRoutes(
     url: '/orgs',
 
     schema: {
-      body: ORG_SCHEMA,
+      body: ORG_CREATION_SCHEMA,
     },
 
     async handler(request, reply): Promise<void> {
@@ -63,7 +63,7 @@ export default async function registerRoutes(
         dbConnection: this.mongoose,
       });
       if (result.didSucceed) {
-        await reply.code(HTTP_STATUS_CODES.OK).send(makeUrls(result.result.name));
+        await reply.code(HTTP_STATUS_CODES.OK).send(makeCreationResponse(result.result));
         return;
       }
 
@@ -79,7 +79,7 @@ export default async function registerRoutes(
 
     schema: {
       params: ORG_ROUTE_PARAMS,
-      body: ORG_SCHEMA_PATCH,
+      body: ORG_PATCH_SCHEMA,
     },
 
     async handler(request, reply): Promise<void> {
