@@ -15,7 +15,7 @@ interface OrgRequestParams {
 }
 
 interface AuthenticatedFastifyRequest extends FastifyRequest {
-  user: { sub: string };
+  user: { email: string };
 }
 
 interface AuthorisedFastifyRequest extends AuthenticatedFastifyRequest {
@@ -76,7 +76,7 @@ function registerOrgAuth(fastify: FastifyInstance, _opts: PluginMetadata, done: 
 
   fastify.addHook('onRequest', async (request, reply) => {
     const superAdmin = envVar.get('AUTHORITY_SUPERADMIN').asString();
-    const userEmail = (request as AuthenticatedFastifyRequest).user.sub;
+    const userEmail = (request as AuthenticatedFastifyRequest).user.email;
     const decision = await decideAuthorisation(userEmail, request, fastify.mongoose, superAdmin);
     const reason = decision.didSucceed ? decision.result.reason : decision.context;
     if (decision.didSucceed) {
@@ -102,11 +102,11 @@ const requireUserToBeAdmin: any = async (
   reply: FastifyReply,
 ) => {
   if (!request.isUserAdmin) {
-    await denyAuthorisation('User is not an admin', reply, request.user.sub);
+    await denyAuthorisation('User is not an admin', reply, request.user.email);
   }
 };
 
 const orgAuthPlugin = fastifyPlugin(registerOrgAuth, { name: 'org-auth' });
 export default orgAuthPlugin;
 
-export { requireUserToBeAdmin };
+export { type AuthenticatedFastifyRequest, requireUserToBeAdmin };
