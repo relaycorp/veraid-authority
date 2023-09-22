@@ -30,10 +30,13 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
     - Name (e.g., `acme.com`).
     - [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) URL (optional).
   - Output:
-    - VeraId TXT record.
+    - Org name.
+    - Org public key.
 - `GET /orgs/{orgName}`: Get org.
   - Auth: Org admin.
-  - Output: Same as input to `POST /orgs`.
+  - Output:
+    - URLs to the org's endpoint and direct descendants.
+    - Org public key.
 - `PATCH /orgs/{orgName}`: Modify org.
   - Auth: Org admin.
   - Input: Same as `POST /orgs`, but org name can't be changed.
