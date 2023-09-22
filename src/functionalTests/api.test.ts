@@ -14,8 +14,9 @@ import { MEMBER_EMAIL, TEST_SERVICE_OID } from '../testUtils/stubs.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 
-import { API_URL, makeClient, SUPER_ADMIN_EMAIL } from './utils/api.js';
+import { API_URL, makeClient } from './utils/api.js';
 import { post } from './utils/http.js';
+import { AuthScope } from './utils/authServer.js';
 
 function generateOrgName(): string {
   return `${randomUUID()}.example`;
@@ -42,14 +43,14 @@ describe('API', () => {
     });
 
     test('Create org as super admin', async () => {
-      const client = await makeClient(SUPER_ADMIN_EMAIL);
+      const client = await makeClient(AuthScope.SUPER_ADMIN);
       const command = new OrgCreationCommand({ name: generateOrgName() });
 
       await expect(client.send(command)).toResolve();
     });
 
     test('Create org admin as super admin', async () => {
-      const client = await makeClient(SUPER_ADMIN_EMAIL);
+      const client = await makeClient(AuthScope.SUPER_ADMIN);
       const { members: membersEndpoint } = await client.send(
         new OrgCreationCommand({ name: generateOrgName() }),
       );
@@ -62,7 +63,7 @@ describe('API', () => {
     });
 
     test('Create member as org admin', async () => {
-      const superAdminClient = await makeClient(SUPER_ADMIN_EMAIL);
+      const superAdminClient = await makeClient(AuthScope.SUPER_ADMIN);
       const { members: membersEndpoint } = await superAdminClient.send(
         new OrgCreationCommand({ name: generateOrgName() }),
       );
@@ -74,7 +75,7 @@ describe('API', () => {
         }),
       );
 
-      const orgAdminClient = await makeClient(MEMBER_EMAIL);
+      const orgAdminClient = await makeClient(AuthScope.USER);
       const memberCreationCommand = new MemberCreationCommand({
         endpoint: membersEndpoint,
         role: MemberRole.REGULAR,
@@ -83,7 +84,7 @@ describe('API', () => {
     });
 
     test('Import public key as regular org member', async () => {
-      const superAdminClient = await makeClient(SUPER_ADMIN_EMAIL);
+      const superAdminClient = await makeClient(AuthScope.SUPER_ADMIN);
       const { members: membersEndpoint } = await superAdminClient.send(
         new OrgCreationCommand({ name: generateOrgName() }),
       );
@@ -95,7 +96,7 @@ describe('API', () => {
         }),
       );
 
-      const memberClient = await makeClient(MEMBER_EMAIL);
+      const memberClient = await makeClient(AuthScope.USER);
       const { publicKey } = await generateKeyPair();
       const keyImportCommand = new MemberPublicKeyImportCommand({
         endpoint: publicKeysEndpoint,

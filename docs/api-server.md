@@ -8,7 +8,7 @@ This server exposes a RESTful API to manage VeraId organisations and the endpoin
 
 ## Authentication and authorisation
 
-We use OAuth2 with JWKS to delegate authentication to an external identity provider. We require the JWT token's `sub` claim to be the email address of the user.
+We use OAuth2 with JWKS to delegate authentication to an external identity provider. We require the JWT token to define the user's email address in the [OIDC `email` claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
 
 The API employs the following roles:
 

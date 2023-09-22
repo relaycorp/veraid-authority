@@ -13,6 +13,7 @@ import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { MemberModelSchema, Role } from '../models/Member.model.js';
 import type { Result, SuccessfulResult } from '../utilities/result.js';
+import type { AuthenticatedFastifyRequest } from '../api/orgAuthPlugin.js';
 
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
@@ -83,7 +84,7 @@ function getMockAuthenticateFromServer(fastify: FastifyInstance) {
 function setAuthUser(fastify: FastifyInstance, userEmail: string) {
   // eslint-disable-next-line @typescript-eslint/require-await
   getMockAuthenticateFromServer(fastify).mockImplementation(async (request) => {
-    (request as unknown as { user: { sub: string } }).user = { sub: userEmail };
+    (request as AuthenticatedFastifyRequest).user = { email: userEmail };
   });
 }
 
