@@ -3,10 +3,9 @@ import isValidDomain from 'is-valid-domain';
 import type { AnyKeys } from 'mongoose';
 
 import { OrgModelSchema } from './models/Org.model.js';
-import type { OrgSchema, OrgSchemaPatch } from './schemas/org.schema.js';
+import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './schemas/org.schema.js';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import type { OrgCreationResult } from './orgTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
@@ -18,7 +17,7 @@ function isValidUtf8Domain(orgName: string) {
 }
 
 function validateOrgData(
-  orgData: OrgSchemaPatch,
+  orgData: OrgPatchSchema,
   options: ServiceOptions,
 ): OrgProblemType | undefined {
   if (orgData.name !== undefined && !isValidUtf8Domain(orgData.name)) {
@@ -64,9 +63,9 @@ async function removeLastRelatedMember(
 }
 
 export async function createOrg(
-  orgData: OrgSchema,
+  orgData: OrgCreationSchema,
   options: ServiceOptions,
-): Promise<Result<OrgCreationResult, OrgProblemType>> {
+): Promise<Result<OrgReadSchema, OrgProblemType>> {
   const validationFailure = validateOrgData(orgData, options);
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
@@ -78,10 +77,11 @@ export async function createOrg(
 
   const kms = await Kms.init();
   const { privateKey, publicKey } = await kms.generateKeyPair();
+  const publicKeySerialised = await derSerialisePublicKey(publicKey);
   const org: AnyKeys<DocumentType<OrgModelSchema>> = {
     ...orgData,
     privateKeyRef: await kms.getPrivateKeyRef(privateKey),
-    publicKey: await derSerialisePublicKey(publicKey),
+    publicKey: publicKeySerialised,
   };
   try {
     await orgModel.create(org);
@@ -99,13 +99,13 @@ export async function createOrg(
   options.logger.info({ orgName: orgData.name }, 'Org created');
   return {
     didSucceed: true,
-    result: { name: orgData.name },
+    result: { name: orgData.name, publicKey: publicKeySerialised.toString('base64') },
   };
 }
 
 export async function updateOrg(
   name: string,
-  orgData: OrgSchemaPatch,
+  orgData: OrgPatchSchema,
   options: ServiceOptions,
 ): Promise<Result<undefined, OrgProblemType>> {
   if (orgData.name !== undefined && name !== orgData.name) {
@@ -140,13 +140,11 @@ export async function updateOrg(
 export async function getOrg(
   name: string,
   options: ServiceOptions,
-): Promise<Result<OrgSchema, OrgProblemType>> {
+): Promise<Result<OrgReadSchema, OrgProblemType>> {
   const orgModel = getModelForClass(OrgModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const org = await orgModel.findOne({
-    name,
-  });
+  const org = await orgModel.findOne({ name });
 
   if (org === null) {
     return {
@@ -157,7 +155,7 @@ export async function getOrg(
 
   return {
     didSucceed: true,
-    result: { name: org.name },
+    result: { name: org.name, publicKey: org.publicKey.toString('base64') },
   };
 }
 

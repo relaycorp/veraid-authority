@@ -3,17 +3,16 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import { NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
-import type { OrgSchema, OrgSchemaPatch } from '../../schemas/org.schema.js';
-import type { OrgCreationResult } from '../../orgTypes.js';
+import type { OrgCreationSchema, OrgPatchSchema, OrgReadSchema } from '../../schemas/org.schema.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { OrgProblemType } from '../../OrgProblemType.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
-const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationResult, OrgProblemType>>>());
+const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblemType>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
-const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgSchema, OrgProblemType>>>());
+const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblemType>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblemType>>>());
 jest.unstable_mockModule('../../org.js', () => ({
   createOrg: mockCreateOrg,
@@ -25,6 +24,8 @@ jest.unstable_mockModule('../../org.js', () => ({
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('org routes', () => {
+  const publicKey = 'the public key';
+
   const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
@@ -39,7 +40,7 @@ describe('org routes', () => {
     };
 
     describe('Auth', () => {
-      const payload: OrgSchema = { name: ORG_NAME };
+      const payload: OrgCreationSchema = { name: ORG_NAME };
       testOrgRouteAuth('ORG_BULK', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateOrg,
         result: { name: ORG_NAME },
@@ -50,13 +51,10 @@ describe('org routes', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('%s name should return URLs', async (_type, name: string) => {
-      const payload: OrgSchema = { name };
+      const payload: OrgCreationSchema = { name };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: true,
-
-        result: {
-          name,
-        },
+        result: { name },
       });
 
       const response = await serverInstance.inject({
@@ -71,8 +69,22 @@ describe('org routes', () => {
       });
     });
 
+    test('Response should include public key', async () => {
+      mockCreateOrg.mockResolvedValueOnce({
+        didSucceed: true,
+        result: { name: ORG_NAME, publicKey },
+      });
+      const payload: OrgCreationSchema = { name: ORG_NAME };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+      expect(response.json()).toHaveProperty('publicKey', publicKey);
+    });
+
     test('Duplicated name error should resolve into conflict status', async () => {
-      const payload: OrgSchema = { name: ORG_NAME };
+      const payload: OrgCreationSchema = { name: ORG_NAME };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
         context: OrgProblemType.EXISTING_ORG_NAME,
@@ -88,7 +100,7 @@ describe('org routes', () => {
     });
 
     test('Malformed name should resolve into bad request status', async () => {
-      const payload: OrgSchema = { name: 'MALFORMED_NAME' };
+      const payload: OrgCreationSchema = { name: 'MALFORMED_NAME' };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: false,
         context: OrgProblemType.MALFORMED_ORG_NAME,
@@ -125,7 +137,7 @@ describe('org routes', () => {
     });
 
     test('Empty parameters should be accepted', async () => {
-      const payload: OrgSchemaPatch = {};
+      const payload: OrgPatchSchema = {};
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
       mockUpdateOrg.mockResolvedValueOnce({
         didSucceed: true,
@@ -140,7 +152,7 @@ describe('org routes', () => {
     });
 
     test('Name matching the url parameter should be accepted', async () => {
-      const payload: OrgSchemaPatch = {
+      const payload: OrgPatchSchema = {
         name: ORG_NAME,
       };
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
@@ -157,7 +169,7 @@ describe('org routes', () => {
     });
 
     test('Non-matching name should be refused', async () => {
-      const payload: OrgSchemaPatch = {
+      const payload: OrgPatchSchema = {
         name: 'invalid.com',
       };
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
@@ -176,7 +188,7 @@ describe('org routes', () => {
     });
 
     test('Non existing name should resolve into not found status', async () => {
-      const payload: OrgSchemaPatch = {};
+      const payload: OrgPatchSchema = {};
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: false,
         context: OrgProblemType.ORG_NOT_FOUND,
@@ -211,9 +223,9 @@ describe('org routes', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('%s name should return an org', async (_type, name: string) => {
-      const getOrgSuccessResponse: SuccessfulResult<OrgSchema> = {
+      const getOrgSuccessResponse: SuccessfulResult<OrgReadSchema> = {
         didSucceed: true,
-        result: { name },
+        result: { name, publicKey },
       };
 
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);
