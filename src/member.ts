@@ -55,7 +55,10 @@ export async function createMember(
     throw err as Error;
   }
 
-  options.logger.info({ orgName, memberId: member.id }, 'Member created');
+  options.logger.info(
+    { orgName, userName: memberData.name, memberId: member.id },
+    'Member created',
+  );
   return {
     didSucceed: true,
     result: { id: member.id },

@@ -94,6 +94,9 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       expect(result.didSucceed).toBeTrue();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Member created', { userName: name }),
+      );
     });
 
     test('Missing name should be set to null', async () => {
