@@ -86,8 +86,6 @@ const awalaEventToProcessor: {
   [AwalaRequestMessageType.MEMBER_BUNDLE_REQUEST]: processMemberBundleRequest,
   [AwalaRequestMessageType.MEMBER_PUBLIC_KEY_IMPORT]: processMemberKeyImportRequest,
 };
-const awalaRequestMessageTypeList: AwalaRequestMessageType[] =
-  Object.values(AwalaRequestMessageType);
 
 export default function registerRoutes(
   fastify: FastifyTypedInstance,
@@ -95,13 +93,9 @@ export default function registerRoutes(
   done: PluginDone,
 ): void {
   fastify.removeAllContentTypeParsers();
-  fastify.addContentTypeParser(
-    awalaRequestMessageTypeList,
-    { parseAs: 'buffer' },
-    (_request, payload, next) => {
-      next(null, payload);
-    },
-  );
+  fastify.addContentTypeParser('*', { parseAs: 'buffer' }, (_request, payload, next) => {
+    next(null, payload);
+  });
 
   fastify.route({
     method: ['POST'],

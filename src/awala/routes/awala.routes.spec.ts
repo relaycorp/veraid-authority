@@ -76,7 +76,7 @@ describe('Awala routes', () => {
         'content-type': 'INVALID_CONTENT_TYPE',
       },
     });
-    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
   });
 
   test('Content type application/json should resolve to unsupported media type error', async () => {
@@ -89,7 +89,7 @@ describe('Awala routes', () => {
         'content-type': 'application/json',
       },
     });
-    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNSUPPORTED_MEDIA_TYPE);
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
   });
 
   test('Missing headers should resolve into bad request', async () => {
