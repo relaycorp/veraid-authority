@@ -160,14 +160,13 @@ describe('member key import token', () => {
       );
 
       requireSuccessfulResult(result);
-      expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
+      expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
         expect.objectContaining<Partial<CloudEvent<string>>>({
-          id: MEMBER_PUBLIC_KEY_MONGO_ID,
           source: 'https://veraid.net/authority/awala-member-key-import',
           type: BUNDLE_REQUEST_TYPE,
           subject: AWALA_PEER_ID,
-          datacontenttype: 'application/vnd.veraid-authority.member-public-key-import',
-          data: '',
+          datacontenttype: 'text/plain',
+          data: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
     });

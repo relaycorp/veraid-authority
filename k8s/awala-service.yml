@@ -44,6 +44,8 @@ spec:
 
             - name: CE_CHANNEL_AWALA_OUTGOING_MESSAGES
               value: http://mock-awala-middleware.default
+            - name: CE_CHANNEL_BACKGROUND_QUEUE
+              value: http://veraid-authority-queue.default
           envFrom:
             - configMapRef:
                 name: mongodb
