@@ -161,12 +161,12 @@ describe('member key import token', () => {
 
       requireSuccessfulResult(result);
       expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
-        expect.objectContaining<Partial<CloudEvent<string>>>({
+        expect.objectContaining<Partial<CloudEvent<Buffer>>>({
           source: 'https://veraid.net/authority/awala-member-key-import',
           type: BUNDLE_REQUEST_TYPE,
           subject: AWALA_PEER_ID,
           datacontenttype: 'text/plain',
-          data: MEMBER_PUBLIC_KEY_MONGO_ID,
+          data: Buffer.from(MEMBER_PUBLIC_KEY_MONGO_ID),
         }),
       );
     });
