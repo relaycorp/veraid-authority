@@ -82,10 +82,10 @@ export async function processMemberKeyImportToken(
     source: 'https://veraid.net/authority/awala-member-key-import',
     type: BUNDLE_REQUEST_TYPE,
     subject: peerId,
-    datacontenttype: 'application/vnd.veraid-authority.member-public-key-import',
+    datacontenttype: 'text/plain',
     data: '',
   });
-  const ceEmitter = await Emitter.init(EmitterChannel.AWALA_OUTGOING_MESSAGES);
+  const ceEmitter = await Emitter.init(EmitterChannel.BACKGROUND_QUEUE);
   await ceEmitter.emit(event);
 
   await memberKeyImportTokenModel.findByIdAndDelete(keyImportRequest.publicKeyImportToken);
