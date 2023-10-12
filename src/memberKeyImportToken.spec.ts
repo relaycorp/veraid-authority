@@ -73,7 +73,7 @@ describe('member key import token', () => {
       expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member key import token created', {
-          memberKeyImportToken: meberKeyImportToken.result.id,
+          serviceOid: TEST_SERVICE_OID,
         }),
       );
     });

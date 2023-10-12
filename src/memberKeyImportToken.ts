@@ -26,10 +26,7 @@ export async function createMemberKeyImportToken(
     serviceOid,
   });
 
-  options.logger.info(
-    { memberKeyImportToken: memberKeyImportToken.id },
-    'Member key import token created',
-  );
+  options.logger.info({ serviceOid }, 'Member key import token created');
   return {
     didSucceed: true,
 
