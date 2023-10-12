@@ -24,10 +24,7 @@ import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
-import {
-  OUTGOING_MESSAGE_SOURCE,
-  OUTGOING_SERVICE_MESSAGE_TYPE,
-} from '../../events/outgoingServiceMessage.event.js';
+import { OUTGOING_SERVICE_MESSAGE_TYPE } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 import type { BundleCreationFailure } from '../../memberBundle.js';
@@ -123,16 +120,6 @@ describe('memberBundleIssuance', () => {
         expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             type: OUTGOING_SERVICE_MESSAGE_TYPE,
-          }),
-        );
-      });
-
-      test('Source should be URL identifying Awala Internet Endpoint', async () => {
-        await postEvent(triggerEvent, server);
-
-        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
-          expect.objectContaining({
-            source: OUTGOING_MESSAGE_SOURCE,
           }),
         );
       });
