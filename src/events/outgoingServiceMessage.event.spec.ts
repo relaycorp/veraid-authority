@@ -9,6 +9,7 @@ import {
 import {
   type OutgoingServiceMessageOptions,
   makeOutgoingServiceMessageEvent,
+  DEFAULT_ENDPOINT_ID,
 } from './outgoingServiceMessage.event.js';
 
 describe('makeIncomingServiceMessageEvent', () => {
@@ -38,10 +39,10 @@ describe('makeIncomingServiceMessageEvent', () => {
     expect(type).toBe('tech.relaycorp.awala.endpoint-internet.outgoing-service-message');
   });
 
-  test('Event source should be awala-endpoint-internet', () => {
+  test('Event source should be the default endpoint', () => {
     const { source } = makeOutgoingServiceMessageEvent(options);
 
-    expect(source).toBe('https://relaycorp.tech/awala-endpoint-internet');
+    expect(source).toBe(DEFAULT_ENDPOINT_ID);
   });
 
   test('Event subject should be the peer id', () => {

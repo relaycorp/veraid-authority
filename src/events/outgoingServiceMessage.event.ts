@@ -3,7 +3,7 @@ import { CloudEvent } from 'cloudevents';
 export const OUTGOING_SERVICE_MESSAGE_TYPE =
   'tech.relaycorp.awala.endpoint-internet.outgoing-service-message';
 
-export const OUTGOING_MESSAGE_SOURCE = 'https://relaycorp.tech/awala-endpoint-internet';
+export const DEFAULT_ENDPOINT_ID = 'default';
 
 export interface OutgoingServiceMessageOptions {
   readonly creationDate: Date;
@@ -19,7 +19,7 @@ export function makeOutgoingServiceMessageEvent(
   return new CloudEvent({
     specversion: '1.0',
     type: OUTGOING_SERVICE_MESSAGE_TYPE,
-    source: OUTGOING_MESSAGE_SOURCE,
+    source: DEFAULT_ENDPOINT_ID,
     subject: options.peerId,
     datacontenttype: options.contentType,
     data: options.content,
