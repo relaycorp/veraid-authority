@@ -33,7 +33,7 @@ The Docker container must use the image above and specify the following argument
 The Docker container must use the image above and specify the following arguments:
 
 - Command arguments: `awala`. Do NOT specify a command.
-- Environment variables: The [common](#common-environment-variables) variables and the [CloudEvents](#cloudevents-environment-variables) variable `CE_CHANNEL_AWALA_OUTGOING_MESSAGES`.
+- Environment variables: The [common](#common-environment-variables) variables and the [CloudEvents](#cloudevents-environment-variables) variables (both `CE_CHANNEL_AWALA_OUTGOING_MESSAGES` and `CE_CHANNEL_BACKGROUND_QUEUE`).
 
 [Learn more about Awala support](./awala.md).
 
