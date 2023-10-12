@@ -67,19 +67,19 @@ describe('triggerBundleRequest', () => {
 
     expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toHaveLength(2);
     expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
-      expect.objectContaining<Partial<CloudEvent>>({
-        id: MEMBER_PUBLIC_KEY_MONGO_ID,
+      expect.objectContaining<Partial<CloudEvent<string>>>({
         source: 'https://veraid.net/authority/bundle-request-trigger',
         type: BUNDLE_REQUEST_TYPE,
         subject: AWALA_PEER_ID,
+        data: MEMBER_PUBLIC_KEY_MONGO_ID,
       }),
     );
     expect(getEvents(EmitterChannel.BACKGROUND_QUEUE)).toContainEqual(
-      expect.objectContaining<Partial<CloudEvent>>({
-        id: mongoId,
+      expect.objectContaining<Partial<CloudEvent<string>>>({
         source: 'https://veraid.net/authority/bundle-request-trigger',
         type: BUNDLE_REQUEST_TYPE,
         subject: AWALA_PEER_ID,
+        data: mongoId,
       }),
     );
   });

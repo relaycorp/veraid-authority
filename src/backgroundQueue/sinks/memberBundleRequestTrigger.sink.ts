@@ -18,10 +18,10 @@ async function triggerMemberBundleIssuance(
 ): Promise<void> {
   await emitter.emit(
     new CloudEvent<MemberBundleRequestPayload>({
-      id: memberBundleRequest.publicKeyId,
       source: 'https://veraid.net/authority/bundle-request-trigger',
       type: BUNDLE_REQUEST_TYPE,
       subject: memberBundleRequest.peerId,
+      data: memberBundleRequest.publicKeyId,
     }),
   );
 }
