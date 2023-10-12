@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import { addMinutes } from 'date-fns';
 
 import { AWALA_PEER_ID } from '../testUtils/stubs.js';
@@ -17,7 +15,6 @@ describe('makeIncomingServiceMessageEvent', () => {
   const options: OutgoingServiceMessageOptions = {
     creationDate: new Date(),
     expiryDate: addMinutes(new Date(), 5),
-    publicKeyId: randomUUID(),
     contentType: CE_SERVICE_MESSAGE_CONTENT_TYPE,
     content: CE_SERVICE_MESSAGE_CONTENT,
     peerId: AWALA_PEER_ID,
@@ -29,10 +26,10 @@ describe('makeIncomingServiceMessageEvent', () => {
     expect(version).toBe('1.0');
   });
 
-  test('Event id should be the parcel id', () => {
+  test('Event id should be auto-generated', () => {
     const { id } = makeOutgoingServiceMessageEvent(options);
 
-    expect(id).toBe(options.publicKeyId);
+    expect(id).toBeString();
   });
 
   test('Event type should be outgoing-service-message', () => {

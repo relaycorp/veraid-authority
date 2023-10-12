@@ -11,13 +11,13 @@ import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 export default async function memberBundleIssuance(
-  event: CloudEventV1<unknown>,
+  event: CloudEventV1<Buffer>,
   options: ServiceOptions,
 ): Promise<void> {
-  const publicKeyId = event.id;
+  const publicKeyId = event.data!.toString();
   const keyAwareLogger = options.logger.child({ publicKeyId });
 
-  keyAwareLogger.debug('Starting member bundle request trigger');
+  keyAwareLogger.debug('Processing member bundle request');
 
   if (event.subject === undefined) {
     keyAwareLogger.info('Refusing member bundle request with missing subject');
@@ -34,7 +34,6 @@ export default async function memberBundleIssuance(
 
     const now = new Date();
     const message = makeOutgoingServiceMessageEvent({
-      publicKeyId,
       peerId: event.subject,
       contentType: VeraidContentType.MEMBER_BUNDLE,
       content: Buffer.from(memberBundle.result),

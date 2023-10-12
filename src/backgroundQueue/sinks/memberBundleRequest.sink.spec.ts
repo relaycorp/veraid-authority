@@ -51,10 +51,11 @@ describe('memberBundleIssuance', () => {
   let dbConnection: Connection;
   let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
   const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
-    id: MEMBER_PUBLIC_KEY_MONGO_ID,
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
     subject: AWALA_PEER_ID,
+    datacontenttype: 'text/plain',
+    data: MEMBER_PUBLIC_KEY_MONGO_ID,
   });
 
   beforeEach(() => {
@@ -78,7 +79,7 @@ describe('memberBundleIssuance', () => {
       await postEvent(triggerEvent, server);
 
       expect(logs).toContainEqual(
-        partialPinoLog('debug', 'Starting member bundle request trigger', {
+        partialPinoLog('debug', 'Processing member bundle request', {
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
         }),
       );
@@ -122,16 +123,6 @@ describe('memberBundleIssuance', () => {
         expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             type: OUTGOING_SERVICE_MESSAGE_TYPE,
-          }),
-        );
-      });
-
-      test('Id should be member public key id', async () => {
-        await postEvent(triggerEvent, server);
-
-        expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
-          expect.objectContaining({
-            id: MEMBER_PUBLIC_KEY_MONGO_ID,
           }),
         );
       });
@@ -233,11 +224,7 @@ describe('memberBundleIssuance', () => {
   });
 
   test('Event with missing subject should be refused', async () => {
-    const invalidTriggerEvent = new CloudEvent<MemberBundleRequestPayload>({
-      id: MEMBER_PUBLIC_KEY_MONGO_ID,
-      source: CE_SOURCE,
-      type: BUNDLE_REQUEST_TYPE,
-    });
+    const invalidTriggerEvent = triggerEvent.cloneWith({ subject: undefined });
 
     await postEvent(invalidTriggerEvent, server);
 

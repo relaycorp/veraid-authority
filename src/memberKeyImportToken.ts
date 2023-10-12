@@ -78,12 +78,11 @@ export async function processMemberKeyImportToken(
   }
 
   const event = new CloudEvent<string>({
-    id: publicKeyCreationResult.result.id,
     source: 'https://veraid.net/authority/awala-member-key-import',
     type: BUNDLE_REQUEST_TYPE,
     subject: peerId,
     datacontenttype: 'text/plain',
-    data: '',
+    data: publicKeyCreationResult.result.id,
   });
   const ceEmitter = await Emitter.init(EmitterChannel.BACKGROUND_QUEUE);
   await ceEmitter.emit(event);
