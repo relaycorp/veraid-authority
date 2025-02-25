@@ -2,7 +2,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 import {
   issueMemberCertificate,
-  retrieveVeraDnssecChain,
+  retrieveVeraidDnssecChain,
   selfIssueOrganisationCertificate,
   serialiseMemberIdBundle,
 } from '@relaycorp/veraid';
@@ -42,7 +42,7 @@ async function generateBundle(
 ): Promise<ArrayBuffer | undefined> {
   let dnssecChain;
   try {
-    dnssecChain = await retrieveVeraDnssecChain(orgName);
+    dnssecChain = await retrieveVeraidDnssecChain(orgName);
   } catch (err) {
     logger.warn(
       {
