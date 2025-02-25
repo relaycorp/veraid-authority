@@ -18,7 +18,7 @@ const mockedModule = {
     >(),
   ),
 
-  retrieveVeraDnssecChain: mockSpy(
+  retrieveVeraidDnssecChain: mockSpy(
     jest.fn<
       (
         domainName: string,
