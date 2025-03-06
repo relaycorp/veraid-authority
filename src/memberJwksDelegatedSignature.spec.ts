@@ -3,7 +3,7 @@ import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
-import { MEMBER_MONGO_ID, TEST_SERVICE_OID } from './testUtils/stubs.js';
+import { MEMBER_ID, TEST_SERVICE_OID } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { MemberJwksDelegatedSignature } from './models/MemberJwksDelegatedSignature.model.js';
@@ -41,7 +41,7 @@ describe('member JWKS delegated signature', () => {
   describe('createJwksDelegatedSignature', () => {
     test('Should create delegated signature with default TTL', async () => {
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -62,7 +62,7 @@ describe('member JWKS delegated signature', () => {
       const customTtl = 1800;
 
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -82,7 +82,7 @@ describe('member JWKS delegated signature', () => {
 
     test('Should store all required fields correctly', async () => {
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -96,7 +96,7 @@ describe('member JWKS delegated signature', () => {
       requireSuccessfulResult(delegatedSignature);
       const dbResult = await delegatedSignatureModel.findById(delegatedSignature.result.id);
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toStrictEqual(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
       expect(dbResult!.jwksUrl).toStrictEqual(JWKS_URL);
       expect(dbResult!.jwtSubjectField).toStrictEqual(JWT_SUBJECT_FIELD);
       expect(dbResult!.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
@@ -108,7 +108,7 @@ describe('member JWKS delegated signature', () => {
 
     test('Should log creation', async () => {
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -131,7 +131,7 @@ describe('member JWKS delegated signature', () => {
       const invalidTtl = 0;
 
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -151,7 +151,7 @@ describe('member JWKS delegated signature', () => {
       const invalidTtl = 3601;
 
       const delegatedSignature = await createJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -171,7 +171,7 @@ describe('member JWKS delegated signature', () => {
   describe('getJwksDelegatedSignature', () => {
     test('Existing id should return the corresponding data', async () => {
       const delegatedSignature = await delegatedSignatureModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -181,7 +181,7 @@ describe('member JWKS delegated signature', () => {
       });
 
       const result = await getJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         delegatedSignature._id.toString(),
         serviceOptions,
       );
@@ -199,7 +199,7 @@ describe('member JWKS delegated signature', () => {
 
     test('Non existing id should return non existing error', async () => {
       await delegatedSignatureModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -209,7 +209,7 @@ describe('member JWKS delegated signature', () => {
       });
 
       const result = await getJwksDelegatedSignature(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         DELEGATED_SIGNATURE_ID,
         serviceOptions,
       );
@@ -221,7 +221,7 @@ describe('member JWKS delegated signature', () => {
     test('Non existing member id should return non existing error', async () => {
       const invalidMemberId = '222222222222222222222222';
       const delegatedSignature = await delegatedSignatureModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -243,7 +243,7 @@ describe('member JWKS delegated signature', () => {
 
   describe('deleteJwksDelegatedSignature', () => {
     const delegatedSignatureData = {
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
       jwksUrl: JWKS_URL,
       jwtSubjectField: JWT_SUBJECT_FIELD,
       jwtSubjectValue: JWT_SUBJECT_VALUE,

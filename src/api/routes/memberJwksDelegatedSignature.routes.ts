@@ -8,10 +8,12 @@ import {
   deleteJwksDelegatedSignature,
   getJwksDelegatedSignature,
 } from '../../memberJwksDelegatedSignature.js';
-import { MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA as JWKS_SCHEMA } from '../../schemas/memberJwksDelegatedSignature.schema.js';
+// eslint-disable-next-line max-len
+import { MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA } from '../../schemas/memberJwksDelegatedSignature.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
+  // eslint-disable-next-line max-len
   [key in MemberJwksDelegatedSignatureProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
   [MemberJwksDelegatedSignatureProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
@@ -67,7 +69,7 @@ export default function registerRoutes(
 
     schema: {
       params: CREATE_PARAMS,
-      body: JWKS_SCHEMA,
+      body: MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA,
     },
 
     async handler(request, reply): Promise<void> {

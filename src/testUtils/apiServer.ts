@@ -20,7 +20,7 @@ import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './a
 import { REQUIRED_ENV_VARS } from './envVars.js';
 import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
-import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
+import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 
 const ORG_MEMBER: Member = {
   orgName: ORG_NAME,
@@ -232,7 +232,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
+      await createOrgMember(ORG_MEMBER, MEMBER_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -250,7 +250,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
   } else {
     test('Org member should be denied access', async () => {
-      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
+      await createOrgMember(ORG_MEMBER, MEMBER_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);

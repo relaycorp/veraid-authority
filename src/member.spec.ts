@@ -7,7 +7,7 @@ import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_EMAIL,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   NON_ASCII_MEMBER_NAME,
@@ -245,7 +245,7 @@ describe('member', () => {
         role: Role.ORG_ADMIN,
       });
 
-      const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
+      const result = await getMember(ORG_NAME, MEMBER_ID, serviceOptions);
 
       requireFailureResult(result);
       expect(result.context).toBe(MemberProblem.MEMBER_NOT_FOUND);
@@ -290,7 +290,7 @@ describe('member', () => {
         orgName: ORG_NAME,
       });
 
-      const result = await deleteMember(MEMBER_MONGO_ID, serviceOptions);
+      const result = await deleteMember(MEMBER_ID, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberModel.findById(member._id);
@@ -301,7 +301,7 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => deleteMember(MEMBER_MONGO_ID, serviceOptions),
+        async () => deleteMember(MEMBER_ID, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
@@ -349,7 +349,7 @@ describe('member', () => {
 
       test('Non related public keys should not be removed', async () => {
         const memberPublicKey = await memberPublicKeyModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           publicKey: publicKeyBuffer,
           serviceOid: TEST_SERVICE_OID,
         });
@@ -378,7 +378,7 @@ describe('member', () => {
 
       test('Non related key import tokens should not be removed', async () => {
         const memberKeyImportToken = await memberKeyImportTokenModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           serviceOid: TEST_SERVICE_OID,
         });
 
@@ -412,7 +412,7 @@ describe('member', () => {
 
       test('Non related member bundle requests should not be removed', async () => {
         const memberBundleRequest = await memberBundleRequestModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           peerId: AWALA_PEER_ID,
           signature: Buffer.from(SIGNATURE, 'base64'),
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -672,7 +672,7 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => updateMember(MEMBER_MONGO_ID, {}, serviceOptions),
+        async () => updateMember(MEMBER_ID, {}, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');

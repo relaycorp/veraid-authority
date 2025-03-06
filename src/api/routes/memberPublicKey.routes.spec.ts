@@ -2,7 +2,7 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import {
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   ORG_NAME,
   TEST_SERVICE_OID,
@@ -60,7 +60,7 @@ describe('member public keys routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-keys`,
     };
 
     describe('Auth', () => {
@@ -94,8 +94,8 @@ describe('member public keys routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
-        bundle: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
+        self: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-keys/${PUBLIC_KEY_ID}`,
+        bundle: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
       });
     });
 
@@ -137,7 +137,7 @@ describe('member public keys routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-keys/${PUBLIC_KEY_ID}`,
     };
 
     describe('Auth', () => {
@@ -168,7 +168,7 @@ describe('member public keys routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(MEMBER_MONGO_ID, PUBLIC_KEY_ID, {
+      expect(mockGetMemberPublicKey).toHaveBeenCalledWith(MEMBER_ID, PUBLIC_KEY_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -195,7 +195,7 @@ describe('member public keys routes', () => {
   describe('bundle', () => {
     const injectOptions: InjectOptions = {
       method: 'GET',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-keys/${PUBLIC_KEY_ID}/bundle`,
     };
 
     const bundleSerialised = Buffer.from('bundle');

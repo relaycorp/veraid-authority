@@ -3,8 +3,10 @@ import { getModelForClass } from '@typegoose/typegoose';
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberJwksDelegatedSignature } from './models/MemberJwksDelegatedSignature.model.js';
+// eslint-disable-next-line max-len
 import type { MemberJwksDelegatedSignatureSchema } from './schemas/memberJwksDelegatedSignature.schema.js';
 import { MemberJwksDelegatedSignatureProblem } from './MemberJwksDelegatedSignatureProblem.js';
+// eslint-disable-next-line max-len
 import type { MemberJwksDelegatedSignatureCreationResult } from './memberJwksDelegatedSignatureTypes.js';
 
 const MAX_TTL_SECONDS = 3600;

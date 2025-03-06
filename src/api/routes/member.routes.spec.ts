@@ -2,7 +2,7 @@
 import type { FastifyInstance, InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
+import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
@@ -49,7 +49,7 @@ describe('member routes', () => {
       const payload: MemberSchema = { role: 'REGULAR' };
       testOrgRouteAuth('ORG', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateMember,
-        result: { id: MEMBER_MONGO_ID },
+        result: { id: MEMBER_ID },
       });
     });
 
@@ -225,7 +225,7 @@ describe('member routes', () => {
   describe('get by org name and member id', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}`,
     };
 
     describe('Auth', () => {
@@ -249,7 +249,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -266,7 +266,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -278,7 +278,7 @@ describe('member routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}`,
     };
 
     describe('Auth', () => {
@@ -305,7 +305,7 @@ describe('member routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockDeleteMember).toHaveBeenCalledWith(MEMBER_MONGO_ID, {
+      expect(mockDeleteMember).toHaveBeenCalledWith(MEMBER_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -328,7 +328,7 @@ describe('member routes', () => {
   describe('update', () => {
     const injectionOptions: InjectOptions = {
       method: 'PATCH',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}`,
     };
 
     const getMemberSuccessResponse: SuccessfulResult<MemberSchema> = {
@@ -464,7 +464,7 @@ describe('member routes', () => {
         payload: {},
       });
 
-      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_MONGO_ID, {
+      expect(mockGetMember).toHaveBeenCalledWith(ORG_NAME, MEMBER_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });

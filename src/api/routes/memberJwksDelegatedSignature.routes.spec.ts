@@ -1,12 +1,14 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { MEMBER_MONGO_ID, ORG_NAME, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
+import { MEMBER_ID, ORG_NAME, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
 import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+// eslint-disable-next-line max-len
 import type { MemberJwksDelegatedSignatureCreationResult } from '../../memberJwksDelegatedSignatureTypes.js';
 import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSignatureProblem.js';
+// eslint-disable-next-line max-len
 import type { MemberJwksDelegatedSignatureSchema } from '../../schemas/memberJwksDelegatedSignature.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
@@ -15,8 +17,9 @@ const JWT_SUBJECT_FIELD = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
-const DELEGATED_SIGNATURE_ID = '111111111111111111111111';
-const DELEGATED_SIGNATURE_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks/${DELEGATED_SIGNATURE_ID}`;
+const SIGNATURE_ID = '111111111111111111111111';
+const SIGNATURE_SET_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/delegated-signatures/jwks/`;
+const SIGNATURE_PATH = `${SIGNATURE_SET_PATH}${SIGNATURE_ID}`;
 
 const mockCreateJwksDelegatedSignature = mockSpy(
   jest.fn<
@@ -52,7 +55,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: DELEGATED_SIGNATURE_PATH,
+      url: SIGNATURE_SET_PATH,
     };
 
     describe('Auth', () => {
@@ -65,7 +68,7 @@ describe('member JWKS delegated signature routes', () => {
       };
       testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateJwksDelegatedSignature,
-        result: { id: DELEGATED_SIGNATURE_ID },
+        result: { id: SIGNATURE_ID },
       });
     });
 
@@ -81,7 +84,7 @@ describe('member JWKS delegated signature routes', () => {
         didSucceed: true,
 
         result: {
-          id: DELEGATED_SIGNATURE_ID,
+          id: SIGNATURE_ID,
         },
       });
 
@@ -92,7 +95,7 @@ describe('member JWKS delegated signature routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        self: DELEGATED_SIGNATURE_PATH,
+        self: SIGNATURE_PATH,
       });
     });
 
@@ -161,7 +164,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: DELEGATED_SIGNATURE_PATH,
+      url: SIGNATURE_PATH,
     };
 
     describe('Auth', () => {
@@ -204,15 +207,11 @@ describe('member JWKS delegated signature routes', () => {
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetJwksDelegatedSignature).toHaveBeenCalledWith(
-        MEMBER_MONGO_ID,
-        DELEGATED_SIGNATURE_ID,
-        {
-          logger: expect.anything(),
-          dbConnection: serverInstance.mongoose,
-        },
-      );
-      expect(mockDeleteJwksDelegatedSignature).toHaveBeenCalledWith(DELEGATED_SIGNATURE_ID, {
+      expect(mockGetJwksDelegatedSignature).toHaveBeenCalledWith(MEMBER_ID, SIGNATURE_ID, {
+        logger: expect.anything(),
+        dbConnection: serverInstance.mongoose,
+      });
+      expect(mockDeleteJwksDelegatedSignature).toHaveBeenCalledWith(SIGNATURE_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -235,7 +234,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('get', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: DELEGATED_SIGNATURE_PATH,
+      url: SIGNATURE_PATH,
     };
 
     describe('Auth', () => {

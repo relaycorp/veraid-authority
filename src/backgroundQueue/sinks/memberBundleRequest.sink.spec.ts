@@ -13,7 +13,7 @@ import {
 } from '../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
@@ -193,7 +193,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -246,7 +246,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -281,7 +281,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);

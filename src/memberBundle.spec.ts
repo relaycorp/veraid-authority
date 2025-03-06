@@ -10,7 +10,7 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   ORG_NAME,
@@ -99,7 +99,7 @@ describe('memberBundle', () => {
       });
 
       memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
         publicKey: testPublicKeyBuffer,
       });
@@ -123,7 +123,7 @@ describe('memberBundle', () => {
         didSucceed: true,
       });
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toBe(MEMBER_ID);
       expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
@@ -141,7 +141,7 @@ describe('memberBundle', () => {
         memberBundleStartDate: new Date(),
         signature: 'test',
         peerId: 'test',
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       };
       await memberBundleRequestModel.create(data);
 
@@ -150,7 +150,7 @@ describe('memberBundle', () => {
         publicKeyId: memberPublicKey._id.toString(),
       });
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toBe(MEMBER_ID);
       expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
@@ -160,7 +160,7 @@ describe('memberBundle', () => {
     test('Existing data should not create new entry', async () => {
       await memberBundleRequestModel.create({
         ...methodInput,
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await createMemberBundleRequest(methodInput, serviceOptions);
@@ -407,7 +407,7 @@ describe('memberBundle', () => {
 
     test('Missing member should fail', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         publicKey: memberPublicKeyBuffer,
         serviceOid: TEST_SERVICE_OID,
       });
@@ -416,7 +416,7 @@ describe('memberBundle', () => {
       requireFailureResult(result);
       expect(result.context.chainRetrievalFailed).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member not found', { memberId: MEMBER_MONGO_ID }),
+        partialPinoLog('info', 'Member not found', { memberId: MEMBER_ID }),
       );
     });
 
