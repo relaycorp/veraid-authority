@@ -49,7 +49,7 @@ describe('member routes', () => {
       const payload: MemberSchema = { role: 'REGULAR' };
       testOrgRouteAuth('ORG', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateMember,
-        result: { id: testMemberId },
+        result: { id: MEMBER_MONGO_ID },
       });
     });
 
@@ -79,6 +79,7 @@ describe('member routes', () => {
           self: memberPath,
           publicKeys: `${memberPath}/public-keys`,
           publicKeyImportTokens: `${memberPath}/public-key-import-tokens`,
+          delegatedSignaturesJwks: `${memberPath}/delegated-signatures/jwks`,
         });
       },
     );
