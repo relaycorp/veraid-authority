@@ -10,11 +10,13 @@ import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSi
 import type { MemberJwksDelegatedSignatureSchema } from '../../schemas/memberJwksDelegatedSignature.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
-const DELEGATED_SIGNATURE_ID = '111111111111111111111111';
 const JWKS_URL = 'https://example.com/.well-known/jwks.json';
 const JWT_SUBJECT_FIELD = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
+
+const DELEGATED_SIGNATURE_ID = '111111111111111111111111';
+const DELEGATED_SIGNATURE_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks/${DELEGATED_SIGNATURE_ID}`;
 
 const mockCreateJwksDelegatedSignature = mockSpy(
   jest.fn<
@@ -50,7 +52,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks`,
+      url: DELEGATED_SIGNATURE_PATH,
     };
 
     describe('Auth', () => {
@@ -90,7 +92,7 @@ describe('member JWKS delegated signature routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        self: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks/${DELEGATED_SIGNATURE_ID}`,
+        self: DELEGATED_SIGNATURE_PATH,
       });
     });
 
@@ -159,7 +161,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks/${DELEGATED_SIGNATURE_ID}`,
+      url: DELEGATED_SIGNATURE_PATH,
     };
 
     describe('Auth', () => {
@@ -233,7 +235,7 @@ describe('member JWKS delegated signature routes', () => {
   describe('get', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/delegated-signatures/jwks/${DELEGATED_SIGNATURE_ID}`,
+      url: DELEGATED_SIGNATURE_PATH,
     };
 
     describe('Auth', () => {

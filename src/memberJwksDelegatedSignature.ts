@@ -2,18 +2,20 @@ import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberJwksDelegatedSignature as DelegatedSignatureModel } from './models/MemberJwksDelegatedSignature.model.js';
-import type { MemberJwksDelegatedSignatureSchema as DelegatedSignatureSchema } from './schemas/memberJwksDelegatedSignature.schema.js';
-import { MemberJwksDelegatedSignatureProblem as ProblemType } from './MemberJwksDelegatedSignatureProblem.js';
-import type { MemberJwksDelegatedSignatureCreationResult as CreationResult } from './memberJwksDelegatedSignatureTypes.js';
+import { MemberJwksDelegatedSignature } from './models/MemberJwksDelegatedSignature.model.js';
+import type { MemberJwksDelegatedSignatureSchema } from './schemas/memberJwksDelegatedSignature.schema.js';
+import { MemberJwksDelegatedSignatureProblem } from './MemberJwksDelegatedSignatureProblem.js';
+import type { MemberJwksDelegatedSignatureCreationResult } from './memberJwksDelegatedSignatureTypes.js';
 
 const MAX_TTL_SECONDS = 3600;
 
 export async function createJwksDelegatedSignature(
   memberId: string,
-  delegatedSignatureData: DelegatedSignatureSchema,
+  delegatedSignatureData: MemberJwksDelegatedSignatureSchema,
   options: ServiceOptions,
-): Promise<Result<CreationResult, ProblemType>> {
+): Promise<
+  Result<MemberJwksDelegatedSignatureCreationResult, MemberJwksDelegatedSignatureProblem>
+> {
   if (
     delegatedSignatureData.veraidSignatureTtlSeconds !== undefined &&
     (delegatedSignatureData.veraidSignatureTtlSeconds < 1 ||
@@ -25,11 +27,11 @@ export async function createJwksDelegatedSignature(
     );
     return {
       didSucceed: false,
-      context: ProblemType.INVALID_TTL,
+      context: MemberJwksDelegatedSignatureProblem.INVALID_TTL,
     };
   }
 
-  const delegatedSignatureModel = getModelForClass(DelegatedSignatureModel, {
+  const delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignature, {
     existingConnection: options.dbConnection,
   });
   const delegatedSignature = await delegatedSignatureModel.create({
@@ -59,8 +61,8 @@ export async function getJwksDelegatedSignature(
   memberId: string,
   delegatedSignatureId: string,
   options: ServiceOptions,
-): Promise<Result<DelegatedSignatureSchema, ProblemType>> {
-  const delegatedSignatureModel = getModelForClass(DelegatedSignatureModel, {
+): Promise<Result<MemberJwksDelegatedSignatureSchema, MemberJwksDelegatedSignatureProblem>> {
+  const delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignature, {
     existingConnection: options.dbConnection,
   });
 
@@ -69,7 +71,7 @@ export async function getJwksDelegatedSignature(
   if (delegatedSignature === null || delegatedSignature.memberId !== memberId) {
     return {
       didSucceed: false,
-      context: ProblemType.NOT_FOUND,
+      context: MemberJwksDelegatedSignatureProblem.NOT_FOUND,
     };
   }
   return {
@@ -89,8 +91,8 @@ export async function getJwksDelegatedSignature(
 export async function deleteJwksDelegatedSignature(
   delegatedSignatureId: string,
   options: ServiceOptions,
-): Promise<Result<undefined, ProblemType>> {
-  const delegatedSignatureModel = getModelForClass(DelegatedSignatureModel, {
+): Promise<Result<undefined, MemberJwksDelegatedSignatureProblem>> {
+  const delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignature, {
     existingConnection: options.dbConnection,
   });
 
