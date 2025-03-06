@@ -1,20 +1,21 @@
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../../schemas/member.schema.js';
 import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
-import { MemberProblemType } from '../../MemberProblemType.js';
+import { MemberProblem } from '../../MemberProblem.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 import { requireUserToBeAdmin } from '../orgAuthPlugin.js';
 
 import memberPublicKeyRoutes from './memberPublicKey.routes.js';
 import memberKeyImportToken from './memberKeyImportToken.routes.js';
+import jwksDelegatedSignatureRoutes from './memberJwksDelegatedSignature.routes.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
-  [key in MemberProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in MemberProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [MemberProblemType.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
-  [MemberProblemType.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
-  [MemberProblemType.MEMBER_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+  [MemberProblem.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [MemberProblem.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
+  [MemberProblem.MEMBER_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 } as const;
 
 const CREATE_MEMBER_ROUTE_PARAMS = {
@@ -49,6 +50,7 @@ interface MemberUrls {
   self: string;
   publicKeys: string;
   publicKeyImportTokens: string;
+  delegatedSignaturesJwks: string;
 }
 
 function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }): MemberUrls {
@@ -56,6 +58,7 @@ function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }):
     self: `/orgs/${orgName}/members/${memberId}`,
     publicKeys: `/orgs/${orgName}/members/${memberId}/public-keys`,
     publicKeyImportTokens: `/orgs/${orgName}/members/${memberId}/public-key-import-tokens`,
+    delegatedSignaturesJwks: `/orgs/${orgName}/members/${memberId}/delegated-signatures/jwks`,
   };
 }
 
@@ -194,5 +197,9 @@ export default async function registerRoutes(
   await fastify.register(memberKeyImportToken, {
     ...opts,
     prefix: '/:memberId/public-key-import-tokens',
+  });
+  await fastify.register(jwksDelegatedSignatureRoutes, {
+    ...opts,
+    prefix: '/:memberId/delegated-signatures/jwks',
   });
 }

@@ -5,7 +5,7 @@ import {
   type OrgCreationSchema,
 } from '../../schemas/org.schema.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
-import { OrgProblemType } from '../../OrgProblemType.js';
+import { OrgProblem } from '../../OrgProblem.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 import orgAuthPlugin from '../orgAuthPlugin.js';
@@ -13,14 +13,14 @@ import orgAuthPlugin from '../orgAuthPlugin.js';
 import memberRoutes from './member.routes.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
-  [key in OrgProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in OrgProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [OrgProblemType.EXISTING_ORG_NAME]: HTTP_STATUS_CODES.CONFLICT,
-  [OrgProblemType.MALFORMED_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
-  [OrgProblemType.ORG_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
-  [OrgProblemType.INVALID_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
-  [OrgProblemType.LAST_MEMBER_NOT_ADMIN]: HTTP_STATUS_CODES.FAILED_DEPENDENCY,
-  [OrgProblemType.EXISTING_MEMBERS]: HTTP_STATUS_CODES.FAILED_DEPENDENCY,
+  [OrgProblem.EXISTING_ORG_NAME]: HTTP_STATUS_CODES.CONFLICT,
+  [OrgProblem.MALFORMED_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [OrgProblem.ORG_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+  [OrgProblem.INVALID_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [OrgProblem.LAST_MEMBER_NOT_ADMIN]: HTTP_STATUS_CODES.FAILED_DEPENDENCY,
+  [OrgProblem.EXISTING_MEMBERS]: HTTP_STATUS_CODES.FAILED_DEPENDENCY,
 } as const;
 
 const ORG_ROUTE_PARAMS = {

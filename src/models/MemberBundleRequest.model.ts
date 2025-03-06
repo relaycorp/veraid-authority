@@ -1,7 +1,7 @@
 import { modelOptions, prop } from '@typegoose/typegoose';
 
 @modelOptions({ schemaOptions: { collection: 'member_bundle_requests' } })
-export class MemberBundleRequestModelSchema {
+export class MemberBundleRequestModel {
   @prop({ required: true, unique: true })
   public publicKeyId!: string;
 

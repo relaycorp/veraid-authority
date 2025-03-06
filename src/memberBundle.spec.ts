@@ -5,12 +5,12 @@ import { addDays, addSeconds, subSeconds } from 'date-fns';
 
 import type { Kms } from './utilities/kms/Kms.js';
 import { mockedVeraidModule } from './testUtils/veraid.mock.js';
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   ORG_NAME,
@@ -19,13 +19,13 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { Member, Role } from './models/Member.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { stringToArrayBuffer } from './testUtils/buffer.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 
 import SpiedFunction = jest.SpiedFunction;
@@ -52,9 +52,9 @@ describe('memberBundle', () => {
 
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let orgModel: ReturnModelType<typeof OrgModelSchema>;
-  let memberModel: ReturnModelType<typeof MemberModelSchema>;
-  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
+  let orgModel: ReturnModelType<typeof Org>;
+  let memberModel: ReturnModelType<typeof Member>;
+  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
   let memberPublicKeyBuffer: Buffer;
   let orgPrivateKeyRef: Buffer;
   let orgPublicKey: Buffer;
@@ -77,29 +77,29 @@ describe('memberBundle', () => {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    orgModel = getModelForClass(OrgModelSchema, {
+    orgModel = getModelForClass(Org, {
       existingConnection: connection,
     });
-    memberModel = getModelForClass(MemberModelSchema, {
+    memberModel = getModelForClass(Member, {
       existingConnection: connection,
     });
-    memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    memberPublicKeyModel = getModelForClass(MemberPublicKey, {
       existingConnection: connection,
     });
   });
 
   describe('createMemberBundleRequest', () => {
-    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-    let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
+    let memberPublicKey: HydratedDocument<MemberPublicKey>;
     let futureTimestamp: string;
     let methodInput: MemberBundleRequest;
     beforeEach(async () => {
-      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
         existingConnection: connection,
       });
 
       memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
         publicKey: testPublicKeyBuffer,
       });
@@ -123,7 +123,7 @@ describe('memberBundle', () => {
         didSucceed: true,
       });
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toBe(MEMBER_ID);
       expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
@@ -141,7 +141,7 @@ describe('memberBundle', () => {
         memberBundleStartDate: new Date(),
         signature: 'test',
         peerId: 'test',
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       };
       await memberBundleRequestModel.create(data);
 
@@ -150,7 +150,7 @@ describe('memberBundle', () => {
         publicKeyId: memberPublicKey._id.toString(),
       });
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toBe(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toBe(MEMBER_ID);
       expect(dbResult!.peerId).toBe(AWALA_PEER_ID);
       expect(dbResult!.signature.toString('base64')).toBe(SIGNATURE);
       expect(dbResult!.memberBundleStartDate).toBeDate();
@@ -160,7 +160,7 @@ describe('memberBundle', () => {
     test('Existing data should not create new entry', async () => {
       await memberBundleRequestModel.create({
         ...methodInput,
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await createMemberBundleRequest(methodInput, serviceOptions);
@@ -194,7 +194,7 @@ describe('memberBundle', () => {
       let issueMemberCertificateResult: ArrayBuffer;
       let retrieveVeraidDnssecChainResult: ArrayBuffer;
       let serialiseMemberIdBundleResult: ArrayBuffer;
-      let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
+      let memberPublicKey: HydratedDocument<MemberPublicKey>;
 
       beforeEach(async () => {
         selfIssueCertificateResult = stringToArrayBuffer('selfIssueCertificateResult');
@@ -407,7 +407,7 @@ describe('memberBundle', () => {
 
     test('Missing member should fail', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         publicKey: memberPublicKeyBuffer,
         serviceOid: TEST_SERVICE_OID,
       });
@@ -416,7 +416,7 @@ describe('memberBundle', () => {
       requireFailureResult(result);
       expect(result.context.chainRetrievalFailed).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member not found', { memberId: MEMBER_MONGO_ID }),
+        partialPinoLog('info', 'Member not found', { memberId: MEMBER_ID }),
       );
     });
 

@@ -4,17 +4,17 @@ import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 export async function createMemberPublicKey(
   memberId: string,
   memberPublicKeyData: MemberPublicKeySchema,
   options: ServiceOptions,
-): Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>> {
+): Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblem>> {
   const memberPublicKeyBuffer = Buffer.from(memberPublicKeyData.publicKey, 'base64');
 
   try {
@@ -30,11 +30,11 @@ export async function createMemberPublicKey(
     );
     return {
       didSucceed: false,
-      context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+      context: MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY,
     };
   }
 
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKey = await memberPublicKeyModel.create({
@@ -56,11 +56,11 @@ export async function createMemberPublicKey(
 export async function deleteMemberPublicKey(
   publicKeyId: string,
   options: ServiceOptions,
-): Promise<Result<undefined, MemberPublicKeyProblemType>> {
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+): Promise<Result<undefined, MemberPublicKeyProblem>> {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
-  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKey = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 
@@ -80,8 +80,8 @@ export async function getMemberPublicKey(
   memberId: string,
   publicKeyId: string,
   options: ServiceOptions,
-): Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblemType>> {
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+): Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblem>> {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 
@@ -90,7 +90,7 @@ export async function getMemberPublicKey(
   if (memberPublicKey === null || memberPublicKey.memberId !== memberId) {
     return {
       didSucceed: false,
-      context: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
+      context: MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND,
     };
   }
   return {

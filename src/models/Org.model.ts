@@ -1,7 +1,7 @@
 import { modelOptions, prop } from '@typegoose/typegoose';
 
 @modelOptions({ schemaOptions: { collection: 'orgs' } })
-export class OrgModelSchema {
+export class Org {
   @prop({ required: true, unique: true, index: true })
   public name!: string;
 

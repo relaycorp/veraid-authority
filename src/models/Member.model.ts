@@ -10,7 +10,7 @@ export enum Role {
   { orgName: 1, name: 1 },
   { unique: true, partialFilterExpression: { name: { $type: 'string' } } },
 )
-export class MemberModelSchema {
+export class Member {
   @prop({ default: null, allowMixed: Severity.ALLOW })
   public name!: string | null;
 

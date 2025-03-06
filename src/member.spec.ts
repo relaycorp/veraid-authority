@@ -7,7 +7,7 @@ import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_EMAIL,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_NAME,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   NON_ASCII_MEMBER_NAME,
@@ -17,7 +17,7 @@ import {
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Member, Role } from './models/Member.model.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -27,12 +27,12 @@ import { requireFailureResult, requireSuccessfulResult } from './testUtils/resul
 import { getPromiseRejection } from './testUtils/jest.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { ROLE_MAPPING } from './memberTypes.js';
-import { MemberProblemType } from './MemberProblemType.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberProblem } from './MemberProblem.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -43,14 +43,14 @@ describe('member', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberModel: ReturnModelType<typeof MemberModelSchema>;
+  let memberModel: ReturnModelType<typeof Member>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberModel = getModelForClass(MemberModelSchema, {
+    memberModel = getModelForClass(Member, {
       existingConnection: connection,
     });
   });
@@ -158,7 +158,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: MEMBER_NAME,
@@ -176,7 +176,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,
@@ -236,7 +236,7 @@ describe('member', () => {
       const result = await getMember('INVALID_ORG_NAME', member._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblem.MEMBER_NOT_FOUND);
     });
 
     test('Invalid member id should return non existing error', async () => {
@@ -245,10 +245,10 @@ describe('member', () => {
         role: Role.ORG_ADMIN,
       });
 
-      const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
+      const result = await getMember(ORG_NAME, MEMBER_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblem.MEMBER_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
@@ -290,7 +290,7 @@ describe('member', () => {
         orgName: ORG_NAME,
       });
 
-      const result = await deleteMember(MEMBER_MONGO_ID, serviceOptions);
+      const result = await deleteMember(MEMBER_ID, serviceOptions);
 
       requireSuccessfulResult(result);
       const dbResult = await memberModel.findById(member._id);
@@ -301,26 +301,26 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => deleteMember(MEMBER_MONGO_ID, serviceOptions),
+        async () => deleteMember(MEMBER_ID, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');
     });
 
     describe('Related records', () => {
-      let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
-      let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-      let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
-      let member: HydratedDocument<MemberModelSchema>;
+      let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportToken>;
+      let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
+      let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
+      let member: HydratedDocument<Member>;
 
       beforeEach(async () => {
-        memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+        memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
           existingConnection: connection,
         });
-        memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+        memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
           existingConnection: connection,
         });
-        memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+        memberPublicKeyModel = getModelForClass(MemberPublicKey, {
           existingConnection: connection,
         });
         member = await memberModel.create({
@@ -349,7 +349,7 @@ describe('member', () => {
 
       test('Non related public keys should not be removed', async () => {
         const memberPublicKey = await memberPublicKeyModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           publicKey: publicKeyBuffer,
           serviceOid: TEST_SERVICE_OID,
         });
@@ -378,7 +378,7 @@ describe('member', () => {
 
       test('Non related key import tokens should not be removed', async () => {
         const memberKeyImportToken = await memberKeyImportTokenModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           serviceOid: TEST_SERVICE_OID,
         });
 
@@ -412,7 +412,7 @@ describe('member', () => {
 
       test('Non related member bundle requests should not be removed', async () => {
         const memberBundleRequest = await memberBundleRequestModel.create({
-          memberId: MEMBER_MONGO_ID,
+          memberId: MEMBER_ID,
           peerId: AWALA_PEER_ID,
           signature: Buffer.from(SIGNATURE, 'base64'),
           publicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -570,7 +570,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: NON_ASCII_MEMBER_NAME,
@@ -595,7 +595,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,
@@ -672,7 +672,7 @@ describe('member', () => {
       await connection.close();
 
       const error = await getPromiseRejection(
-        async () => updateMember(MEMBER_MONGO_ID, {}, serviceOptions),
+        async () => updateMember(MEMBER_ID, {}, serviceOptions),
         Error,
       );
       expect(error).toHaveProperty('name', 'MongoNotConnectedError');

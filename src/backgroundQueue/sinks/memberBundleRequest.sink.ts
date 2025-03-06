@@ -3,7 +3,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 
 import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
@@ -45,7 +45,7 @@ export default async function memberBundleIssuance(
     await emitter.emit(message);
   }
 
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
   await memberBundleRequestModel.deleteOne({ publicKeyId });

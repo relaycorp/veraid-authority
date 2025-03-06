@@ -10,7 +10,7 @@ import { modelOptions, prop } from '@typegoose/typegoose';
     },
   },
 })
-export class MemberKeyImportTokenModelSchema {
+export class MemberKeyImportToken {
   @prop({ required: true })
   public memberId!: string;
 

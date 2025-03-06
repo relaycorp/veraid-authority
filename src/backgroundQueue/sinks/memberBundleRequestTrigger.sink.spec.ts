@@ -15,11 +15,11 @@ import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from '../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';
@@ -30,11 +30,11 @@ describe('triggerBundleRequest', () => {
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
   let dbConnection: Connection;
-  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
 
   beforeEach(() => {
     ({ server, dbConnection } = getTestServerFixture());
-    memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
       existingConnection: dbConnection,
     });
   });
@@ -46,14 +46,14 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
       peerId: AWALA_PEER_ID,
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
     };
     const requestData2 = {
       publicKeyId: mongoId,
       memberBundleStartDate: new Date(),
       signature: SIGNATURE,
       peerId: AWALA_PEER_ID,
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
     };
     await memberBundleRequestModel.create(requestData1);
     await memberBundleRequestModel.create(requestData2);
@@ -105,7 +105,7 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: addDays(new Date(), range),
       signature: SIGNATURE,
       peerId: AWALA_PEER_ID,
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
     };
     await memberBundleRequestModel.create(requestData);
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({
@@ -125,7 +125,7 @@ describe('triggerBundleRequest', () => {
       memberBundleStartDate: addSeconds(addDays(new Date(), BUNDLE_REQUEST_DATE_RANGE), 20),
       signature: SIGNATURE,
       peerId: AWALA_PEER_ID,
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
     };
     const futureBundleRequest = await memberBundleRequestModel.create(data);
     const triggerEvent = new CloudEvent<MemberBundleRequestTriggerPayload>({

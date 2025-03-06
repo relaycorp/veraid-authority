@@ -13,14 +13,14 @@ import {
 } from '../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
@@ -46,7 +46,7 @@ describe('memberBundleIssuance', () => {
   let server: FastifyTypedInstance;
   let logs: object[];
   let dbConnection: Connection;
-  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
   const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
@@ -57,7 +57,7 @@ describe('memberBundleIssuance', () => {
 
   beforeEach(() => {
     ({ server, logs, dbConnection } = getTestServerFixture());
-    memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
       existingConnection: dbConnection,
     });
   });
@@ -193,7 +193,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -246,7 +246,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);
@@ -281,7 +281,7 @@ describe('memberBundleIssuance', () => {
         peerId: AWALA_PEER_ID,
         signature: Buffer.from(SIGNATURE, 'base64'),
         memberBundleStartDate: new Date(),
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       await postEvent(triggerEvent, server);

@@ -3,9 +3,9 @@ import { CloudEvent } from 'cloudevents';
 
 import type { Result, SuccessfulResult } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
-import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
+import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
 import { createMemberPublicKey } from './memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
@@ -17,7 +17,7 @@ export async function createMemberKeyImportToken(
   serviceOid: string,
   options: ServiceOptions,
 ): Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>> {
-  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
 
@@ -40,8 +40,8 @@ export async function processMemberKeyImportToken(
   peerId: string,
   keyImportRequest: MemberKeyImportRequest,
   options: ServiceOptions,
-): Promise<Result<undefined, MemberPublicKeyImportProblemType>> {
-  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+): Promise<Result<undefined, MemberPublicKeyImportProblem>> {
+  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
   const memberKeyImportToken = await memberKeyImportTokenModel.findById(
@@ -54,7 +54,7 @@ export async function processMemberKeyImportToken(
     );
     return {
       didSucceed: false,
-      context: MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND,
+      context: MemberPublicKeyImportProblem.NOT_FOUND,
     };
   }
 
@@ -70,7 +70,7 @@ export async function processMemberKeyImportToken(
   if (!publicKeyCreationResult.didSucceed) {
     return {
       didSucceed: false,
-      context: MemberPublicKeyImportProblemType.KEY_CREATION_ERROR,
+      context: MemberPublicKeyImportProblem.KEY_CREATION_ERROR,
     };
   }
 

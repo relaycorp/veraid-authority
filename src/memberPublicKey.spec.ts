@@ -5,23 +5,23 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   SIGNATURE,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
   getMemberPublicKey,
 } from './memberPublicKey.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -33,14 +33,14 @@ describe('member public key', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
+  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    memberPublicKeyModel = getModelForClass(MemberPublicKey, {
       existingConnection: connection,
     });
   });
@@ -50,7 +50,7 @@ describe('member public key', () => {
       const commandRunTime = new Date();
 
       const memberPublicKey = await createMemberPublicKey(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           publicKey: publicKeyBase64,
           serviceOid: TEST_SERVICE_OID,
@@ -60,7 +60,7 @@ describe('member public key', () => {
 
       requireSuccessfulResult(memberPublicKey);
       const dbResult = await memberPublicKeyModel.findById(memberPublicKey.result.id);
-      expect(dbResult!.memberId).toStrictEqual(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
       expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(dbResult!.publicKey.toString('base64')).toStrictEqual(publicKeyBase64);
       expect(dbResult!.creationDate).toBeBetween(commandRunTime, new Date());
@@ -73,7 +73,7 @@ describe('member public key', () => {
 
     test('Malformed public key should be refused', async () => {
       const memberPublicKey = await createMemberPublicKey(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           publicKey: Buffer.from('invalid public key').toString('base64'),
           serviceOid: TEST_SERVICE_OID,
@@ -82,20 +82,20 @@ describe('member public key', () => {
       );
 
       requireFailureResult(memberPublicKey);
-      expect(memberPublicKey.context).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
+      expect(memberPublicKey.context).toBe(MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY);
     });
   });
 
   describe('getMemberPublicKey', () => {
     test('Existing id should return the corresponding data', async () => {
       const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
         publicKey: publicKeyBuffer,
       });
 
       const result = await getMemberPublicKey(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         memberPublicKey._id.toString(),
         serviceOptions,
       );
@@ -110,41 +110,41 @@ describe('member public key', () => {
     test('Non existing id should return non existing error', async () => {
       const invalidPublicKeyId = '111111111111111111111111';
       await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
         publicKey: publicKeyBuffer,
       });
 
-      const result = await getMemberPublicKey(MEMBER_MONGO_ID, invalidPublicKeyId, serviceOptions);
+      const result = await getMemberPublicKey(MEMBER_ID, invalidPublicKeyId, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
       const invalidMemberKeyId = '111111111111111111111111';
       await memberPublicKeyModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
         publicKey: publicKeyBuffer,
       });
 
-      const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_MONGO_ID, serviceOptions);
+      const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND);
     });
   });
 
   describe('deleteMemberPublicKey', () => {
-    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
     const memberPublicKeyData = {
-      memberId: MEMBER_MONGO_ID,
+      memberId: MEMBER_ID,
       publicKey: publicKeyBuffer,
       serviceOid: TEST_SERVICE_OID,
     };
     beforeEach(() => {
-      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
         existingConnection: connection,
       });
     });
@@ -181,7 +181,7 @@ describe('member public key', () => {
         signature: Buffer.from(SIGNATURE, 'base64'),
         peerId: AWALA_PEER_ID,
         publicKeyId: memberPublicKey._id,
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
@@ -198,7 +198,7 @@ describe('member public key', () => {
         signature: Buffer.from(SIGNATURE, 'base64'),
         peerId: AWALA_PEER_ID,
         publicKeyId: PUBLIC_KEY_ID,
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
       });
 
       const result = await deleteMemberPublicKey(memberPublicKey._id.toString(), serviceOptions);
