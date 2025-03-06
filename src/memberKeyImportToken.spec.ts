@@ -19,8 +19,8 @@ import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { mockSpy } from './testUtils/jest.js';
 import type { Result } from './utilities/result.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
+import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import { mockEmitters } from './testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
@@ -30,7 +30,7 @@ const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 const mockCreateMemberPublicKey = mockSpy(
-  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblem>>>(),
 );
 
 jest.unstable_mockModule('./memberPublicKey.js', () => ({
@@ -181,7 +181,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyImportProblem.NOT_FOUND);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token not found', {
           memberKeyImportToken: invalidToken,
@@ -196,7 +196,7 @@ describe('member key import token', () => {
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY,
       });
 
       const result = await processMemberKeyImportToken(
@@ -206,7 +206,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
+      expect(result.context).toBe(MemberPublicKeyImportProblem.KEY_CREATION_ERROR);
       expect(mockCreateMemberPublicKey).toHaveBeenCalledOnceWith(
         MEMBER_MONGO_ID,
         {

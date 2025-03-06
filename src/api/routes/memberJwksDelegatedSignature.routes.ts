@@ -2,7 +2,7 @@ import type { FastifyReply, RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
-import { MemberJwksDelegatedSignatureProblemType } from '../../MemberJwksDelegatedSignatureProblemType.js';
+import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSignatureProblem.js';
 import {
   createJwksDelegatedSignature,
   deleteJwksDelegatedSignature,
@@ -12,12 +12,11 @@ import { MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA as JWKS_SCHEMA } from '../../sch
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
-  [key in MemberJwksDelegatedSignatureProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in MemberJwksDelegatedSignatureProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND]:
-    HTTP_STATUS_CODES.NOT_FOUND,
+  [MemberJwksDelegatedSignatureProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 
-  [MemberJwksDelegatedSignatureProblemType.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [MemberJwksDelegatedSignatureProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
 const CREATE_PARAMS = {

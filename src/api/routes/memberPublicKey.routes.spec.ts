@@ -11,7 +11,7 @@ import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { MemberPublicKeyCreationResult } from '../../memberPublicKeyTypes.js';
-import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblem } from '../../MemberPublicKeyProblem.js';
 import type { MemberPublicKeySchema } from '../../schemas/memberPublicKey.schema.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
@@ -21,13 +21,13 @@ import { VeraidContentType } from '../../utilities/veraid.js';
 import type { BundleCreationFailure } from '../../memberBundle.js';
 
 const mockCreateMemberPublicKey = mockSpy(
-  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblem>>>(),
 );
 const mockGetMemberPublicKey = mockSpy(
-  jest.fn<() => Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblem>>>(),
 );
 const mockDeleteMemberPublicKey = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<undefined, MemberPublicKeyProblem>>>(),
 );
 
 jest.unstable_mockModule('../../memberPublicKey.js', () => ({
@@ -106,7 +106,7 @@ describe('member public keys routes', () => {
       };
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY,
       });
       const response = await serverInstance.inject({
         ...injectionOptions,
@@ -115,7 +115,7 @@ describe('member public keys routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toStrictEqual({
-        type: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        type: MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY,
       });
     });
 
@@ -182,16 +182,13 @@ describe('member public keys routes', () => {
     test('Non existing id should resolve into not found status', async () => {
       mockGetMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
+        context: MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty(
-        'type',
-        MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND,
-      );
+      expect(response.json()).toHaveProperty('type', MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND);
     });
   });
 

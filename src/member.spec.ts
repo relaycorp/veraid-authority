@@ -27,7 +27,7 @@ import { requireFailureResult, requireSuccessfulResult } from './testUtils/resul
 import { getPromiseRejection } from './testUtils/jest.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { ROLE_MAPPING } from './memberTypes.js';
-import { MemberProblemType } from './MemberProblemType.js';
+import { MemberProblem } from './MemberProblem.js';
 import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
@@ -158,7 +158,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: MEMBER_NAME,
@@ -176,7 +176,7 @@ describe('member', () => {
       const result = await createMember(ORG_NAME, memberData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,
@@ -236,7 +236,7 @@ describe('member', () => {
       const result = await getMember('INVALID_ORG_NAME', member._id.toString(), serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblem.MEMBER_NOT_FOUND);
     });
 
     test('Invalid member id should return non existing error', async () => {
@@ -248,7 +248,7 @@ describe('member', () => {
       const result = await getMember(ORG_NAME, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MEMBER_NOT_FOUND);
+      expect(result.context).toBe(MemberProblem.MEMBER_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
@@ -570,7 +570,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.EXISTING_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated member name', {
           name: NON_ASCII_MEMBER_NAME,
@@ -595,7 +595,7 @@ describe('member', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(result.context).toBe(MemberProblem.MALFORMED_MEMBER_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed member name', {
           name: malformedName,

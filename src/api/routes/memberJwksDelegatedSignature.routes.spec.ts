@@ -6,7 +6,7 @@ import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { MemberJwksDelegatedSignatureCreationResult } from '../../memberJwksDelegatedSignatureTypes.js';
-import { MemberJwksDelegatedSignatureProblemType } from '../../MemberJwksDelegatedSignatureProblemType.js';
+import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSignatureProblem.js';
 import type { MemberJwksDelegatedSignatureSchema } from '../../schemas/memberJwksDelegatedSignature.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
@@ -19,19 +19,17 @@ const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 const mockCreateJwksDelegatedSignature = mockSpy(
   jest.fn<
     () => Promise<
-      Result<MemberJwksDelegatedSignatureCreationResult, MemberJwksDelegatedSignatureProblemType>
+      Result<MemberJwksDelegatedSignatureCreationResult, MemberJwksDelegatedSignatureProblem>
     >
   >(),
 );
 const mockGetJwksDelegatedSignature = mockSpy(
   jest.fn<
-    () => Promise<
-      Result<MemberJwksDelegatedSignatureSchema, MemberJwksDelegatedSignatureProblemType>
-    >
+    () => Promise<Result<MemberJwksDelegatedSignatureSchema, MemberJwksDelegatedSignatureProblem>>
   >(),
 );
 const mockDeleteJwksDelegatedSignature = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberJwksDelegatedSignatureProblemType>>>(),
+  jest.fn<() => Promise<Result<undefined, MemberJwksDelegatedSignatureProblem>>>(),
 );
 
 jest.unstable_mockModule('../../memberJwksDelegatedSignature.js', () => ({
@@ -142,7 +140,7 @@ describe('member JWKS delegated signature routes', () => {
       };
       mockCreateJwksDelegatedSignature.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblemType.INVALID_TTL,
+        context: MemberJwksDelegatedSignatureProblem.INVALID_TTL,
       });
 
       const response = await serverInstance.inject({
@@ -153,7 +151,7 @@ describe('member JWKS delegated signature routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty(
         'type',
-        MemberJwksDelegatedSignatureProblemType.INVALID_TTL,
+        MemberJwksDelegatedSignatureProblem.INVALID_TTL,
       );
     });
   });
@@ -222,16 +220,13 @@ describe('member JWKS delegated signature routes', () => {
     test('Non existing id should resolve into not found status', async () => {
       mockGetJwksDelegatedSignature.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
+        context: MemberJwksDelegatedSignatureProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty(
-        'type',
-        MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
-      );
+      expect(response.json()).toHaveProperty('type', MemberJwksDelegatedSignatureProblem.NOT_FOUND);
     });
   });
 
@@ -292,16 +287,13 @@ describe('member JWKS delegated signature routes', () => {
     test('Non existing id should resolve into not found status', async () => {
       mockGetJwksDelegatedSignature.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
+        context: MemberJwksDelegatedSignatureProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty(
-        'type',
-        MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
-      );
+      expect(response.json()).toHaveProperty('type', MemberJwksDelegatedSignatureProblem.NOT_FOUND);
     });
   });
 });

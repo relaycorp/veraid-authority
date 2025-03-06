@@ -12,7 +12,7 @@ import {
   deleteJwksDelegatedSignature,
   getJwksDelegatedSignature,
 } from './memberJwksDelegatedSignature.js';
-import { MemberJwksDelegatedSignatureProblemType } from './MemberJwksDelegatedSignatureProblemType.js';
+import { MemberJwksDelegatedSignatureProblem } from './MemberJwksDelegatedSignatureProblem.js';
 
 const JWKS_URL = 'https://example.com/.well-known/jwks.json';
 const JWT_SUBJECT_FIELD = 'sub';
@@ -144,7 +144,7 @@ describe('member JWKS delegated signature', () => {
       );
 
       requireFailureResult(delegatedSignature);
-      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblemType.INVALID_TTL);
+      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblem.INVALID_TTL);
     });
 
     test('Should refuse TTL exceeding maximum', async () => {
@@ -164,7 +164,7 @@ describe('member JWKS delegated signature', () => {
       );
 
       requireFailureResult(delegatedSignature);
-      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblemType.INVALID_TTL);
+      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblem.INVALID_TTL);
     });
   });
 
@@ -215,9 +215,7 @@ describe('member JWKS delegated signature', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(
-        MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
-      );
+      expect(result.context).toBe(MemberJwksDelegatedSignatureProblem.NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
@@ -239,9 +237,7 @@ describe('member JWKS delegated signature', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(
-        MemberJwksDelegatedSignatureProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
-      );
+      expect(result.context).toBe(MemberJwksDelegatedSignatureProblem.NOT_FOUND);
     });
   });
 

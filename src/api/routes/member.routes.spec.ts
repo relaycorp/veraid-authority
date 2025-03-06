@@ -7,7 +7,7 @@ import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { MemberCreationResult } from '../../memberTypes.js';
-import { MemberProblemType } from '../../MemberProblemType.js';
+import { MemberProblem } from '../../MemberProblem.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -16,11 +16,11 @@ import {
 } from '../../schemas/member.schema.js';
 
 const mockCreateMember = mockSpy(
-  jest.fn<() => Promise<Result<MemberCreationResult, MemberProblemType>>>(),
+  jest.fn<() => Promise<Result<MemberCreationResult, MemberProblem>>>(),
 );
-const mockGetMember = mockSpy(jest.fn<() => Promise<Result<MemberSchema, MemberProblemType>>>());
-const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
-const mockUpdateMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
+const mockGetMember = mockSpy(jest.fn<() => Promise<Result<MemberSchema, MemberProblem>>>());
+const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblem>>>());
+const mockUpdateMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblem>>>());
 
 jest.unstable_mockModule('../../member.js', () => ({
   createMember: mockCreateMember,
@@ -189,7 +189,7 @@ describe('member routes', () => {
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: false,
 
-        context: MemberProblemType.MALFORMED_MEMBER_NAME,
+        context: MemberProblem.MALFORMED_MEMBER_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -198,7 +198,7 @@ describe('member routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(response.json()).toHaveProperty('type', MemberProblem.MALFORMED_MEMBER_NAME);
     });
 
     test('Duplicated name should resolve into conflict status', async () => {
@@ -209,7 +209,7 @@ describe('member routes', () => {
       mockCreateMember.mockResolvedValueOnce({
         didSucceed: false,
 
-        context: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblem.EXISTING_MEMBER_NAME,
       });
 
       const response = await serverInstance.inject({
@@ -218,7 +218,7 @@ describe('member routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.CONFLICT);
-      expect(response.json()).toHaveProperty('type', MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(response.json()).toHaveProperty('type', MemberProblem.EXISTING_MEMBER_NAME);
     });
   });
 
@@ -261,7 +261,7 @@ describe('member routes', () => {
     test('Non existing member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblem.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
@@ -271,7 +271,7 @@ describe('member routes', () => {
         dbConnection: serverInstance.mongoose,
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberProblem.MEMBER_NOT_FOUND);
     });
   });
 
@@ -315,13 +315,13 @@ describe('member routes', () => {
     test('Non existing org name or member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblem.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberProblem.MEMBER_NOT_FOUND);
     });
   });
 
@@ -419,7 +419,7 @@ describe('member routes', () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
       mockUpdateMember.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberProblemType.MALFORMED_MEMBER_NAME,
+        context: MemberProblem.MALFORMED_MEMBER_NAME,
       });
       const payload: PatchMemberSchema = {
         name: `@${MEMBER_NAME}`,
@@ -430,7 +430,7 @@ describe('member routes', () => {
         payload,
       });
 
-      expect(response.json()).toHaveProperty('type', MemberProblemType.MALFORMED_MEMBER_NAME);
+      expect(response.json()).toHaveProperty('type', MemberProblem.MALFORMED_MEMBER_NAME);
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
     });
 
@@ -438,7 +438,7 @@ describe('member routes', () => {
       mockGetMember.mockResolvedValueOnce(getMemberSuccessResponse);
       mockUpdateMember.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblem.EXISTING_MEMBER_NAME,
       });
       const payload: PatchMemberSchema = {
         name: `@${MEMBER_NAME}`,
@@ -449,14 +449,14 @@ describe('member routes', () => {
         payload,
       });
 
-      expect(response.json()).toHaveProperty('type', MemberProblemType.EXISTING_MEMBER_NAME);
+      expect(response.json()).toHaveProperty('type', MemberProblem.EXISTING_MEMBER_NAME);
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.CONFLICT);
     });
 
     test('Non existing org name or member id should resolve into not found status', async () => {
       mockGetMember.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberProblemType.MEMBER_NOT_FOUND,
+        context: MemberProblem.MEMBER_NOT_FOUND,
       });
 
       const response = await serverInstance.inject({
@@ -468,7 +468,7 @@ describe('member routes', () => {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
-      expect(response.json()).toHaveProperty('type', MemberProblemType.MEMBER_NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberProblem.MEMBER_NOT_FOUND);
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
     });
 

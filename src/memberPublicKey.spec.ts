@@ -18,7 +18,7 @@ import {
   deleteMemberPublicKey,
   getMemberPublicKey,
 } from './memberPublicKey.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
@@ -82,7 +82,7 @@ describe('member public key', () => {
       );
 
       requireFailureResult(memberPublicKey);
-      expect(memberPublicKey.context).toBe(MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY);
+      expect(memberPublicKey.context).toBe(MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY);
     });
   });
 
@@ -118,7 +118,7 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(MEMBER_MONGO_ID, invalidPublicKeyId, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
@@ -132,7 +132,7 @@ describe('member public key', () => {
       const result = await getMemberPublicKey(invalidMemberKeyId, MEMBER_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND);
     });
   });
 

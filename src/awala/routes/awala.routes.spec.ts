@@ -9,8 +9,8 @@ import type { Result } from '../../utilities/result.js';
 import { type MockLogSet, partialPinoLog } from '../../testUtils/logging.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
-import { MemberPublicKeyImportProblemType } from '../../MemberKeyImportTokenProblemType.js';
-import type { MemberProblemType } from '../../MemberProblemType.js';
+import { MemberPublicKeyImportProblem } from '../../MemberKeyImportTokenProblem.js';
+import type { MemberProblem } from '../../MemberProblem.js';
 import {
   AWALA_PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -23,7 +23,7 @@ import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
 import type { MemberKeyImportRequest } from '../../schemas/awala.schema.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblemType>>>(),
+  jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblem>>>(),
 );
 jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
   processMemberKeyImportToken: mockProcessMemberKeyImportToken,
@@ -31,7 +31,7 @@ jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
 }));
 
 const mockCreateMemberBundleRequest = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberProblemType>>>(),
+  jest.fn<() => Promise<Result<undefined, MemberProblem>>>(),
 );
 
 const mockGenerateMemberBundle = mockSpy(
@@ -300,9 +300,9 @@ describe('Awala routes', () => {
     });
 
     test.each([
-      ['Invalid public key import token', MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND],
-      ['Malformed public key', MemberPublicKeyImportProblemType.KEY_CREATION_ERROR],
-    ])('%s should be refused', async (_type: string, reason: MemberPublicKeyImportProblemType) => {
+      ['Invalid public key import token', MemberPublicKeyImportProblem.NOT_FOUND],
+      ['Malformed public key', MemberPublicKeyImportProblem.KEY_CREATION_ERROR],
+    ])('%s should be refused', async (_type: string, reason: MemberPublicKeyImportProblem) => {
       mockProcessMemberKeyImportToken.mockResolvedValueOnce({
         didSucceed: false,
         context: reason,

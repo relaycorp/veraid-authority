@@ -6,7 +6,7 @@ import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from '../testUtils/eventing/cloudEvents.js';
 import { partialPinoLog } from '../testUtils/logging.js';
 
-import { QueueProblemType } from './QueueProblemType.js';
+import { QueueProblem } from './QueueProblem.js';
 
 describe('makeQueueServer', () => {
   const getTestServerFixture = setUpTestQueueServer();
@@ -35,7 +35,7 @@ describe('makeQueueServer', () => {
       });
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', QueueProblemType.INVALID_EVENT);
+      expect(response.json()).toHaveProperty('type', QueueProblem.INVALID_EVENT);
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refusing invalid event', { err: expect.anything() }),
       );
@@ -53,7 +53,7 @@ describe('makeQueueServer', () => {
       const response = await postEvent(event, server);
 
       expect(response.statusCode).toBe(HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', QueueProblemType.UNSUPPORTED_EVENT);
+      expect(response.json()).toHaveProperty('type', QueueProblem.UNSUPPORTED_EVENT);
       expect(logs).toContainEqual(
         partialPinoLog('info', 'Refusing unsupported event type', { eventType: event.type }),
       );

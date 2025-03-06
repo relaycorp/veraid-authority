@@ -4,7 +4,7 @@ import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberJwksDelegatedSignature as DelegatedSignatureModel } from './models/MemberJwksDelegatedSignature.model.js';
 import type { MemberJwksDelegatedSignatureSchema as DelegatedSignatureSchema } from './schemas/memberJwksDelegatedSignature.schema.js';
-import { MemberJwksDelegatedSignatureProblemType as ProblemType } from './MemberJwksDelegatedSignatureProblemType.js';
+import { MemberJwksDelegatedSignatureProblem as ProblemType } from './MemberJwksDelegatedSignatureProblem.js';
 import type { MemberJwksDelegatedSignatureCreationResult as CreationResult } from './memberJwksDelegatedSignatureTypes.js';
 
 const MAX_TTL_SECONDS = 3600;
@@ -69,7 +69,7 @@ export async function getJwksDelegatedSignature(
   if (delegatedSignature === null || delegatedSignature.memberId !== memberId) {
     return {
       didSucceed: false,
-      context: ProblemType.DELEGATED_SIGNATURE_NOT_FOUND,
+      context: ProblemType.NOT_FOUND,
     };
   }
   return {

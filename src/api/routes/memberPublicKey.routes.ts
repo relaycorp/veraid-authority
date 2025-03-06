@@ -2,7 +2,7 @@ import type { FastifyReply, RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
-import { MemberPublicKeyProblemType } from '../../MemberPublicKeyProblemType.js';
+import { MemberPublicKeyProblem } from '../../MemberPublicKeyProblem.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
@@ -14,11 +14,11 @@ import { generateMemberBundle } from '../../memberBundle.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
-  [key in MemberPublicKeyProblemType]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in MemberPublicKeyProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [MemberPublicKeyProblemType.PUBLIC_KEY_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+  [MemberPublicKeyProblem.PUBLIC_KEY_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 
-  [MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
 const CREATE_MEMBER_PUBLIC_KEY_PARAMS = {
