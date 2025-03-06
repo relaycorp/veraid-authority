@@ -22,19 +22,16 @@ import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { CE_ID } from '../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../events/incomingServiceMessage.event.js';
 
-import { connectToClusterService } from './utils/kubernetes.js';
 import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
-import { getServiceUrl } from './utils/knative.js';
 import { postEvent } from './utils/events.js';
 import { AuthScope } from './utils/authServer.js';
 
 const CLIENT = await makeClient(AuthScope.SUPER_ADMIN);
 
-const AWALA_SERVER_URL = await getServiceUrl('veraid-authority-awala');
+const AWALA_SERVER_URL = 'http://localhost:8083';
 
-const MONGODB_PORT = 27_017;
-const MONGODB_LOCAL_BASE_URI = 'mongodb://root:password123@localhost';
+const MONGODB_URI = 'mongodb://root:password123@localhost';
 
 /**
  * Patch the specified org with the specified key pair.
@@ -47,15 +44,13 @@ async function patchOrgKeyPair(
   privateKeyRef: Buffer,
   publicKey: Buffer,
 ): Promise<void> {
-  await connectToClusterService('mongodb', MONGODB_PORT, async (localPort) => {
-    const connection = createConnection(`${MONGODB_LOCAL_BASE_URI}:${localPort}`);
-    try {
-      const orgModel = getModelForClass(Org, { existingConnection: connection });
-      await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
-    } finally {
-      await connection.close();
-    }
-  });
+  const connection = createConnection(MONGODB_URI);
+  try {
+    const orgModel = getModelForClass(Org, { existingConnection: connection });
+    await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
+  } finally {
+    await connection.close();
+  }
 }
 
 async function createTestOrg(): Promise<OrgCreationOutput> {
