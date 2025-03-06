@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import type { OrgCreationSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
@@ -14,7 +14,7 @@ import type { ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Member, Role } from './models/Member.model.js';
 import type { Result } from './utilities/result.js';
 import type { MemberProblemType } from './MemberProblemType.js';
 
@@ -32,14 +32,14 @@ describe('org', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let orgModel: ReturnModelType<typeof OrgModelSchema>;
+  let orgModel: ReturnModelType<typeof Org>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    orgModel = getModelForClass(OrgModelSchema, {
+    orgModel = getModelForClass(Org, {
       existingConnection: connection,
     });
   });
@@ -325,10 +325,10 @@ describe('org', () => {
         role: Role.REGULAR,
         email: MEMBER_EMAIL,
       };
-      let memberModel: ReturnModelType<typeof MemberModelSchema>;
+      let memberModel: ReturnModelType<typeof Member>;
 
       beforeEach(() => {
-        memberModel = getModelForClass(MemberModelSchema, {
+        memberModel = getModelForClass(Member, {
           existingConnection: connection,
         });
       });

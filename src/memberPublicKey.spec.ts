@@ -12,7 +12,7 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import {
   createMemberPublicKey,
   deleteMemberPublicKey,
@@ -33,14 +33,14 @@ describe('member public key', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
+  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    memberPublicKeyModel = getModelForClass(MemberPublicKey, {
       existingConnection: connection,
     });
   });

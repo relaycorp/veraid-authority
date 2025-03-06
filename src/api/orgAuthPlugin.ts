@@ -4,7 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin, { type PluginMetadata } from 'fastify-plugin';
 import type { Connection } from 'mongoose';
 
-import { MemberModelSchema, Role } from '../models/Member.model.js';
+import { Member, Role } from '../models/Member.model.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { Result } from '../utilities/result.js';
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
@@ -43,7 +43,7 @@ async function decideAuthorisation(
     return { didSucceed: false, context: 'Non-super admin tries to access bulk org endpoint' };
   }
 
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: dbConnection,
   });
   const member = await memberModel.findOne({ orgName, email: userEmail }).select(['role']);

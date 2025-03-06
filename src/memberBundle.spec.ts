@@ -5,7 +5,7 @@ import { addDays, addSeconds, subSeconds } from 'date-fns';
 
 import type { Kms } from './utilities/kms/Kms.js';
 import { mockedVeraidModule } from './testUtils/veraid.mock.js';
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
@@ -19,8 +19,8 @@ import {
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { Member, Role } from './models/Member.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
@@ -52,9 +52,9 @@ describe('memberBundle', () => {
 
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let orgModel: ReturnModelType<typeof OrgModelSchema>;
-  let memberModel: ReturnModelType<typeof MemberModelSchema>;
-  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
+  let orgModel: ReturnModelType<typeof Org>;
+  let memberModel: ReturnModelType<typeof Member>;
+  let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
   let memberPublicKeyBuffer: Buffer;
   let orgPrivateKeyRef: Buffer;
   let orgPublicKey: Buffer;
@@ -77,20 +77,20 @@ describe('memberBundle', () => {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    orgModel = getModelForClass(OrgModelSchema, {
+    orgModel = getModelForClass(Org, {
       existingConnection: connection,
     });
-    memberModel = getModelForClass(MemberModelSchema, {
+    memberModel = getModelForClass(Member, {
       existingConnection: connection,
     });
-    memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+    memberPublicKeyModel = getModelForClass(MemberPublicKey, {
       existingConnection: connection,
     });
   });
 
   describe('createMemberBundleRequest', () => {
     let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-    let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
+    let memberPublicKey: HydratedDocument<MemberPublicKey>;
     let futureTimestamp: string;
     let methodInput: MemberBundleRequest;
     beforeEach(async () => {
@@ -194,7 +194,7 @@ describe('memberBundle', () => {
       let issueMemberCertificateResult: ArrayBuffer;
       let retrieveVeraidDnssecChainResult: ArrayBuffer;
       let serialiseMemberIdBundleResult: ArrayBuffer;
-      let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
+      let memberPublicKey: HydratedDocument<MemberPublicKey>;
 
       beforeEach(async () => {
         selfIssueCertificateResult = stringToArrayBuffer('selfIssueCertificateResult');

@@ -5,18 +5,18 @@ import { randomUUID } from 'node:crypto';
 import { createConnection, type Connection, type ConnectOptions, STATES } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
-import { OrgModelSchema } from '../models/Org.model.js';
-import { MemberModelSchema } from '../models/Member.model.js';
-import { MemberPublicKeyModelSchema } from '../models/MemberPublicKey.model.js';
-import { MemberKeyImportTokenModelSchema } from '../models/MemberKeyImportToken.model.js';
+import { Org } from '../models/Org.model.js';
+import { Member } from '../models/Member.model.js';
+import { MemberPublicKey } from '../models/MemberPublicKey.model.js';
+import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';
 import { MemberBundleRequestModelSchema } from '../models/MemberBundleRequest.model.js';
 
 const MODEL_SCHEMAS = Object.values([
-  OrgModelSchema,
-  MemberModelSchema,
-  MemberPublicKeyModelSchema,
+  Org,
+  Member,
+  MemberPublicKey,
   MemberBundleRequestModelSchema,
-  MemberKeyImportTokenModelSchema,
+  MemberKeyImportToken,
 ]).filter((schema) => typeof schema === 'function');
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,no-underscore-dangle

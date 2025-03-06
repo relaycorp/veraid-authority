@@ -10,7 +10,7 @@ import { prop, modelOptions } from '@typegoose/typegoose';
     },
   },
 })
-export class MemberJwksDelegatedSignatureModelSchema {
+export class MemberJwksDelegatedSignature {
   @prop({ required: true })
   public memberId!: string;
 

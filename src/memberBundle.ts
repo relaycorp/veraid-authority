@@ -9,10 +9,10 @@ import {
 import type { BaseLogger } from 'pino';
 
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
-import { MemberModelSchema } from './models/Member.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
+import { Member } from './models/Member.model.js';
 import { Kms } from './utilities/kms/Kms.js';
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
@@ -91,7 +91,7 @@ export async function createMemberBundleRequest(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
   const publicKey = await memberPublicKeyModel.findById(requestData.publicKeyId);
@@ -136,15 +136,15 @@ export async function generateMemberBundle(
   publicKeyId: string,
   options: ServiceOptions,
 ): Promise<Result<ArrayBuffer, BundleCreationFailure>> {
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
-  const orgModel = getModelForClass(OrgModelSchema, {
+  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
 

@@ -14,7 +14,7 @@ import { CloudEvent } from 'cloudevents';
 import { addMinutes, formatISO } from 'date-fns';
 
 import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
-import { OrgModelSchema } from '../models/Org.model.js';
+import { Org } from '../models/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
@@ -50,7 +50,7 @@ async function patchOrgKeyPair(
   await connectToClusterService('mongodb', MONGODB_PORT, async (localPort) => {
     const connection = createConnection(`${MONGODB_LOCAL_BASE_URI}:${localPort}`);
     try {
-      const orgModel = getModelForClass(OrgModelSchema, { existingConnection: connection });
+      const orgModel = getModelForClass(Org, { existingConnection: connection });
       await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
     } finally {
       await connection.close();

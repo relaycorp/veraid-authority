@@ -17,7 +17,7 @@ import {
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Member, Role } from './models/Member.model.js';
 import {
   type MemberSchema,
   type MemberSchemaRole,
@@ -28,11 +28,11 @@ import { getPromiseRejection } from './testUtils/jest.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { ROLE_MAPPING } from './memberTypes.js';
 import { MemberProblemType } from './MemberProblemType.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -43,14 +43,14 @@ describe('member', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberModel: ReturnModelType<typeof MemberModelSchema>;
+  let memberModel: ReturnModelType<typeof Member>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberModel = getModelForClass(MemberModelSchema, {
+    memberModel = getModelForClass(Member, {
       existingConnection: connection,
     });
   });
@@ -308,19 +308,19 @@ describe('member', () => {
     });
 
     describe('Related records', () => {
-      let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
+      let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportToken>;
       let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
-      let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKeyModelSchema>;
-      let member: HydratedDocument<MemberModelSchema>;
+      let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
+      let member: HydratedDocument<Member>;
 
       beforeEach(async () => {
-        memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+        memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
           existingConnection: connection,
         });
         memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
           existingConnection: connection,
         });
-        memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+        memberPublicKeyModel = getModelForClass(MemberPublicKey, {
           existingConnection: connection,
         });
         member = await memberModel.create({

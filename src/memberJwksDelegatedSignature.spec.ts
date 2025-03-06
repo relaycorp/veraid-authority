@@ -6,7 +6,7 @@ import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { MEMBER_MONGO_ID, TEST_SERVICE_OID } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { MemberJwksDelegatedSignatureModelSchema } from './models/MemberJwksDelegatedSignature.model.js';
+import { MemberJwksDelegatedSignature } from './models/MemberJwksDelegatedSignature.model.js';
 import {
   createJwksDelegatedSignature,
   deleteJwksDelegatedSignature,
@@ -26,14 +26,14 @@ describe('member JWKS delegated signature', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let delegatedSignatureModel: ReturnModelType<typeof MemberJwksDelegatedSignatureModelSchema>;
+  let delegatedSignatureModel: ReturnModelType<typeof MemberJwksDelegatedSignature>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignatureModelSchema, {
+    delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignature, {
       existingConnection: connection,
     });
   });

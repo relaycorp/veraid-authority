@@ -2,7 +2,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberJwksDelegatedSignatureModelSchema as DelegatedSignatureModel } from './models/MemberJwksDelegatedSignature.model.js';
+import { MemberJwksDelegatedSignature as DelegatedSignatureModel } from './models/MemberJwksDelegatedSignature.model.js';
 import type { MemberJwksDelegatedSignatureSchema as DelegatedSignatureSchema } from './schemas/memberJwksDelegatedSignature.schema.js';
 import { MemberJwksDelegatedSignatureProblemType as ProblemType } from './MemberJwksDelegatedSignatureProblemType.js';
 import type { MemberJwksDelegatedSignatureCreationResult as CreationResult } from './memberJwksDelegatedSignatureTypes.js';

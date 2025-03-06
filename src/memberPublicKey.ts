@@ -4,7 +4,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
@@ -34,7 +34,7 @@ export async function createMemberPublicKey(
     };
   }
 
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKey = await memberPublicKeyModel.create({
@@ -60,7 +60,7 @@ export async function deleteMemberPublicKey(
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKey = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 
@@ -81,7 +81,7 @@ export async function getMemberPublicKey(
   publicKeyId: string,
   options: ServiceOptions,
 ): Promise<Result<MemberPublicKeySchema, MemberPublicKeyProblemType>> {
-  const memberPublicKeyModel = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 

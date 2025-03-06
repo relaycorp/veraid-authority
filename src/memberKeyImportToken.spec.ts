@@ -12,7 +12,7 @@ import {
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
@@ -48,14 +48,14 @@ describe('member key import token', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
+  let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportToken>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+    memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
       existingConnection: connection,
     });
   });

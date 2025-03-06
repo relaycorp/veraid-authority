@@ -2,14 +2,14 @@ import { type DocumentType, getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
 import type { AnyKeys } from 'mongoose';
 
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './schemas/org.schema.js';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import { OrgProblemType } from './OrgProblemType.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Member, Role } from './models/Member.model.js';
 import { deleteMember } from './member.js';
 
 function isValidUtf8Domain(orgName: string) {
@@ -32,7 +32,7 @@ async function removeLastRelatedMember(
   orgName: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, OrgProblemType>> {
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
@@ -67,7 +67,7 @@ export async function createOrg(
   options: ServiceOptions,
 ): Promise<Result<OrgReadSchema, OrgProblemType>> {
   const validationFailure = validateOrgData(orgData, options);
-  const orgModel = getModelForClass(OrgModelSchema, {
+  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
 
@@ -78,7 +78,7 @@ export async function createOrg(
   const kms = await Kms.init();
   const { privateKey, publicKey } = await kms.generateKeyPair();
   const publicKeySerialised = await derSerialisePublicKey(publicKey);
-  const org: AnyKeys<DocumentType<OrgModelSchema>> = {
+  const org: AnyKeys<DocumentType<Org>> = {
     ...orgData,
     privateKeyRef: await kms.getPrivateKeyRef(privateKey),
     publicKey: publicKeySerialised,
@@ -125,7 +125,7 @@ export async function updateOrg(
     return { didSucceed: false, context: validationFailure };
   }
 
-  const orgModel = getModelForClass(OrgModelSchema, {
+  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
 
@@ -141,7 +141,7 @@ export async function getOrg(
   name: string,
   options: ServiceOptions,
 ): Promise<Result<OrgReadSchema, OrgProblemType>> {
-  const orgModel = getModelForClass(OrgModelSchema, {
+  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
   const org = await orgModel.findOne({ name });
@@ -163,7 +163,7 @@ export async function deleteOrg(
   orgName: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, OrgProblemType>> {
-  const orgModel = getModelForClass(OrgModelSchema, {
+  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
   const org = await orgModel.findOne({ name: orgName });

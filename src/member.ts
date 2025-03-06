@@ -5,12 +5,12 @@ import type { HydratedDocument } from 'mongoose';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js';
-import { MemberModelSchema } from './models/Member.model.js';
+import { Member } from './models/Member.model.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
 import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
 function validateMemberData(
   memberData: PatchMemberSchema,
@@ -36,12 +36,12 @@ export async function createMember(
   if (validationFailure !== undefined) {
     return { didSucceed: false, context: validationFailure };
   }
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
   const role = ROLE_MAPPING[memberData.role];
-  let member: HydratedDocument<MemberModelSchema>;
+  let member: HydratedDocument<Member>;
   try {
     member = await memberModel.create({ ...memberData, role, orgName });
   } catch (err) {
@@ -70,7 +70,7 @@ export async function getMember(
   memberId: string,
   options: ServiceOptions,
 ): Promise<Result<MemberSchema, MemberProblemType>> {
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
   const member = await memberModel.findById(memberId);
@@ -97,16 +97,16 @@ export async function deleteMember(
   memberId: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberProblemType>> {
-  const memberKeyImportToken = getModelForClass(MemberKeyImportTokenModelSchema, {
+  const memberKeyImportToken = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
   const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
     existingConnection: options.dbConnection,
   });
-  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKey = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
@@ -142,7 +142,7 @@ export async function updateMember(
     return { didSucceed: false, context: validationFailure };
   }
 
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 

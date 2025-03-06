@@ -3,7 +3,7 @@ import { CloudEvent } from 'cloudevents';
 
 import type { Result, SuccessfulResult } from './utilities/result.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
 import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
 import { createMemberPublicKey } from './memberPublicKey.js';
@@ -17,7 +17,7 @@ export async function createMemberKeyImportToken(
   serviceOid: string,
   options: ServiceOptions,
 ): Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>> {
-  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
 
@@ -44,7 +44,7 @@ export async function processMemberKeyImportToken(
   keyImportRequest: MemberKeyImportRequest,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberPublicKeyImportProblemType>> {
-  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+  const memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
   const memberKeyImportToken = await memberKeyImportTokenModel.findById(
