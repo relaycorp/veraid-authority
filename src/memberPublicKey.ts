@@ -8,7 +8,7 @@ import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 export async function createMemberPublicKey(
   memberId: string,
@@ -57,7 +57,7 @@ export async function deleteMemberPublicKey(
   publicKeyId: string,
   options: ServiceOptions,
 ): Promise<Result<undefined, MemberPublicKeyProblemType>> {
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKey = getModelForClass(MemberPublicKey, {

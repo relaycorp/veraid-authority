@@ -29,7 +29,7 @@ import { createMember, deleteMember, getMember, updateMember } from './member.js
 import { ROLE_MAPPING } from './memberTypes.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { MemberPublicKey } from './models/MemberPublicKey.model.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
@@ -309,7 +309,7 @@ describe('member', () => {
 
     describe('Related records', () => {
       let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportToken>;
-      let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+      let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
       let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
       let member: HydratedDocument<Member>;
 
@@ -317,7 +317,7 @@ describe('member', () => {
         memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
           existingConnection: connection,
         });
-        memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+        memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
           existingConnection: connection,
         });
         memberPublicKeyModel = getModelForClass(MemberPublicKey, {

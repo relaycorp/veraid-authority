@@ -8,12 +8,12 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 async function triggerMemberBundleIssuance(
-  memberBundleRequest: HydratedDocument<MemberBundleRequestModelSchema>,
+  memberBundleRequest: HydratedDocument<MemberBundleRequestModel>,
   emitter: Emitter<MemberBundleRequestPayload>,
 ): Promise<void> {
   await emitter.emit(
@@ -34,7 +34,7 @@ export default async function triggerBundleRequest(
 ): Promise<void> {
   options.logger.debug({ eventId: event.id }, 'Starting member bundle request trigger');
 
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
   const memberBundleRequests = await memberBundleRequestModel.find({

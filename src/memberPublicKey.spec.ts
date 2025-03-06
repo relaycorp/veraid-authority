@@ -21,7 +21,7 @@ import {
 import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
@@ -137,14 +137,14 @@ describe('member public key', () => {
   });
 
   describe('deleteMemberPublicKey', () => {
-    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
     const memberPublicKeyData = {
       memberId: MEMBER_MONGO_ID,
       publicKey: publicKeyBuffer,
       serviceOid: TEST_SERVICE_OID,
     };
     beforeEach(() => {
-      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
         existingConnection: connection,
       });
     });

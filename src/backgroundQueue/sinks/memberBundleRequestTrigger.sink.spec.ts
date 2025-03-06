@@ -19,7 +19,7 @@ import {
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';
@@ -30,11 +30,11 @@ describe('triggerBundleRequest', () => {
   const getTestServerFixture = setUpTestQueueServer();
   let server: FastifyTypedInstance;
   let dbConnection: Connection;
-  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
 
   beforeEach(() => {
     ({ server, dbConnection } = getTestServerFixture());
-    memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
       existingConnection: dbConnection,
     });
   });

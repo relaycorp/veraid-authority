@@ -25,7 +25,7 @@ import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { stringToArrayBuffer } from './testUtils/buffer.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
 
 import SpiedFunction = jest.SpiedFunction;
@@ -89,12 +89,12 @@ describe('memberBundle', () => {
   });
 
   describe('createMemberBundleRequest', () => {
-    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+    let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
     let memberPublicKey: HydratedDocument<MemberPublicKey>;
     let futureTimestamp: string;
     let methodInput: MemberBundleRequest;
     beforeEach(async () => {
-      memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+      memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
         existingConnection: connection,
       });
 

@@ -20,7 +20,7 @@ import {
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { MemberBundleRequestModelSchema } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
@@ -46,7 +46,7 @@ describe('memberBundleIssuance', () => {
   let server: FastifyTypedInstance;
   let logs: object[];
   let dbConnection: Connection;
-  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModelSchema>;
+  let memberBundleRequestModel: ReturnModelType<typeof MemberBundleRequestModel>;
   const triggerEvent = new CloudEvent<MemberBundleRequestPayload>({
     source: CE_SOURCE,
     type: BUNDLE_REQUEST_TYPE,
@@ -57,7 +57,7 @@ describe('memberBundleIssuance', () => {
 
   beforeEach(() => {
     ({ server, logs, dbConnection } = getTestServerFixture());
-    memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+    memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
       existingConnection: dbConnection,
     });
   });

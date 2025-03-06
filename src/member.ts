@@ -8,7 +8,7 @@ import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js
 import { Member } from './models/Member.model.js';
 import { MemberProblemType } from './MemberProblemType.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
@@ -100,7 +100,7 @@ export async function deleteMember(
   const memberKeyImportToken = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKey = getModelForClass(MemberPublicKey, {

@@ -16,7 +16,7 @@ import { Org } from './models/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 interface BundleCreationInput {
   orgPrivateKeyRefBuffer: Buffer;
@@ -88,7 +88,7 @@ export async function createMemberBundleRequest(
   requestData: MemberBundleRequest,
   options: ServiceOptions,
 ): Promise<Result<undefined, undefined>> {
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
   const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
