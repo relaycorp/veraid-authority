@@ -11,7 +11,7 @@ import fastifyPlugin, { type PluginMetadata } from 'fastify-plugin';
 
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import { MemberModelSchema, Role } from '../models/Member.model.js';
+import { Member, Role } from '../models/Member.model.js';
 import type { Result, SuccessfulResult } from '../utilities/result.js';
 import type { AuthenticatedFastifyRequest } from '../api/orgAuthPlugin.js';
 
@@ -20,9 +20,9 @@ import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './a
 import { REQUIRED_ENV_VARS } from './envVars.js';
 import { getMockInstance } from './jest.js';
 import { partialPinoLog } from './logging.js';
-import { MEMBER_EMAIL, MEMBER_MONGO_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
+import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from './stubs.js';
 
-const ORG_MEMBER: MemberModelSchema = {
+const ORG_MEMBER: Member = {
   orgName: ORG_NAME,
   name: MEMBER_NAME,
   role: Role.REGULAR,
@@ -141,9 +141,9 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     processor.spy.mockResolvedValue(result as SuccessfulResult<ProcessorResolvedValue>);
   });
 
-  async function createOrgMember(member: MemberModelSchema, id?: string): Promise<void> {
+  async function createOrgMember(member: Member, id?: string): Promise<void> {
     const { dbConnection } = fixtureGetter();
-    const memberModel = getModelForClass(MemberModelSchema, {
+    const memberModel = getModelForClass(Member, {
       existingConnection: dbConnection,
     });
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -232,7 +232,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
 
   if (routeLevel === 'ORG_MEMBERSHIP') {
     test('Org member should be granted access', async () => {
-      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
+      await createOrgMember(ORG_MEMBER, MEMBER_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);
@@ -250,7 +250,7 @@ export function testOrgRouteAuth<ProcessorResolvedValue>(
     });
   } else {
     test('Org member should be denied access', async () => {
-      await createOrgMember(ORG_MEMBER, MEMBER_MONGO_ID);
+      await createOrgMember(ORG_MEMBER, MEMBER_ID);
       setAuthUser(server, MEMBER_EMAIL);
 
       const response = await server.inject(requestOptions);

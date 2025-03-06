@@ -7,20 +7,20 @@ import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
   AWALA_PEER_ID,
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   TEST_SERVICE_OID,
 } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { mockSpy } from './testUtils/jest.js';
 import type { Result } from './utilities/result.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberPublicKeyImportProblemType } from './MemberKeyImportTokenProblemType.js';
-import { MemberPublicKeyProblemType } from './MemberPublicKeyProblemType.js';
+import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
+import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import { mockEmitters } from './testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
@@ -30,7 +30,7 @@ const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');
 
 const mockCreateMemberPublicKey = mockSpy(
-  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblemType>>>(),
+  jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblem>>>(),
 );
 
 jest.unstable_mockModule('./memberPublicKey.js', () => ({
@@ -48,14 +48,14 @@ describe('member key import token', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportTokenModelSchema>;
+  let memberKeyImportTokenModel: ReturnModelType<typeof MemberKeyImportToken>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    memberKeyImportTokenModel = getModelForClass(MemberKeyImportTokenModelSchema, {
+    memberKeyImportTokenModel = getModelForClass(MemberKeyImportToken, {
       existingConnection: connection,
     });
   });
@@ -63,13 +63,13 @@ describe('member key import token', () => {
   describe('createMemberKeyImportToken', () => {
     test('Token should be created', async () => {
       const meberKeyImportToken = await createMemberKeyImportToken(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         TEST_SERVICE_OID,
         serviceOptions,
       );
 
       const dbResult = await memberKeyImportTokenModel.findById(meberKeyImportToken.result.id);
-      expect(dbResult!.memberId).toStrictEqual(MEMBER_MONGO_ID);
+      expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
       expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member key import token created', {
@@ -80,12 +80,12 @@ describe('member key import token', () => {
 
     test('Multiple tokens for same member and service should be allowed', async () => {
       const meberKeyImportTokenOne = await createMemberKeyImportToken(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         TEST_SERVICE_OID,
         serviceOptions,
       );
       const meberKeyImportTokenTwo = await createMemberKeyImportToken(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         TEST_SERVICE_OID,
         serviceOptions,
       );
@@ -105,7 +105,7 @@ describe('member key import token', () => {
   describe('processMemberKeyImportToken', () => {
     test('Valid data should return be processed', async () => {
       const keyImportToken = await memberKeyImportTokenModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
@@ -125,7 +125,7 @@ describe('member key import token', () => {
       requireSuccessfulResult(result);
       const importTokenCount = await memberKeyImportTokenModel.count();
       expect(mockCreateMemberPublicKey).toHaveBeenCalledOnceWith(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           publicKey: publicKeyBase64,
           serviceOid: TEST_SERVICE_OID,
@@ -142,7 +142,7 @@ describe('member key import token', () => {
 
     test('Valid data should emit a an event', async () => {
       const keyImportToken = await memberKeyImportTokenModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
@@ -181,7 +181,7 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyImportProblemType.TOKEN_NOT_FOUND);
+      expect(result.context).toBe(MemberPublicKeyImportProblem.NOT_FOUND);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key import token not found', {
           memberKeyImportToken: invalidToken,
@@ -191,12 +191,12 @@ describe('member key import token', () => {
 
     test('Malformed public key should return error', async () => {
       const keyImportToken = await memberKeyImportTokenModel.create({
-        memberId: MEMBER_MONGO_ID,
+        memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
       });
       mockCreateMemberPublicKey.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberPublicKeyProblemType.MALFORMED_PUBLIC_KEY,
+        context: MemberPublicKeyProblem.MALFORMED_PUBLIC_KEY,
       });
 
       const result = await processMemberKeyImportToken(
@@ -206,9 +206,9 @@ describe('member key import token', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberPublicKeyImportProblemType.KEY_CREATION_ERROR);
+      expect(result.context).toBe(MemberPublicKeyImportProblem.KEY_CREATION_ERROR);
       expect(mockCreateMemberPublicKey).toHaveBeenCalledOnceWith(
-        MEMBER_MONGO_ID,
+        MEMBER_ID,
         {
           publicKey: publicKeyBase64,
           serviceOid: TEST_SERVICE_OID,

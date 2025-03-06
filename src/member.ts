@@ -5,24 +5,24 @@ import type { HydratedDocument } from 'mongoose';
 import type { Result } from './utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
 import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js';
-import { MemberModelSchema } from './models/Member.model.js';
-import { MemberProblemType } from './MemberProblemType.js';
+import { Member } from './models/Member.model.js';
+import { MemberProblem } from './MemberProblem.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
-import { MemberBundleRequestModelSchema } from './models/MemberBundleRequest.model.js';
-import { MemberPublicKeyModelSchema } from './models/MemberPublicKey.model.js';
-import { MemberKeyImportTokenModelSchema } from './models/MemberKeyImportToken.model.js';
+import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
+import { MemberPublicKey } from './models/MemberPublicKey.model.js';
+import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
 function validateMemberData(
   memberData: PatchMemberSchema,
   options: ServiceOptions,
-): MemberProblemType | undefined {
+): MemberProblem | undefined {
   try {
     if (memberData.name !== undefined && memberData.name !== null) {
       validateUserName(memberData.name);
     }
   } catch {
     options.logger.info({ name: memberData.name }, 'Refused malformed member name');
-    return MemberProblemType.MALFORMED_MEMBER_NAME;
+    return MemberProblem.MALFORMED_MEMBER_NAME;
   }
   return undefined;
 }
@@ -31,17 +31,17 @@ export async function createMember(
   orgName: string,
   memberData: MemberSchema,
   options: ServiceOptions,
-): Promise<Result<MemberCreationResult, MemberProblemType>> {
+): Promise<Result<MemberCreationResult, MemberProblem>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
     return { didSucceed: false, context: validationFailure };
   }
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
   const role = ROLE_MAPPING[memberData.role];
-  let member: HydratedDocument<MemberModelSchema>;
+  let member: HydratedDocument<Member>;
   try {
     member = await memberModel.create({ ...memberData, role, orgName });
   } catch (err) {
@@ -49,7 +49,7 @@ export async function createMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        context: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblem.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;
@@ -69,8 +69,8 @@ export async function getMember(
   orgName: string,
   memberId: string,
   options: ServiceOptions,
-): Promise<Result<MemberSchema, MemberProblemType>> {
-  const memberModel = getModelForClass(MemberModelSchema, {
+): Promise<Result<MemberSchema, MemberProblem>> {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
   const member = await memberModel.findById(memberId);
@@ -78,7 +78,7 @@ export async function getMember(
   if (member === null || member.orgName !== orgName) {
     return {
       didSucceed: false,
-      context: MemberProblemType.MEMBER_NOT_FOUND,
+      context: MemberProblem.MEMBER_NOT_FOUND,
     };
   }
 
@@ -96,17 +96,17 @@ export async function getMember(
 export async function deleteMember(
   memberId: string,
   options: ServiceOptions,
-): Promise<Result<undefined, MemberProblemType>> {
-  const memberKeyImportToken = getModelForClass(MemberKeyImportTokenModelSchema, {
+): Promise<Result<undefined, MemberProblem>> {
+  const memberKeyImportToken = getModelForClass(MemberKeyImportToken, {
     existingConnection: options.dbConnection,
   });
-  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModelSchema, {
+  const memberBundleRequestModel = getModelForClass(MemberBundleRequestModel, {
     existingConnection: options.dbConnection,
   });
-  const memberPublicKey = getModelForClass(MemberPublicKeyModelSchema, {
+  const memberPublicKey = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
@@ -136,13 +136,13 @@ export async function updateMember(
   memberId: string,
   memberData: PatchMemberSchema,
   options: ServiceOptions,
-): Promise<Result<undefined, MemberProblemType>> {
+): Promise<Result<undefined, MemberProblem>> {
   const validationFailure = validateMemberData(memberData, options);
   if (validationFailure !== undefined) {
     return { didSucceed: false, context: validationFailure };
   }
 
-  const memberModel = getModelForClass(MemberModelSchema, {
+  const memberModel = getModelForClass(Member, {
     existingConnection: options.dbConnection,
   });
 
@@ -155,7 +155,7 @@ export async function updateMember(
       options.logger.info({ name: memberData.name }, 'Refused duplicated member name');
       return {
         didSucceed: false,
-        context: MemberProblemType.EXISTING_MEMBER_NAME,
+        context: MemberProblem.EXISTING_MEMBER_NAME,
       };
     }
     throw err as Error;

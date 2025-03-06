@@ -2,7 +2,7 @@ import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
 import {
-  MEMBER_MONGO_ID,
+  MEMBER_ID,
   MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
@@ -33,7 +33,7 @@ describe('member key import token routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: `/orgs/${ORG_NAME}/members/${MEMBER_MONGO_ID}/public-key-import-tokens`,
+      url: `/orgs/${ORG_NAME}/members/${MEMBER_ID}/public-key-import-tokens`,
     };
 
     describe('Auth', () => {
@@ -61,14 +61,10 @@ describe('member key import token routes', () => {
         payload,
       });
 
-      expect(mockCreateMemberKeyImportToken).toHaveBeenCalledOnceWith(
-        MEMBER_MONGO_ID,
-        TEST_SERVICE_OID,
-        {
-          logger: expect.anything(),
-          dbConnection: serverInstance.mongoose,
-        },
-      );
+      expect(mockCreateMemberKeyImportToken).toHaveBeenCalledOnceWith(MEMBER_ID, TEST_SERVICE_OID, {
+        logger: expect.anything(),
+        dbConnection: serverInstance.mongoose,
+      });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
         token: MEMBER_KEY_IMPORT_TOKEN,

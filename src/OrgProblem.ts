@@ -1,4 +1,4 @@
-export enum OrgProblemType {
+export enum OrgProblem {
   EXISTING_ORG_NAME = 'https://veraid.net/problems/existing-org-name',
   MALFORMED_ORG_NAME = 'https://veraid.net/problems/malformed-org-name',
   ORG_NOT_FOUND = 'https://veraid.net/problems/org-not-found',

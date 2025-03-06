@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { OrgModelSchema } from './models/Org.model.js';
+import { Org } from './models/Org.model.js';
 import type { OrgCreationSchema } from './schemas/org.schema.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
@@ -11,14 +11,14 @@ import { requireFailureResult, requireSuccessfulResult } from './testUtils/resul
 import { MEMBER_EMAIL, MEMBER_NAME, NON_ASCII_ORG_NAME, ORG_NAME } from './testUtils/stubs.js';
 import { getPromiseRejection, mockSpy } from './testUtils/jest.js';
 import type { ServiceOptions } from './serviceTypes.js';
-import { OrgProblemType } from './OrgProblemType.js';
+import { OrgProblem } from './OrgProblem.js';
 import { mockKms } from './testUtils/kms/mockKms.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberModelSchema, Role } from './models/Member.model.js';
+import { Member, Role } from './models/Member.model.js';
 import type { Result } from './utilities/result.js';
-import type { MemberProblemType } from './MemberProblemType.js';
+import type { MemberProblem } from './MemberProblem.js';
 
-const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblemType>>>());
+const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblem>>>());
 jest.unstable_mockModule('./member.js', () => ({
   deleteMember: mockDeleteMember,
 }));
@@ -32,14 +32,14 @@ describe('org', () => {
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let orgModel: ReturnModelType<typeof OrgModelSchema>;
+  let orgModel: ReturnModelType<typeof Org>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    orgModel = getModelForClass(OrgModelSchema, {
+    orgModel = getModelForClass(Org, {
       existingConnection: connection,
     });
   });
@@ -73,7 +73,7 @@ describe('org', () => {
       const result = await createOrg(orgData, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(OrgProblemType.MALFORMED_ORG_NAME);
+      expect(result.context).toBe(OrgProblem.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed org name', {
           orgName: malformedName,
@@ -89,7 +89,7 @@ describe('org', () => {
       const methodResult = await createOrg(orgData, serviceOptions);
 
       requireFailureResult(methodResult);
-      expect(methodResult.context).toBe(OrgProblemType.EXISTING_ORG_NAME);
+      expect(methodResult.context).toBe(OrgProblem.EXISTING_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused duplicated org name', { orgName: name }),
       );
@@ -197,7 +197,7 @@ describe('org', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(OrgProblemType.MALFORMED_ORG_NAME);
+      expect(result.context).toBe(OrgProblem.MALFORMED_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused malformed org name', {
           orgName: malformedOrgName,
@@ -216,7 +216,7 @@ describe('org', () => {
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(OrgProblemType.INVALID_ORG_NAME);
+      expect(result.context).toBe(OrgProblem.INVALID_ORG_NAME);
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Refused non matching name', {
           originalName: ORG_NAME,
@@ -263,7 +263,7 @@ describe('org', () => {
       const result = await getOrg(ORG_NAME, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(OrgProblemType.ORG_NOT_FOUND);
+      expect(result.context).toBe(OrgProblem.ORG_NOT_FOUND);
     });
 
     test('Record Find errors should be propagated', async () => {
@@ -325,10 +325,10 @@ describe('org', () => {
         role: Role.REGULAR,
         email: MEMBER_EMAIL,
       };
-      let memberModel: ReturnModelType<typeof MemberModelSchema>;
+      let memberModel: ReturnModelType<typeof Member>;
 
       beforeEach(() => {
-        memberModel = getModelForClass(MemberModelSchema, {
+        memberModel = getModelForClass(Member, {
           existingConnection: connection,
         });
       });
@@ -396,7 +396,7 @@ describe('org', () => {
         const result = await deleteOrg(ORG_NAME, serviceOptions);
 
         requireFailureResult(result);
-        expect(result.context).toBe(OrgProblemType.EXISTING_MEMBERS);
+        expect(result.context).toBe(OrgProblem.EXISTING_MEMBERS);
         const dbResult = await orgModel.exists({
           name: ORG_NAME,
         });
@@ -418,7 +418,7 @@ describe('org', () => {
         const result = await deleteOrg(ORG_NAME, serviceOptions);
 
         requireFailureResult(result);
-        expect(result.context).toBe(OrgProblemType.LAST_MEMBER_NOT_ADMIN);
+        expect(result.context).toBe(OrgProblem.LAST_MEMBER_NOT_ADMIN);
         const dbResult = await orgModel.exists({
           name: ORG_NAME,
         });

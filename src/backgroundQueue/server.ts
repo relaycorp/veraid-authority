@@ -10,7 +10,7 @@ import { convertMessageToEvent } from '../utilities/eventing/receiver.js';
 import registerHealthCheck from '../utilities/fastify/plugins/healthCheck.js';
 
 import type { Sink } from './Sink.js';
-import { QueueProblemType } from './QueueProblemType.js';
+import { QueueProblem } from './QueueProblem.js';
 import triggerBundleRequest from './sinks/memberBundleRequestTrigger.sink.js';
 import memberBundleRequest from './sinks/memberBundleRequest.sink.js';
 
@@ -33,9 +33,7 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
       event = convertMessageToEvent(request.headers, request.body as Buffer);
     } catch (err) {
       request.log.info({ err }, 'Refusing invalid event');
-      await reply
-        .status(HTTP_STATUS_CODES.BAD_REQUEST)
-        .send({ type: QueueProblemType.INVALID_EVENT });
+      await reply.status(HTTP_STATUS_CODES.BAD_REQUEST).send({ type: QueueProblem.INVALID_EVENT });
       return;
     }
 
@@ -44,7 +42,7 @@ async function makeQueueServerPlugin(server: FastifyTypedInstance): Promise<void
       request.log.info({ eventType: event.type }, 'Refusing unsupported event type');
       await reply
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
-        .send({ type: QueueProblemType.UNSUPPORTED_EVENT });
+        .send({ type: QueueProblem.UNSUPPORTED_EVENT });
       return;
     }
 
