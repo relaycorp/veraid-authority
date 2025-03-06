@@ -1,6 +1,15 @@
 import { modelOptions, prop } from '@typegoose/typegoose';
 
-@modelOptions({ schemaOptions: { collection: 'member_key_import_tokens' } })
+@modelOptions({
+  schemaOptions: {
+    collection: 'member_key_import_tokens',
+
+    timestamps: {
+      createdAt: 'creationDate',
+      updatedAt: false,
+    },
+  },
+})
 export class MemberKeyImportTokenModelSchema {
   @prop({ required: true })
   public memberId!: string;

@@ -34,7 +34,7 @@ const { generateMemberBundle, createMemberBundleRequest } = await import('./memb
 const {
   selfIssueOrganisationCertificate,
   issueMemberCertificate,
-  retrieveVeraDnssecChain,
+  retrieveVeraidDnssecChain,
   serialiseMemberIdBundle,
 } = mockedVeraidModule;
 
@@ -192,7 +192,7 @@ describe('memberBundle', () => {
     describe('Valid data should generate member bundle', () => {
       let selfIssueCertificateResult: ArrayBuffer;
       let issueMemberCertificateResult: ArrayBuffer;
-      let retrieveVeraDnssecChainResult: ArrayBuffer;
+      let retrieveVeraidDnssecChainResult: ArrayBuffer;
       let serialiseMemberIdBundleResult: ArrayBuffer;
       let memberPublicKey: HydratedDocument<MemberPublicKeyModelSchema>;
 
@@ -201,8 +201,8 @@ describe('memberBundle', () => {
         selfIssueOrganisationCertificate.mockResolvedValueOnce(selfIssueCertificateResult);
         issueMemberCertificateResult = stringToArrayBuffer('issueMemberCertificateResult');
         issueMemberCertificate.mockResolvedValueOnce(issueMemberCertificateResult);
-        retrieveVeraDnssecChainResult = stringToArrayBuffer('retrieveVeraDnssecChainResult');
-        retrieveVeraDnssecChain.mockResolvedValueOnce(retrieveVeraDnssecChainResult);
+        retrieveVeraidDnssecChainResult = stringToArrayBuffer('retrieveVeraidDnssecChainResult');
+        retrieveVeraidDnssecChain.mockResolvedValueOnce(retrieveVeraidDnssecChainResult);
         serialiseMemberIdBundleResult = stringToArrayBuffer('serialiseMemberIdBundleResult');
         serialiseMemberIdBundle.mockReturnValueOnce(serialiseMemberIdBundleResult);
 
@@ -327,7 +327,7 @@ describe('memberBundle', () => {
       test('Dnssec chain should be retrieved with org name', async () => {
         await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
 
-        expect(retrieveVeraDnssecChain).toHaveBeenCalledOnceWith(ORG_NAME);
+        expect(retrieveVeraidDnssecChain).toHaveBeenCalledOnceWith(ORG_NAME);
       });
 
       describe('Member bundle serialisation', () => {
@@ -362,7 +362,7 @@ describe('memberBundle', () => {
             expect.anything(),
             expect.anything(),
             expect.toSatisfy<ArrayBuffer>((arrayBuffer) =>
-              Buffer.from(retrieveVeraDnssecChainResult).equals(Buffer.from(arrayBuffer)),
+              Buffer.from(retrieveVeraidDnssecChainResult).equals(Buffer.from(arrayBuffer)),
             ),
           );
         });
@@ -463,7 +463,7 @@ describe('memberBundle', () => {
 
       test('Should return positive shouldRetry', async () => {
         const error = new Error('Oh noes');
-        retrieveVeraDnssecChain.mockRejectedValueOnce(error);
+        retrieveVeraidDnssecChain.mockRejectedValueOnce(error);
 
         const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
@@ -479,7 +479,7 @@ describe('memberBundle', () => {
 
       test('Should not initialise KMS', async () => {
         const error = new Error('Oh noes');
-        retrieveVeraDnssecChain.mockRejectedValueOnce(error);
+        retrieveVeraidDnssecChain.mockRejectedValueOnce(error);
 
         await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
