@@ -26,15 +26,9 @@ services:
       mongodb:
         condition: service_healthy
       mock-authz-server:
-        condition: service_healthy
+        condition: service_started
       mock-aws-kms:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   # Awala service
   awala:
@@ -63,15 +57,9 @@ services:
       mock-aws-kms:
         condition: service_healthy
       mock-awala-middleware:
-        condition: service_healthy
+        condition: service_started
       queue:
         condition: service_started
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   # Queue service
   queue:
@@ -100,13 +88,7 @@ services:
       mock-aws-kms:
         condition: service_healthy
       mock-awala-middleware:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+        condition: service_started
 
   # Mock authorization server
   mock-authz-server:
@@ -135,10 +117,6 @@ services:
             }
           ]
         }
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/default/.well-known/openid-configuration"]
-      interval: 5s
-      retries: 3
 
   # Mock Awala middleware
   mock-awala-middleware:
@@ -148,12 +126,6 @@ services:
     environment:
       MOCKSERVER_SERVER_PORT: "8080"
       MOCKSERVER_LIVENESS_HTTP_GET_PATH: /mockserver/status
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/mockserver/status"]
-      interval: 10s
-      timeout: 3s
-      retries: 12
-      start_period: 10s
 
   # Mock AWS KMS
   mock-aws-kms:
@@ -163,7 +135,7 @@ services:
     volumes:
       - ./kms-seed.yaml:/init/seed.yaml
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      test: ["CMD", "sh", "-c", "netstat -an | grep -q ':8080.*LISTEN' || nc -z localhost 8080"]
       interval: 5s
       retries: 3
 
