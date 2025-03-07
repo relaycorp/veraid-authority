@@ -10,7 +10,7 @@ services:
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
       AUTHORITY_SUPERADMIN: admin@veraid.example
-      MONGODB_URI: mongodb://root:password123@mongodb:27017/endpoint?minPoolSize=1&maxPoolSize=3&connectTimeoutMS=30000
+      MONGODB_URI: mongodb://mongodb/endpoint?minPoolSize=1&maxPoolSize=3
       MONGODB_USER: root
       MONGODB_DB: endpoint
       MONGODB_PASSWORD: password123
@@ -46,7 +46,7 @@ services:
       - "8083:8080"
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
-      MONGODB_URI: mongodb://root:password123@mongodb:27017/endpoint?minPoolSize=1&maxPoolSize=3&connectTimeoutMS=30000
+      MONGODB_URI: mongodb://mongodb/endpoint?minPoolSize=1&maxPoolSize=3
       MONGODB_USER: root
       MONGODB_DB: endpoint
       MONGODB_PASSWORD: password123
@@ -83,7 +83,7 @@ services:
       - "8084:8080"
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
-      MONGODB_URI: mongodb://root:password123@mongodb:27017/endpoint?minPoolSize=1&maxPoolSize=3&connectTimeoutMS=30000
+      MONGODB_URI: mongodb://mongodb/endpoint?minPoolSize=1&maxPoolSize=3
       MONGODB_USER: root
       MONGODB_DB: endpoint
       MONGODB_PASSWORD: password123
