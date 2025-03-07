@@ -8,7 +8,7 @@ import { requireUserToBeAdmin } from '../orgAuthPlugin.js';
 
 import memberPublicKeyRoutes from './memberPublicKey.routes.js';
 import memberKeyImportToken from './memberKeyImportToken.routes.js';
-import jwksDelegatedSignatureRoutes from './memberJwksDelegatedSignature.routes.js';
+import memberWorkloadIdentityRoutes from './memberWorkloadIdentity.routes.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
@@ -50,7 +50,7 @@ interface MemberUrls {
   self: string;
   publicKeys: string;
   publicKeyImportTokens: string;
-  delegatedSignaturesJwks: string;
+  workloadIdentities: string;
 }
 
 function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }): MemberUrls {
@@ -58,7 +58,7 @@ function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }):
     self: `/orgs/${orgName}/members/${memberId}`,
     publicKeys: `/orgs/${orgName}/members/${memberId}/public-keys`,
     publicKeyImportTokens: `/orgs/${orgName}/members/${memberId}/public-key-import-tokens`,
-    delegatedSignaturesJwks: `/orgs/${orgName}/members/${memberId}/delegated-signatures/jwks`,
+    workloadIdentities: `/orgs/${orgName}/members/${memberId}/workload-identities`,
   };
 }
 
@@ -198,8 +198,8 @@ export default async function registerRoutes(
     ...opts,
     prefix: '/:memberId/public-key-import-tokens',
   });
-  await fastify.register(jwksDelegatedSignatureRoutes, {
+  await fastify.register(memberWorkloadIdentityRoutes, {
     ...opts,
-    prefix: '/:memberId/delegated-signatures/jwks',
+    prefix: '/:memberId/workload-identities',
   });
 }
