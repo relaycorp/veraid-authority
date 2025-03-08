@@ -27,6 +27,7 @@ import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { postEvent } from './utils/events.js';
 import { AuthScope } from './utils/authServer.js';
+import { waitForServers } from './utils/wait.js';
 
 const AWALA_SERVER_URL = 'http://127.0.0.1:8081';
 
@@ -111,9 +112,7 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
 }
 
 describe('Awala', () => {
-  test('Break the test', () => {
-    expect(true).toBe(false);
-  });
+  beforeAll(waitForServers);
 
   test('Claim key import token', async () => {
     const client = await makeClient(AuthScope.SUPER_ADMIN);
@@ -126,8 +125,10 @@ describe('Awala', () => {
     // Claim the token as a member via Awala:
     const { publicKey: memberPublicKey } = await generateKeyPair();
     const event = await makeKeyImportEvent(memberPublicKey, publicKeyImportToken);
-    const response = await postEvent(event, AWALA_SERVER_URL);
+    const response = await postEvent(event, AWALA_SERVER_URL, {
+      signal: AbortSignal.timeout(10_000),
+    });
 
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-  }, 15_000);
+  }, 30_000);
 });
