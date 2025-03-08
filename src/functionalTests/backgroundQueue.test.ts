@@ -4,10 +4,9 @@ import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.event.js';
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
-import { getServiceUrl } from './utils/knative.js';
 import { postEvent } from './utils/events.js';
 
-const QUEUE_URL = await getServiceUrl('veraid-authority-queue');
+const QUEUE_URL = 'http://127.0.0.1:8082';
 
 describe('Background queue', () => {
   test('Supported event should be accepted', async () => {

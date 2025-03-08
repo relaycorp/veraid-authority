@@ -79,7 +79,7 @@ describe('member routes', () => {
           self: memberPath,
           publicKeys: `${memberPath}/public-keys`,
           publicKeyImportTokens: `${memberPath}/public-key-import-tokens`,
-          delegatedSignaturesJwks: `${memberPath}/delegated-signatures/jwks`,
+          workloadIdentities: `${memberPath}/workload-identities`,
         });
       },
     );

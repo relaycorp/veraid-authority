@@ -2,7 +2,7 @@ import { prop, modelOptions } from '@typegoose/typegoose';
 
 @modelOptions({
   schemaOptions: {
-    collection: 'member_jwks_delegated_signatures',
+    collection: 'member_workload_identities',
 
     timestamps: {
       createdAt: 'creationDate',
@@ -10,7 +10,7 @@ import { prop, modelOptions } from '@typegoose/typegoose';
     },
   },
 })
-export class MemberJwksDelegatedSignature {
+export class MemberWorkloadIdentity {
   @prop({ required: true })
   public memberId!: string;
 

@@ -2,23 +2,22 @@ import type { FastifyReply, RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
-import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSignatureProblem.js';
+import { MemberWorkloadIdentityProblem } from '../../MemberWorkloadIdentityProblem.js';
 import {
-  createJwksDelegatedSignature,
-  deleteJwksDelegatedSignature,
-  getJwksDelegatedSignature,
-} from '../../memberJwksDelegatedSignature.js';
-// eslint-disable-next-line max-len
-import { MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA } from '../../schemas/memberJwksDelegatedSignature.schema.js';
+  createWorkloadIdentity,
+  deleteWorkloadIdentity,
+  getWorkloadIdentity,
+} from '../../memberWorkloadIdentity.js';
+import { MEMBER_WORKLOAD_IDENTITY_SCHEMA } from '../../schemas/memberWorkloadIdentity.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   // eslint-disable-next-line max-len
-  [key in MemberJwksDelegatedSignatureProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in MemberWorkloadIdentityProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [MemberJwksDelegatedSignatureProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+  [MemberWorkloadIdentityProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 
-  [MemberJwksDelegatedSignatureProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [MemberWorkloadIdentityProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
 const CREATE_PARAMS = {
@@ -32,29 +31,29 @@ const CREATE_PARAMS = {
   required: ['orgName', 'memberId'],
 } as const;
 
-const DELEGATED_SIGNATURE_PARAMS = {
+const WORKLOAD_IDENTITY_PARAMS = {
   type: 'object',
 
   properties: {
     orgName: { type: 'string' },
     memberId: { type: 'string' },
-    delegatedSignatureId: { type: 'string' },
+    workloadIdentityId: { type: 'string' },
   },
 
-  required: ['orgName', 'memberId', 'delegatedSignatureId'],
+  required: ['orgName', 'memberId', 'workloadIdentityId'],
 } as const;
 
-interface JwksDelegatedSignatureUrls {
+interface WorkloadIdentityUrls {
   self: string;
 }
 
 function makeUrls(
   orgName: string,
   memberId: string,
-  delegatedSignatureId: string,
-): JwksDelegatedSignatureUrls {
+  workloadIdentityId: string,
+): WorkloadIdentityUrls {
   return {
-    self: `/orgs/${orgName}/members/${memberId}/delegated-signatures/jwks/${delegatedSignatureId}`,
+    self: `/orgs/${orgName}/members/${memberId}/workload-identities/${workloadIdentityId}`,
   };
 }
 
@@ -69,12 +68,12 @@ export default function registerRoutes(
 
     schema: {
       params: CREATE_PARAMS,
-      body: MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA,
+      body: MEMBER_WORKLOAD_IDENTITY_SCHEMA,
     },
 
     async handler(request, reply): Promise<void> {
       const { memberId, orgName } = request.params;
-      const result = await createJwksDelegatedSignature(memberId, request.body, {
+      const result = await createWorkloadIdentity(memberId, request.body, {
         logger: request.log,
         dbConnection: this.mongoose,
       });
@@ -91,32 +90,32 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/:delegatedSignatureId',
+    url: '/:workloadIdentityId',
 
     schema: {
-      params: DELEGATED_SIGNATURE_PARAMS,
+      params: WORKLOAD_IDENTITY_PARAMS,
     },
 
     async handler(request, reply): Promise<void> {
-      const { memberId, delegatedSignatureId } = request.params;
+      const { memberId, workloadIdentityId } = request.params;
       const serviceOptions = {
         logger: request.log,
         dbConnection: this.mongoose,
       };
 
-      const delegatedSignature = await getJwksDelegatedSignature(
+      const workloadIdentity = await getWorkloadIdentity(
         memberId,
-        delegatedSignatureId,
+        workloadIdentityId,
         serviceOptions,
       );
-      if (!delegatedSignature.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[delegatedSignature.context]).send({
-          type: delegatedSignature.context,
+      if (!workloadIdentity.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[workloadIdentity.context]).send({
+          type: workloadIdentity.context,
         });
         return;
       }
 
-      await deleteJwksDelegatedSignature(delegatedSignatureId, serviceOptions);
+      await deleteWorkloadIdentity(workloadIdentityId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },
@@ -124,15 +123,15 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['GET'],
-    url: '/:delegatedSignatureId',
+    url: '/:workloadIdentityId',
 
     schema: {
-      params: DELEGATED_SIGNATURE_PARAMS,
+      params: WORKLOAD_IDENTITY_PARAMS,
     },
 
     async handler(request, reply): Promise<FastifyReply> {
-      const { memberId, delegatedSignatureId } = request.params;
-      const result = await getJwksDelegatedSignature(memberId, delegatedSignatureId, {
+      const { memberId, workloadIdentityId } = request.params;
+      const result = await getWorkloadIdentity(memberId, workloadIdentityId, {
         logger: request.log,
         dbConnection: this.mongoose,
       });

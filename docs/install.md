@@ -62,6 +62,3 @@ All processes require the following variables:
 - One or more of the following variables (refer to the specific process above):
   - `CE_CHANNEL_AWALA_OUTGOING_MESSAGES`: The transport channel to use for outgoing Awala service messages.
   - `CE_CHANNEL_BACKGROUND_QUEUE`: The transport channel to use for the background queue.
-## Example with Knative
-
-We use Knative to run the app in development and CI, so you can refer to [the Kubernetes resources in the repository](https://github.com/relaycorp/veraid-authority/tree/main/k8s) to see a fully-operation example.
