@@ -44,7 +44,7 @@ async function patchOrgKeyPair(
   privateKeyRef: Buffer,
   publicKey: Buffer,
 ): Promise<void> {
-  const connection = createConnection(MONGODB_URI);
+  const connection = await createConnection(MONGODB_URI).asPromise();
   try {
     const orgModel = getModelForClass(Org, { existingConnection: connection });
     await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
