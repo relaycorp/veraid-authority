@@ -111,6 +111,10 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
 }
 
 describe('Awala', () => {
+  test('Break the test', () => {
+    expect(true).toBe(false);
+  });
+
   test('Claim key import token', async () => {
     const client = await makeClient(AuthScope.SUPER_ADMIN);
 
