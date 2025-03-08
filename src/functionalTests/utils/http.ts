@@ -47,6 +47,7 @@ export function waitForServerToBeReady(url: string): void {
       await setTimeout(READINESS_CHECK_INTERVAL_MS);
     }
 
-    throw new Error(`${url} not ready after ${READINESS_CHECK_TIMEOUT_MS}ms`, { cause: lastError });
+    const checkTimeout = READINESS_CHECK_INTERVAL_MS + READINESS_CHECK_TIMEOUT_MS;
+    throw new Error(`${url} not ready after ${checkTimeout}ms`, { cause: lastError });
   }, hookTimeout);
 }
