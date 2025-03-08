@@ -4,7 +4,7 @@ const { setTimeout } = require('node:timers/promises');
 
 const READINESS_CHECK_TIMEOUT_MS = 500;
 const READINESS_CHECK_INTERVAL_MS = 1000;
-const READINESS_CHECK_MAX_ATTEMPTS = 10;
+const READINESS_CHECK_MAX_ATTEMPTS = 30;
 
 const HEALTHCHECK_URLS = [
   'http://localhost:8080',
