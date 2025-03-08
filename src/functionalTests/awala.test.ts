@@ -29,7 +29,7 @@ import { postEvent } from './utils/events.js';
 import { AuthScope } from './utils/authServer.js';
 import { waitForServerToBeReady } from './utils/http.js';
 
-const AWALA_SERVER_URL = 'http://localhost:8081';
+const AWALA_SERVER_URL = 'http:// :8081';
 
 const MONGODB_URI = 'mongodb://root:password123@localhost';
 
