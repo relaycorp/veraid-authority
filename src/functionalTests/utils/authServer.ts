@@ -6,8 +6,9 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 import { post } from './http.js';
 
-const AUTH_SERVER_URL = 'http://localhost:8083';
-export const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
+const AUTH_SERVER_URL = 'http://127.0.0.1:8083';
+const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
+export const AUTH_HEALTHCHECK_URL = `${AUTH_SERVER_URL}/default/.well-known/openid-configuration`;
 
 export enum AuthScope {
   SUPER_ADMIN = 'super-admin',

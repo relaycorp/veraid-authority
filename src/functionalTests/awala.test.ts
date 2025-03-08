@@ -26,7 +26,7 @@ import { INCOMING_SERVICE_MESSAGE_TYPE } from '../events/incomingServiceMessage.
 import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { postEvent } from './utils/events.js';
-import { AUTH_ENDPOINT_URL, AuthScope } from './utils/authServer.js';
+import { AUTH_HEALTHCHECK_URL, AuthScope } from './utils/authServer.js';
 import { waitForServerToBeReady } from './utils/http.js';
 
 const AWALA_SERVER_URL = 'http://127.0.0.1:8081';
@@ -113,7 +113,7 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
 
 describe('Awala', () => {
   waitForServerToBeReady(AWALA_SERVER_URL);
-  waitForServerToBeReady(AUTH_ENDPOINT_URL);
+  waitForServerToBeReady(AUTH_HEALTHCHECK_URL);
 
   test('Claim key import token', async () => {
     const client = await makeClient(AuthScope.SUPER_ADMIN);
