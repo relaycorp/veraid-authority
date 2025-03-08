@@ -1,6 +1,4 @@
-/* eslint-disable import/unambiguous */
-// eslint-disable-next-line no-shadow
-const { setTimeout } = require('node:timers/promises');
+import { setTimeout } from 'node:timers/promises';
 
 const READINESS_CHECK_TIMEOUT_MS = 500;
 const READINESS_CHECK_INTERVAL_MS = 1000;
@@ -13,7 +11,7 @@ const HEALTHCHECK_URLS = [
   'http://127.0.0.1:8083/default/.well-known/openid-configuration',
 ];
 
-async function waitForServerToBeReady(url) {
+async function waitForServerToBeReady(url: string): Promise<void> {
   let attempts = 0;
   let lastError = '';
 
@@ -32,7 +30,7 @@ async function waitForServerToBeReady(url) {
 
       lastError = `HTTP ${response.status}`;
     } catch (error) {
-      lastError = error.message;
+      lastError = (error as Error).message;
     }
 
     // eslint-disable-next-line no-await-in-loop
@@ -44,6 +42,6 @@ async function waitForServerToBeReady(url) {
   throw new Error(`${url} not ready after ${checkTimeout}ms: ${lastError}`);
 }
 
-module.exports = async () => {
-  await Promise.all(HEALTHCHECK_URLS.map((url) => waitForServerToBeReady(url)));
-};
+export async function waitForServers(): Promise<void> {
+  await Promise.all(HEALTHCHECK_URLS.map(async (url) => waitForServerToBeReady(url)));
+}

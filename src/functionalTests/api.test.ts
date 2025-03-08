@@ -17,16 +17,19 @@ import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { API_URL, makeClient } from './utils/api.js';
 import { post } from './utils/http.js';
 import { AuthScope } from './utils/authServer.js';
+import { waitForServers } from './utils/wait.js';
 
 function generateOrgName(): string {
   return `${randomUUID()}.example`;
 }
 
 describe('API', () => {
+  beforeAll(waitForServers);
+
   describe('Orgs', () => {
     describe('Authentication', () => {
       test('Anonymous request to should be refused', async () => {
-        const response = await post(`${API_URL}/orgs`, {});
+        const response = await post(`${API_URL}/orgs`);
 
         expect(response.status).toBe(HTTP_STATUS_CODES.UNAUTHORIZED);
       });

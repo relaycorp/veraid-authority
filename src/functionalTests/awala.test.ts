@@ -10,7 +10,7 @@ import {
   type AuthorityClient,
 } from '@relaycorp/veraid-authority';
 import { getModelForClass } from '@typegoose/typegoose';
-import { createConnection } from 'mongoose';
+import { createConnection, type ConnectOptions } from 'mongoose';
 import { CloudEvent } from 'cloudevents';
 import { addMinutes, formatISO } from 'date-fns';
 
@@ -27,10 +27,20 @@ import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { postEvent } from './utils/events.js';
 import { AuthScope } from './utils/authServer.js';
+import { waitForServers } from './utils/wait.js';
 
 const AWALA_SERVER_URL = 'http://127.0.0.1:8081';
 
-const MONGODB_URI = 'mongodb://root:password123@localhost';
+const MONGODB_URI = 'mongodb://root:password123@127.0.0.1:27017/endpoint';
+const TIMEOUT_CONFIG: ConnectOptions = {
+  appName: 'functional-tests',
+  authSource: 'admin',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  connectTimeoutMS: 10_000,
+  maxPoolSize: 1,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  serverSelectionTimeoutMS: 10_000,
+};
 
 /**
  * Patch the specified org with the specified key pair.
@@ -43,7 +53,7 @@ async function patchOrgKeyPair(
   privateKeyRef: Buffer,
   publicKey: Buffer,
 ): Promise<void> {
-  const connection = await createConnection(MONGODB_URI).asPromise();
+  const connection = await createConnection(MONGODB_URI, TIMEOUT_CONFIG).asPromise();
   try {
     const orgModel = getModelForClass(Org, { existingConnection: connection });
     await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
@@ -111,6 +121,8 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
 }
 
 describe('Awala', () => {
+  beforeAll(waitForServers);
+
   test('Claim key import token', async () => {
     const client = await makeClient(AuthScope.SUPER_ADMIN);
 
@@ -122,8 +134,10 @@ describe('Awala', () => {
     // Claim the token as a member via Awala:
     const { publicKey: memberPublicKey } = await generateKeyPair();
     const event = await makeKeyImportEvent(memberPublicKey, publicKeyImportToken);
-    const response = await postEvent(event, AWALA_SERVER_URL);
+    const response = await postEvent(event, AWALA_SERVER_URL, {
+      signal: AbortSignal.timeout(10_000),
+    });
 
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-  }, 15_000);
+  }, 45_000);
 });
