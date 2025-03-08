@@ -10,7 +10,7 @@ Documentation for operators and API client implementers is available on [docs.re
 
 This app requires the following system dependencies:
 
-- Node.js 18.
+- Node.js 22.
 - Docker and Docker Compose.
 
 To start the app, simply run:
