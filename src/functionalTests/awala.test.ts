@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  type ClientError,
   MemberCreationCommand,
   MemberKeyImportTokenCommand,
   MemberRole,
   OrgCreationCommand,
   type OrgCreationOutput,
-  ServerError,
 } from '@relaycorp/veraid-authority';
 import { getModelForClass } from '@typegoose/typegoose';
 import { createConnection } from 'mongoose';
@@ -60,7 +60,7 @@ async function createTestOrg(): Promise<OrgCreationOutput> {
   try {
     output = await CLIENT.send(command);
   } catch (err) {
-    expect(err).toBeInstanceOf(ServerError);
+    expect((err as ClientError).statusCode).toBe(HTTP_STATUS_CODES.CONFLICT);
 
     // The org already exists, but we don't have its URLs and the server doesn't return them
     // subsequently, so we have to hardcode them here.
