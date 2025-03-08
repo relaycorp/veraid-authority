@@ -31,6 +31,8 @@ export function waitForServerToBeReady(url: string): void {
           signal: AbortSignal.timeout(READINESS_CHECK_TIMEOUT_MS),
         });
         if (response.ok) {
+          // eslint-disable-next-line no-console
+          console.log(`${url} is ready`);
           return;
         }
         lastError = `HTTP ${response.status}`;

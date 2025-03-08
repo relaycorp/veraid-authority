@@ -111,21 +111,36 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
   });
 }
 
-describe('Awala', () => {
+// eslint-disable-next-line jest/no-focused-tests
+describe.only('Awala', () => {
   waitForServerToBeReady(AWALA_SERVER_URL);
   waitForServerToBeReady(AUTH_HEALTHCHECK_URL);
 
   test('Claim key import token', async () => {
+    // eslint-disable-next-line no-console
+    console.log('Init client');
     const client = await makeClient(AuthScope.SUPER_ADMIN);
 
     // Create the necessary setup as an admin:
+    // eslint-disable-next-line no-console
+    console.log('Create test org');
     const { members: membersEndpoint } = await createTestOrg(client);
+    // eslint-disable-next-line no-console
+    console.log('Create test member');
     const keyImportTokenEndpoint = await createTestMember(membersEndpoint, client);
+    // eslint-disable-next-line no-console
+    console.log('Create key import token');
     const publicKeyImportToken = await createKeyImportToken(keyImportTokenEndpoint, client);
 
     // Claim the token as a member via Awala:
+    // eslint-disable-next-line no-console
+    console.log('Generate key pair');
     const { publicKey: memberPublicKey } = await generateKeyPair();
+    // eslint-disable-next-line no-console
+    console.log('Make key import event');
     const event = await makeKeyImportEvent(memberPublicKey, publicKeyImportToken);
+    // eslint-disable-next-line no-console
+    console.log('Post event');
     const response = await postEvent(event, AWALA_SERVER_URL);
 
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
