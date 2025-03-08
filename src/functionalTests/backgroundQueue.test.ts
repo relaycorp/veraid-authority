@@ -7,7 +7,7 @@ import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 import { postEvent } from './utils/events.js';
 import { waitForServerToBeReady } from './utils/http.js';
 
-const QUEUE_URL = 'http://  :8082';
+const QUEUE_URL = 'http://127.0.0.1:8082';
 
 describe('Background queue', () => {
   waitForServerToBeReady(QUEUE_URL);
