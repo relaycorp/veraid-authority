@@ -2,8 +2,7 @@ import type { FromSchema } from 'json-schema-to-ts';
 
 import { SERVICE_OID_REGEX } from './validation.js';
 
-// eslint-disable-next-line id-length
-export const MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA = {
+export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   type: 'object',
 
   properties: {
@@ -24,6 +23,4 @@ export const MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA = {
   ],
 } as const;
 
-export type MemberJwksDelegatedSignatureSchema = FromSchema<
-  typeof MEMBER_JWKS_DELEGATED_SIGNATURE_SCHEMA
->;
+export type MemberWorkloadIdentitySchema = FromSchema<typeof MEMBER_WORKLOAD_IDENTITY_SCHEMA>;

@@ -2,7 +2,7 @@
   "extends": "@relaycorp/shared-config",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["ES2021", "dom"],
+    "lib": ["ES2022", "dom"],
     "module": "esnext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

@@ -10,35 +10,35 @@ Documentation for operators and API client implementers is available on [docs.re
 
 This app requires the following system dependencies:
 
-- Node.js 18.
-- Kubernetes 1.22+ (we strongly recommend [Minikube](https://minikube.sigs.k8s.io/docs/start/) with Docker).
-- [Knative](https://knative.dev/docs/install/quickstart-install/#install-the-knative-cli) v1.9+.
-- [Skaffold](https://skaffold.dev/docs/install/) v2.1+.
+- Node.js 22.
+- Docker and Docker Compose.
 
-To start the app, simply get Skaffold to deploy the [relevant Kubernetes resources](./k8s) by running:
+To start the app, simply run:
 
 ```
-npm start
+docker compose up -d
 ```
 
 ### Automated testing
 
 The unit test suite can be run with the standard `npm test`.
 
-If you'd like to run some tests against the real instance of the app managed by Skaffold, the simplest way to do that is to add/modify [functional tests](./src/functionalTests) and then run `npm run test:integration` (alternatively, you can use your IDE to only run the test you're interested in).
+If you'd like to run some tests against the real instance of the app, the simplest way to do that is to add/modify [functional tests](./src/functionalTests) and then run `npm run test:integration` (alternatively, you can use your IDE to only run the test you're interested in).
 
 ### Manual testing
 
-If for whatever reason you want to manually test the app, you first need to get the local URLs to the services by running:
+If for whatever reason you want to manually test the app, you can access the services at:
 
-```
-kn service list
-```
+- API server: http://localhost:8080
+- Awala service: http://localhost:8081
+- Queue service: http://localhost:8082
+- Mock authorization server: http://localhost:8083
+- MongoDB: localhost:27017
 
 To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`) using the OAuth2 client credentials flow, run:
 
 ```http
-POST http://mock-authz-server.default.10.103.177.106.sslip.io/default/token
+POST http://localhost:8083/default/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3t

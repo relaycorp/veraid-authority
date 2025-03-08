@@ -5,11 +5,9 @@ import { MEMBER_ID, ORG_NAME, TEST_SERVICE_OID } from '../../testUtils/stubs.js'
 import type { Result } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-// eslint-disable-next-line max-len
-import type { MemberJwksDelegatedSignatureCreationResult } from '../../memberJwksDelegatedSignatureTypes.js';
-import { MemberJwksDelegatedSignatureProblem } from '../../MemberJwksDelegatedSignatureProblem.js';
-// eslint-disable-next-line max-len
-import type { MemberJwksDelegatedSignatureSchema } from '../../schemas/memberJwksDelegatedSignature.schema.js';
+import type { MemberWorkloadIdentityCreationResult } from '../../memberWorkloadIdentityTypes.js';
+import { MemberWorkloadIdentityProblem } from '../../MemberWorkloadIdentityProblem.js';
+import type { MemberWorkloadIdentitySchema } from '../../schemas/memberWorkloadIdentity.schema.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 const JWKS_URL = 'https://example.com/.well-known/jwks.json';
@@ -17,35 +15,31 @@ const JWT_SUBJECT_FIELD = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
-const SIGNATURE_ID = '111111111111111111111111';
-const SIGNATURE_SET_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/delegated-signatures/jwks/`;
-const SIGNATURE_PATH = `${SIGNATURE_SET_PATH}${SIGNATURE_ID}`;
+const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
+const WORKLOAD_IDENTITIES_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/workload-identities/`;
+const WORKLOAD_IDENTITY_PATH = `${WORKLOAD_IDENTITIES_PATH}${WORKLOAD_IDENTITY_ID}`;
 
-const mockCreateJwksDelegatedSignature = mockSpy(
+const mockCreateWorkloadIdentity = mockSpy(
   jest.fn<
-    () => Promise<
-      Result<MemberJwksDelegatedSignatureCreationResult, MemberJwksDelegatedSignatureProblem>
-    >
+    () => Promise<Result<MemberWorkloadIdentityCreationResult, MemberWorkloadIdentityProblem>>
   >(),
 );
-const mockGetJwksDelegatedSignature = mockSpy(
-  jest.fn<
-    () => Promise<Result<MemberJwksDelegatedSignatureSchema, MemberJwksDelegatedSignatureProblem>>
-  >(),
+const mockGetWorkloadIdentity = mockSpy(
+  jest.fn<() => Promise<Result<MemberWorkloadIdentitySchema, MemberWorkloadIdentityProblem>>>(),
 );
-const mockDeleteJwksDelegatedSignature = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberJwksDelegatedSignatureProblem>>>(),
+const mockDeleteWorkloadIdentity = mockSpy(
+  jest.fn<() => Promise<Result<undefined, MemberWorkloadIdentityProblem>>>(),
 );
 
-jest.unstable_mockModule('../../memberJwksDelegatedSignature.js', () => ({
-  createJwksDelegatedSignature: mockCreateJwksDelegatedSignature,
-  getJwksDelegatedSignature: mockGetJwksDelegatedSignature,
-  deleteJwksDelegatedSignature: mockDeleteJwksDelegatedSignature,
+jest.unstable_mockModule('../../memberWorkloadIdentity.js', () => ({
+  createWorkloadIdentity: mockCreateWorkloadIdentity,
+  getWorkloadIdentity: mockGetWorkloadIdentity,
+  deleteWorkloadIdentity: mockDeleteWorkloadIdentity,
 }));
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
-describe('member JWKS delegated signature routes', () => {
+describe('member workload identity routes', () => {
   const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
@@ -55,11 +49,11 @@ describe('member JWKS delegated signature routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: SIGNATURE_SET_PATH,
+      url: WORKLOAD_IDENTITIES_PATH,
     };
 
     describe('Auth', () => {
-      const payload: MemberJwksDelegatedSignatureSchema = {
+      const payload: MemberWorkloadIdentitySchema = {
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -67,24 +61,24 @@ describe('member JWKS delegated signature routes', () => {
         veraidSignaturePlaintext: PLAINTEXT,
       };
       testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
-        spy: mockCreateJwksDelegatedSignature,
-        result: { id: SIGNATURE_ID },
+        spy: mockCreateWorkloadIdentity,
+        result: { id: WORKLOAD_IDENTITY_ID },
       });
     });
 
     test('Valid data should be stored', async () => {
-      const payload: MemberJwksDelegatedSignatureSchema = {
+      const payload: MemberWorkloadIdentitySchema = {
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
-      mockCreateJwksDelegatedSignature.mockResolvedValueOnce({
+      mockCreateWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
-          id: SIGNATURE_ID,
+          id: WORKLOAD_IDENTITY_ID,
         },
       });
 
@@ -95,12 +89,12 @@ describe('member JWKS delegated signature routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        self: SIGNATURE_PATH,
+        self: WORKLOAD_IDENTITY_PATH,
       });
     });
 
     test('Invalid TTL should be refused', async () => {
-      const payload: MemberJwksDelegatedSignatureSchema = {
+      const payload: MemberWorkloadIdentitySchema = {
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -119,7 +113,7 @@ describe('member JWKS delegated signature routes', () => {
     });
 
     test('Malformed service OID should be refused', async () => {
-      const payload: MemberJwksDelegatedSignatureSchema = {
+      const payload: MemberWorkloadIdentitySchema = {
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -136,16 +130,16 @@ describe('member JWKS delegated signature routes', () => {
     });
 
     test('Service function returning INVALID_TTL should be refused', async () => {
-      const payload: MemberJwksDelegatedSignatureSchema = {
+      const payload: MemberWorkloadIdentitySchema = {
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
-      mockCreateJwksDelegatedSignature.mockResolvedValueOnce({
+      mockCreateWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblem.INVALID_TTL,
+        context: MemberWorkloadIdentityProblem.INVALID_TTL,
       });
 
       const response = await serverInstance.inject({
@@ -154,22 +148,19 @@ describe('member JWKS delegated signature routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty(
-        'type',
-        MemberJwksDelegatedSignatureProblem.INVALID_TTL,
-      );
+      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.INVALID_TTL);
     });
   });
 
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: SIGNATURE_PATH,
+      url: WORKLOAD_IDENTITY_PATH,
     };
 
     describe('Auth', () => {
       beforeEach(() => {
-        mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+        mockGetWorkloadIdentity.mockResolvedValueOnce({
           didSucceed: true,
 
           result: {
@@ -184,12 +175,12 @@ describe('member JWKS delegated signature routes', () => {
       });
 
       testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
-        spy: mockDeleteJwksDelegatedSignature,
+        spy: mockDeleteWorkloadIdentity,
       });
     });
 
     test('Valid id should be accepted', async () => {
-      mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+      mockGetWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
@@ -201,17 +192,17 @@ describe('member JWKS delegated signature routes', () => {
           veraidSignaturePlaintext: PLAINTEXT,
         },
       });
-      mockDeleteJwksDelegatedSignature.mockResolvedValueOnce({
+      mockDeleteWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: true,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetJwksDelegatedSignature).toHaveBeenCalledWith(MEMBER_ID, SIGNATURE_ID, {
+      expect(mockGetWorkloadIdentity).toHaveBeenCalledWith(MEMBER_ID, WORKLOAD_IDENTITY_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
-      expect(mockDeleteJwksDelegatedSignature).toHaveBeenCalledWith(SIGNATURE_ID, {
+      expect(mockDeleteWorkloadIdentity).toHaveBeenCalledWith(WORKLOAD_IDENTITY_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -219,27 +210,27 @@ describe('member JWKS delegated signature routes', () => {
     });
 
     test('Non existing id should resolve into not found status', async () => {
-      mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+      mockGetWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblem.NOT_FOUND,
+        context: MemberWorkloadIdentityProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberJwksDelegatedSignatureProblem.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.NOT_FOUND);
     });
   });
 
   describe('get', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: SIGNATURE_PATH,
+      url: WORKLOAD_IDENTITY_PATH,
     };
 
     describe('Auth', () => {
       beforeEach(() => {
-        mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+        mockGetWorkloadIdentity.mockResolvedValueOnce({
           didSucceed: true,
 
           result: {
@@ -254,12 +245,12 @@ describe('member JWKS delegated signature routes', () => {
       });
 
       testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
-        spy: mockGetJwksDelegatedSignature,
+        spy: mockGetWorkloadIdentity,
       });
     });
 
-    test('Valid id should return the delegated signature', async () => {
-      mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+    test('Valid id should return the workload identity', async () => {
+      mockGetWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
@@ -286,15 +277,15 @@ describe('member JWKS delegated signature routes', () => {
     });
 
     test('Non existing id should resolve into not found status', async () => {
-      mockGetJwksDelegatedSignature.mockResolvedValueOnce({
+      mockGetWorkloadIdentity.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberJwksDelegatedSignatureProblem.NOT_FOUND,
+        context: MemberWorkloadIdentityProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberJwksDelegatedSignatureProblem.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.NOT_FOUND);
     });
   });
 });

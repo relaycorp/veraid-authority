@@ -4,10 +4,9 @@ import type { AuthorizationHeader } from '@relaycorp/veraid-authority';
 
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
-import { getServiceUrl } from './knative.js';
 import { post } from './http.js';
 
-const AUTH_SERVER_URL = await getServiceUrl('mock-authz-server');
+const AUTH_SERVER_URL = 'http://127.0.0.1:8083';
 const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
 
 export enum AuthScope {

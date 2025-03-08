@@ -6,7 +6,10 @@ import { configureMockEnvVars } from '../testUtils/envVars.js';
 import { mockSpy } from '../testUtils/jest.js';
 
 const MOCK_MONGOOSE_CONNECTION = { model: { bind: mockSpy(jest.fn()) } } as any;
-const MOCK_MONGOOSE_CREATE_CONNECTION = jest.fn().mockReturnValue(MOCK_MONGOOSE_CONNECTION);
+const MOCK_MONGOOSE_CREATE_CONNECTION = jest.fn().mockReturnValue({
+  // eslint-disable-next-line @typescript-eslint/promise-function-async
+  asPromise: () => Promise.resolve(MOCK_MONGOOSE_CONNECTION),
+});
 jest.unstable_mockModule('mongoose', () => ({
   createConnection: MOCK_MONGOOSE_CREATE_CONNECTION,
 }));
@@ -23,15 +26,15 @@ const mockEnvVars = configureMockEnvVars(MONGO_ENV_VARS);
 describe('createMongooseConnectionFromEnv', () => {
   test.each(Object.getOwnPropertyNames(MONGO_ENV_VARS))(
     'Environment variable %s should be present',
-    (envVarName) => {
+    async (envVarName) => {
       mockEnvVars({ ...MONGO_ENV_VARS, [envVarName]: undefined });
 
-      expect(createMongooseConnectionFromEnv).toThrow(envVar.EnvVarError);
+      await expect(createMongooseConnectionFromEnv).rejects.toThrow(envVar.EnvVarError);
     },
   );
 
-  test('Connection should use MONGODB_URI', () => {
-    createMongooseConnectionFromEnv();
+  test('Connection should use MONGODB_URI', async () => {
+    await createMongooseConnectionFromEnv();
 
     expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
       MONGO_ENV_VARS.MONGODB_URI,
@@ -43,10 +46,10 @@ describe('createMongooseConnectionFromEnv', () => {
     ['dbName', 'MONGODB_DB', MONGODB_DB],
     ['user', 'MONGODB_USER', MONGODB_USER],
     ['pass', 'MONGODB_PASSWORD', MONGODB_PASSWORD],
-  ])('%s should be taken from %s if specified', (optionName, envVarName, envVarValue) => {
+  ])('%s should be taken from %s if specified', async (optionName, envVarName, envVarValue) => {
     mockEnvVars({ [envVarName]: envVarValue, ...MONGO_ENV_VARS });
 
-    createMongooseConnectionFromEnv();
+    await createMongooseConnectionFromEnv();
 
     expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
       expect.anything(),
@@ -58,10 +61,10 @@ describe('createMongooseConnectionFromEnv', () => {
     ['dbName', 'MONGODB_DB'],
     ['user', 'MONGODB_USER'],
     ['pass', 'MONGODB_PASSWORD'],
-  ])('%s should be absent if %s is unspecified', (optionName, envVarName) => {
+  ])('%s should be absent if %s is unspecified', async (optionName, envVarName) => {
     mockEnvVars({ ...MONGO_ENV_VARS, [envVarName]: undefined });
 
-    createMongooseConnectionFromEnv();
+    await createMongooseConnectionFromEnv();
 
     expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
       expect.anything(),
@@ -73,8 +76,8 @@ describe('createMongooseConnectionFromEnv', () => {
     ['serverSelectionTimeoutMS', 3000],
     ['connectTimeoutMS', 3000],
     ['maxIdleTimeMS', 60_000],
-  ])('Timeout setting %s should be set to %d', (optionName, expectedValue) => {
-    createMongooseConnectionFromEnv();
+  ])('Timeout setting %s should be set to %d', async (optionName, expectedValue) => {
+    await createMongooseConnectionFromEnv();
 
     expect(MOCK_MONGOOSE_CREATE_CONNECTION).toHaveBeenCalledWith(
       expect.anything(),
@@ -82,8 +85,8 @@ describe('createMongooseConnectionFromEnv', () => {
     );
   });
 
-  test('Mongoose connection should be returned', () => {
-    const connection = createMongooseConnectionFromEnv();
+  test('Mongoose connection should be returned', async () => {
+    const connection = await createMongooseConnectionFromEnv();
 
     expect(connection).toBe(MOCK_MONGOOSE_CONNECTION);
   });
