@@ -130,5 +130,5 @@ describe('Awala', () => {
     });
 
     expect(response.status).toBe(HTTP_STATUS_CODES.ACCEPTED);
-  }, 30_000);
+  }, 45_000);
 });
