@@ -5,11 +5,10 @@ on:
     branches: [main]
 jobs:
   ci:
-    uses: relaycorp/shared-workflows/.github/workflows/nodejs-knative-ci.yml@main
+    uses: relaycorp/shared-workflows/.github/workflows/nodejs-compose-ci.yml@main
     with:
-      docker_image_local_name: dev.local/veraid-authority
+      docker_image_local_name: veraid-authority
       dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-      knative_eventing_enabled: false
     secrets:
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 

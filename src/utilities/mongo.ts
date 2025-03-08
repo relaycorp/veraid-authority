@@ -18,7 +18,7 @@ function omitUndefinedOptions(initialOptions: ConnectOptions): ConnectOptions {
   return Object.fromEntries(entries);
 }
 
-export function createMongooseConnectionFromEnv(): Connection {
+export async function createMongooseConnectionFromEnv(): Promise<Connection> {
   const mongoUri = envVar.get('MONGODB_URI').required().asString();
   const dbName = envVar.get('MONGODB_DB').asString();
   const user = envVar.get('MONGODB_USER').asString();
@@ -27,5 +27,5 @@ export function createMongooseConnectionFromEnv(): Connection {
     ...omitUndefinedOptions({ dbName, user, pass }),
     ...TIMEOUT_CONFIG,
   };
-  return createConnection(mongoUri, options);
+  return createConnection(mongoUri, options).asPromise();
 }

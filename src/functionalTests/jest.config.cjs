@@ -5,4 +5,5 @@ module.exports = {
   roots: [__dirname],
   testPathIgnorePatterns: [],
   preset: null,
+  globalSetup: '<rootDir>/setup.cjs',
 };

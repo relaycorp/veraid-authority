@@ -12,5 +12,3 @@ plugins:
       publishCmd: docker push relaycorp/veraid-authority:${nextRelease.version}
   - - "@semantic-release/exec"
   - - "@semantic-release/github"
-    - assets:
-        - path: k8s/*.yml
