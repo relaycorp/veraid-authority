@@ -29,7 +29,7 @@ import { AuthScope } from './utils/authServer.js';
 
 const CLIENT = await makeClient(AuthScope.SUPER_ADMIN);
 
-const AWALA_SERVER_URL = 'http://localhost:8083';
+const AWALA_SERVER_URL = 'http://localhost:8081';
 
 const MONGODB_URI = 'mongodb://root:password123@localhost';
 

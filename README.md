@@ -30,16 +30,15 @@ If you'd like to run some tests against the real instance of the app, the simple
 If for whatever reason you want to manually test the app, you can access the services at:
 
 - API server: http://localhost:8080
-- Awala service: http://localhost:8083
-- Queue service: http://localhost:8084
-- Mock authorization server: http://localhost:8081
-- Mock Awala middleware: http://localhost:8082
+- Awala service: http://localhost:8081
+- Queue service: http://localhost:8082
+- Mock authorization server: http://localhost:8083
 - MongoDB: localhost:27017
 
 To make authenticated requests to the API server, you need to get an access token from the mock authorisation server first. For example, to get an access token for the super admin (`admin@veraid.example`) using the OAuth2 client credentials flow, run:
 
 ```http
-POST http://localhost:8081/default/token
+POST http://localhost:8083/default/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3t

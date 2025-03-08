@@ -6,7 +6,7 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 import { post } from './http.js';
 
-const AUTH_SERVER_URL = 'http://localhost:8081';
+const AUTH_SERVER_URL = 'http://localhost:8083';
 const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
 
 export enum AuthScope {

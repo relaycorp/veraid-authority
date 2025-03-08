@@ -6,7 +6,7 @@ import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
 import { postEvent } from './utils/events.js';
 
-const QUEUE_URL = 'http://localhost:8084';
+const QUEUE_URL = 'http://localhost:8082';
 
 describe('Background queue', () => {
   test('Supported event should be accepted', async () => {
