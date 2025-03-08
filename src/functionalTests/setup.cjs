@@ -7,10 +7,10 @@ const READINESS_CHECK_INTERVAL_MS = 1000;
 const READINESS_CHECK_MAX_ATTEMPTS = 30;
 
 const HEALTHCHECK_URLS = [
-  'http://127.0.0.1:8080',
-  'http://127.0.0.1:8081',
-  'http://127.0.0.1:8082',
-  'http://127.0.0.1:8083/default/.well-known/openid-configuration',
+  'http://localhost:8080',
+  'http://localhost:8081',
+  'http://localhost:8082',
+  'http://localhost:8083/default/.well-known/openid-configuration',
 ];
 
 async function waitForServerToBeReady(url) {
