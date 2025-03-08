@@ -6,41 +6,41 @@ import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import { MEMBER_ID, TEST_SERVICE_OID } from './testUtils/stubs.js';
 import type { ServiceOptions } from './serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { MemberJwksDelegatedSignature } from './models/MemberJwksDelegatedSignature.model.js';
+import { MemberWorkloadIdentity } from './models/MemberWorkloadIdentity.model.js';
 import {
-  createJwksDelegatedSignature,
-  deleteJwksDelegatedSignature,
-  getJwksDelegatedSignature,
-} from './memberJwksDelegatedSignature.js';
-import { MemberJwksDelegatedSignatureProblem } from './MemberJwksDelegatedSignatureProblem.js';
+  createWorkloadIdentity,
+  deleteWorkloadIdentity,
+  getWorkloadIdentity,
+} from './memberWorkloadIdentity.js';
+import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 
 const JWKS_URL = 'https://example.com/.well-known/jwks.json';
 const JWT_SUBJECT_FIELD = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
-const DELEGATED_SIGNATURE_ID = '111111111111111111111111';
+const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
-describe('member JWKS delegated signature', () => {
+describe('Member workload identities', () => {
   const getConnection = setUpTestDbConnection();
 
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let delegatedSignatureModel: ReturnModelType<typeof MemberJwksDelegatedSignature>;
+  let workloadIdentityModel: ReturnModelType<typeof MemberWorkloadIdentity>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    delegatedSignatureModel = getModelForClass(MemberJwksDelegatedSignature, {
+    workloadIdentityModel = getModelForClass(MemberWorkloadIdentity, {
       existingConnection: connection,
     });
   });
 
-  describe('createJwksDelegatedSignature', () => {
-    test('Should create delegated signature with default TTL', async () => {
-      const delegatedSignature = await createJwksDelegatedSignature(
+  describe('createWorkloadIdentity', () => {
+    test('Should create workload identity with default TTL', async () => {
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -52,16 +52,16 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(delegatedSignature);
-      const dbResult = await delegatedSignatureModel.findById(delegatedSignature.result.id);
+      requireSuccessfulResult(workloadIdentity);
+      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.veraidSignatureTtlSeconds).toBe(3600);
     });
 
-    test('Should create delegated signature with custom TTL', async () => {
+    test('Should create workload identity with custom TTL', async () => {
       const customTtl = 1800;
 
-      const delegatedSignature = await createJwksDelegatedSignature(
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -74,14 +74,14 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(delegatedSignature);
-      const dbResult = await delegatedSignatureModel.findById(delegatedSignature.result.id);
+      requireSuccessfulResult(workloadIdentity);
+      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.veraidSignatureTtlSeconds).toStrictEqual(customTtl);
     });
 
     test('Should store all required fields correctly', async () => {
-      const delegatedSignature = await createJwksDelegatedSignature(
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -93,8 +93,8 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(delegatedSignature);
-      const dbResult = await delegatedSignatureModel.findById(delegatedSignature.result.id);
+      requireSuccessfulResult(workloadIdentity);
+      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
       expect(dbResult!.jwksUrl).toStrictEqual(JWKS_URL);
@@ -107,7 +107,7 @@ describe('member JWKS delegated signature', () => {
     });
 
     test('Should log creation', async () => {
-      const delegatedSignature = await createJwksDelegatedSignature(
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -119,10 +119,10 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(delegatedSignature);
+      requireSuccessfulResult(workloadIdentity);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member JWKS delegated signature created', {
-          memberJwksDelegatedSignatureId: delegatedSignature.result.id,
+        partialPinoLog('info', 'Member workload identity created', {
+          memberWorkloadIdentityId: workloadIdentity.result.id,
         }),
       );
     });
@@ -130,7 +130,7 @@ describe('member JWKS delegated signature', () => {
     test('Should refuse TTL below minimum', async () => {
       const invalidTtl = 0;
 
-      const delegatedSignature = await createJwksDelegatedSignature(
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -143,14 +143,14 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireFailureResult(delegatedSignature);
-      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblem.INVALID_TTL);
+      requireFailureResult(workloadIdentity);
+      expect(workloadIdentity.context).toBe(MemberWorkloadIdentityProblem.INVALID_TTL);
     });
 
     test('Should refuse TTL exceeding maximum', async () => {
       const invalidTtl = 3601;
 
-      const delegatedSignature = await createJwksDelegatedSignature(
+      const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
           jwksUrl: JWKS_URL,
@@ -163,14 +163,14 @@ describe('member JWKS delegated signature', () => {
         serviceOptions,
       );
 
-      requireFailureResult(delegatedSignature);
-      expect(delegatedSignature.context).toBe(MemberJwksDelegatedSignatureProblem.INVALID_TTL);
+      requireFailureResult(workloadIdentity);
+      expect(workloadIdentity.context).toBe(MemberWorkloadIdentityProblem.INVALID_TTL);
     });
   });
 
-  describe('getJwksDelegatedSignature', () => {
+  describe('getWorkloadIdentity', () => {
     test('Existing id should return the corresponding data', async () => {
-      const delegatedSignature = await delegatedSignatureModel.create({
+      const workloadIdentity = await workloadIdentityModel.create({
         memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -180,9 +180,9 @@ describe('member JWKS delegated signature', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getJwksDelegatedSignature(
+      const result = await getWorkloadIdentity(
         MEMBER_ID,
-        delegatedSignature._id.toString(),
+        workloadIdentity._id.toString(),
         serviceOptions,
       );
 
@@ -198,7 +198,7 @@ describe('member JWKS delegated signature', () => {
     });
 
     test('Non existing id should return non existing error', async () => {
-      await delegatedSignatureModel.create({
+      await workloadIdentityModel.create({
         memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -208,19 +208,15 @@ describe('member JWKS delegated signature', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getJwksDelegatedSignature(
-        MEMBER_ID,
-        DELEGATED_SIGNATURE_ID,
-        serviceOptions,
-      );
+      const result = await getWorkloadIdentity(MEMBER_ID, WORKLOAD_IDENTITY_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberJwksDelegatedSignatureProblem.NOT_FOUND);
+      expect(result.context).toBe(MemberWorkloadIdentityProblem.NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
       const invalidMemberId = '222222222222222222222222';
-      const delegatedSignature = await delegatedSignatureModel.create({
+      const workloadIdentity = await workloadIdentityModel.create({
         memberId: MEMBER_ID,
         jwksUrl: JWKS_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -230,19 +226,19 @@ describe('member JWKS delegated signature', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getJwksDelegatedSignature(
+      const result = await getWorkloadIdentity(
         invalidMemberId,
-        delegatedSignature._id.toString(),
+        workloadIdentity._id.toString(),
         serviceOptions,
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberJwksDelegatedSignatureProblem.NOT_FOUND);
+      expect(result.context).toBe(MemberWorkloadIdentityProblem.NOT_FOUND);
     });
   });
 
-  describe('deleteJwksDelegatedSignature', () => {
-    const delegatedSignatureData = {
+  describe('deleteWorkloadIdentity', () => {
+    const workloadIdentityData: Partial<MemberWorkloadIdentity> = {
       memberId: MEMBER_ID,
       jwksUrl: JWKS_URL,
       jwtSubjectField: JWT_SUBJECT_FIELD,
@@ -252,31 +248,28 @@ describe('member JWKS delegated signature', () => {
       veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
     };
 
-    test('Existing id should remove delegated signature', async () => {
-      const delegatedSignature = await delegatedSignatureModel.create(delegatedSignatureData);
+    test('Existing id should remove workload identity', async () => {
+      const workloadIdentity = await workloadIdentityModel.create(workloadIdentityData);
 
-      const result = await deleteJwksDelegatedSignature(
-        delegatedSignature._id.toString(),
-        serviceOptions,
-      );
+      const result = await deleteWorkloadIdentity(workloadIdentity._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
-      const dbResult = await delegatedSignatureModel.findById(delegatedSignature._id);
+      const dbResult = await workloadIdentityModel.findById(workloadIdentity._id);
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member JWKS delegated signature deleted', {
-          memberJwksDelegatedSignatureId: delegatedSignature.id,
+        partialPinoLog('info', 'Member workload identity deleted', {
+          memberWorkloadIdentityId: workloadIdentity.id,
         }),
       );
     });
 
-    test('Non existing id should not remove any delegated signature', async () => {
-      const delegatedSignature = await delegatedSignatureModel.create(delegatedSignatureData);
+    test('Non existing id should not remove any workload identity', async () => {
+      const workloadIdentity = await workloadIdentityModel.create(workloadIdentityData);
 
-      const result = await deleteJwksDelegatedSignature(DELEGATED_SIGNATURE_ID, serviceOptions);
+      const result = await deleteWorkloadIdentity(WORKLOAD_IDENTITY_ID, serviceOptions);
 
       requireSuccessfulResult(result);
-      const dbResult = await delegatedSignatureModel.findById(delegatedSignature.id);
+      const dbResult = await workloadIdentityModel.findById(workloadIdentity.id);
       expect(dbResult).not.toBeNull();
     });
   });

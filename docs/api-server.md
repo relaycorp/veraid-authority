@@ -75,7 +75,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input:
     - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
   - Output: A single-use UUID4.
-- `POST /orgs/{orgName}/members/{memberId}/delegated-signatures/jwks`: Create JWKS-verified delegated signature.
+- `POST /orgs/{orgName}/members/{memberId}/workload-identities`: Create workload identity.
   - Auth: Org member.
   - Input:
     - `jwksUrl`: URL to the JWKS endpoint.
@@ -84,11 +84,11 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
     - `veraidServiceOid`: The OID for the service where the signature will be valid.
     - `veraidSignatureTtlSeconds`: Time-to-live for the signature in seconds (default: 3600).
     - `veraidSignaturePlaintext`: The plaintext to be signed.
-  - Output: URL to the new delegated signature.
-- `GET /orgs/{orgName}/members/{memberId}/delegated-signatures/jwks/{delegatedSignatureId}`: Get JWKS-verified delegated signature.
+  - Output: URL to the new workload identity.
+- `GET /orgs/{orgName}/members/{memberId}/workload-identities/{workloadIdentityId}`: Get workload identity.
   - Auth: Org member.
-  - Output: The delegated signature details.
-- `DELETE /orgs/{orgName}/members/{memberId}/delegated-signatures/jwks/{delegatedSignatureId}`: Delete JWKS-verified delegated signature.
+  - Output: The workload identity details.
+- `DELETE /orgs/{orgName}/members/{memberId}/workload-identities/{workloadIdentityId}`: Delete workload identity.
   - Auth: Org member.
   - Output: Nothing (204 No Content).
 - `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
