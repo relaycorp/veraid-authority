@@ -7,6 +7,7 @@ import {
   MemberRole,
   OrgCreationCommand,
   type OrgCreationOutput,
+  type AuthorityClient,
 } from '@relaycorp/veraid-authority';
 import { getModelForClass } from '@typegoose/typegoose';
 import { createConnection } from 'mongoose';
@@ -26,8 +27,7 @@ import { makeClient } from './utils/api.js';
 import { ORG_PRIVATE_KEY_ARN, ORG_PUBLIC_KEY_DER, TEST_ORG_NAME } from './utils/veraid.js';
 import { postEvent } from './utils/events.js';
 import { AuthScope } from './utils/authServer.js';
-
-const CLIENT = await makeClient(AuthScope.SUPER_ADMIN);
+import { waitForServerToBeReady } from './utils/http.js';
 
 const AWALA_SERVER_URL = 'http://localhost:8081';
 
@@ -53,12 +53,12 @@ async function patchOrgKeyPair(
   }
 }
 
-async function createTestOrg(): Promise<OrgCreationOutput> {
+async function createTestOrg(client: AuthorityClient): Promise<OrgCreationOutput> {
   const command = new OrgCreationCommand({ name: TEST_ORG_NAME });
 
   let output: OrgCreationOutput;
   try {
-    output = await CLIENT.send(command);
+    output = await client.send(command);
   } catch (err) {
     expect((err as ClientError).statusCode).toBe(HTTP_STATUS_CODES.CONFLICT);
 
@@ -75,20 +75,20 @@ async function createTestOrg(): Promise<OrgCreationOutput> {
   return output;
 }
 
-async function createTestMember(membersEndpoint: string) {
+async function createTestMember(membersEndpoint: string, client: AuthorityClient): Promise<string> {
   const memberName = randomUUID();
   const command = new MemberCreationCommand({
     endpoint: membersEndpoint,
     role: MemberRole.REGULAR,
     name: memberName,
   });
-  const { publicKeyImportTokens: keyImportTokenEndpoint } = await CLIENT.send(command);
+  const { publicKeyImportTokens: keyImportTokenEndpoint } = await client.send(command);
   return keyImportTokenEndpoint;
 }
 
-async function createKeyImportToken(endpoint: string) {
+async function createKeyImportToken(endpoint: string, client: AuthorityClient): Promise<string> {
   const command = new MemberKeyImportTokenCommand({ endpoint, serviceOid: TEST_SERVICE_OID });
-  const { token: publicKeyImportToken } = await CLIENT.send(command);
+  const { token: publicKeyImportToken } = await client.send(command);
   return publicKeyImportToken;
 }
 
@@ -112,11 +112,15 @@ async function makeKeyImportEvent(memberPublicKey: CryptoKey, publicKeyImportTok
 }
 
 describe('Awala', () => {
+  waitForServerToBeReady(AWALA_SERVER_URL);
+
   test('Claim key import token', async () => {
+    const client = await makeClient(AuthScope.SUPER_ADMIN);
+
     // Create the necessary setup as an admin:
-    const { members: membersEndpoint } = await createTestOrg();
-    const keyImportTokenEndpoint = await createTestMember(membersEndpoint);
-    const publicKeyImportToken = await createKeyImportToken(keyImportTokenEndpoint);
+    const { members: membersEndpoint } = await createTestOrg(client);
+    const keyImportTokenEndpoint = await createTestMember(membersEndpoint, client);
+    const publicKeyImportToken = await createKeyImportToken(keyImportTokenEndpoint, client);
 
     // Claim the token as a member via Awala:
     const { publicKey: memberPublicKey } = await generateKeyPair();

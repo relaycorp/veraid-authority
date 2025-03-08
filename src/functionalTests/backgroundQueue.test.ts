@@ -5,10 +5,13 @@ import { BUNDLE_REQUEST_TRIGGER_TYPE } from '../events/bundleRequestTrigger.even
 import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
 
 import { postEvent } from './utils/events.js';
+import { waitForServerToBeReady } from './utils/http.js';
 
 const QUEUE_URL = 'http://localhost:8082';
 
 describe('Background queue', () => {
+  waitForServerToBeReady(QUEUE_URL);
+
   test('Supported event should be accepted', async () => {
     const event = new CloudEvent({
       id: CE_ID,

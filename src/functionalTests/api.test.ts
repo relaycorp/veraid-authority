@@ -15,7 +15,7 @@ import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 
 import { API_URL, makeClient } from './utils/api.js';
-import { post } from './utils/http.js';
+import { post, waitForServerToBeReady } from './utils/http.js';
 import { AuthScope } from './utils/authServer.js';
 
 function generateOrgName(): string {
@@ -23,6 +23,8 @@ function generateOrgName(): string {
 }
 
 describe('API', () => {
+  waitForServerToBeReady(API_URL);
+
   describe('Orgs', () => {
     describe('Authentication', () => {
       test('Anonymous request to should be refused', async () => {
