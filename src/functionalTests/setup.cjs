@@ -45,5 +45,9 @@ async function waitForServerToBeReady(url) {
 }
 
 module.exports = async () => {
+  // eslint-disable-next-line no-console
+  console.log('Waiting for servers to be ready...');
   await Promise.all(HEALTHCHECK_URLS.map((url) => waitForServerToBeReady(url)));
+  // eslint-disable-next-line no-console
+  console.log('Servers are ready');
 };
