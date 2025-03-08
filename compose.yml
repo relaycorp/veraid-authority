@@ -1,6 +1,7 @@
 services:
   # Main API service
   api:
+    image: veraid-authority
     build:
       context: .
     command: api
@@ -31,6 +32,7 @@ services:
 
   # Awala service
   awala:
+    image: veraid-authority
     build:
       context: .
     command: awala
@@ -61,6 +63,7 @@ services:
 
   # Queue service
   queue:
+    image: veraid-authority
     build:
       context: .
     command: queue
