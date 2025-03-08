@@ -10,7 +10,7 @@ import {
   type AuthorityClient,
 } from '@relaycorp/veraid-authority';
 import { getModelForClass } from '@typegoose/typegoose';
-import { createConnection } from 'mongoose';
+import { createConnection, type ConnectOptions } from 'mongoose';
 import { CloudEvent } from 'cloudevents';
 import { addMinutes, formatISO } from 'date-fns';
 
@@ -31,7 +31,16 @@ import { waitForServers } from './utils/wait.js';
 
 const AWALA_SERVER_URL = 'http://127.0.0.1:8081';
 
-const MONGODB_URI = 'mongodb://root:password123@localhost?connectTimeoutMS=10000';
+const MONGODB_URI = 'mongodb://root:password123@127.0.0.1:27017/endpoint';
+const TIMEOUT_CONFIG: ConnectOptions = {
+  appName: 'functional-tests',
+  authSource: 'admin',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  connectTimeoutMS: 10_000,
+  maxPoolSize: 1,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  serverSelectionTimeoutMS: 10_000,
+};
 
 /**
  * Patch the specified org with the specified key pair.
@@ -44,7 +53,7 @@ async function patchOrgKeyPair(
   privateKeyRef: Buffer,
   publicKey: Buffer,
 ): Promise<void> {
-  const connection = await createConnection(MONGODB_URI).asPromise();
+  const connection = await createConnection(MONGODB_URI, TIMEOUT_CONFIG).asPromise();
   try {
     const orgModel = getModelForClass(Org, { existingConnection: connection });
     await orgModel.findOneAndUpdate({ name: orgName }, { privateKeyRef, publicKey });
