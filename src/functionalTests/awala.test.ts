@@ -31,7 +31,7 @@ import { waitForServers } from './utils/wait.js';
 
 const AWALA_SERVER_URL = 'http://127.0.0.1:8081';
 
-const MONGODB_URI = 'mongodb://root:password123@localhost';
+const MONGODB_URI = 'mongodb://root:password123@localhost?connectTimeoutMS=10000';
 
 /**
  * Patch the specified org with the specified key pair.
