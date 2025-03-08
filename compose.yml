@@ -6,7 +6,7 @@ services:
       context: .
     command: api
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
       AUTHORITY_SUPERADMIN: admin@veraid.example
@@ -37,7 +37,7 @@ services:
       context: .
     command: awala
     ports:
-      - "8083:8080"
+      - "127.0.0.1:8083:8080"
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
       MONGODB_URI: mongodb://mongodb/?minPoolSize=1&maxPoolSize=3&authSource=admin
@@ -68,7 +68,7 @@ services:
       context: .
     command: queue
     ports:
-      - "8084:8080"
+      - "127.0.0.1:8084:8080"
     environment:
       AUTHORITY_VERSION: "1.0.0dev1"
       MONGODB_URI: mongodb://mongodb/?minPoolSize=1&maxPoolSize=3&authSource=admin
@@ -94,7 +94,7 @@ services:
   mock-authz-server:
     image: ghcr.io/navikt/mock-oauth2-server:0.5.8
     ports:
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"
     environment:
       JSON_CONFIG: |
         {
@@ -122,7 +122,7 @@ services:
   mock-awala-middleware:
     image: mockserver/mockserver:5.15.0
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
     environment:
       MOCKSERVER_SERVER_PORT: "8080"
       MOCKSERVER_LIVENESS_HTTP_GET_PATH: /mockserver/status
@@ -131,7 +131,7 @@ services:
   mock-aws-kms:
     image: nsmithuk/local-kms:3.11.4
     ports:
-      - "8085:8080"
+      - "127.0.0.1:8085:8080"
     volumes:
       - ./kms-seed.yaml:/init/seed.yaml
     healthcheck:
@@ -143,7 +143,7 @@ services:
   mongodb:
     image: mongo:6.0.4
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password123
