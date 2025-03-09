@@ -29,3 +29,7 @@ Refer to the [installation documentation](./install.md).
 To ask questions about this app or VeraId in general, please go to [r/VeraId on Reddit](https://www.reddit.com/r/VeraId/).
 
 To request features or report bugs on this app, please go to [our issue tracker on GitHub](https://github.com/relaycorp/veraid-authority/issues).
+
+## Licence
+
+This project is licensed under the [Business Source License](https://github.com/relaycorp/veraid-authority/blob/main/LICENSE).
