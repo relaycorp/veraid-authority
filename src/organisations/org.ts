@@ -2,15 +2,16 @@ import { type DocumentType, getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
 import type { AnyKeys } from 'mongoose';
 
-import { Org } from './models/Org.model.js';
-import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './schemas/org.schema.js';
-import type { Result } from './utilities/result.js';
-import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
+import type { Result } from '../utilities/result.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
+import { Kms } from '../utilities/kms/Kms.js';
+import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+import { Member, Role } from '../models/Member.model.js';
+import { deleteMember } from '../member.js';
+
 import { OrgProblem } from './OrgProblem.js';
-import { Kms } from './utilities/kms/Kms.js';
-import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { Member, Role } from './models/Member.model.js';
-import { deleteMember } from './member.js';
+import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './org.schema.js';
+import { Org } from './Org.model.js';
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });

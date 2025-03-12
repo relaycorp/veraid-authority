@@ -2,26 +2,27 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
-import type { OrgCreationSchema, OrgPatchSchema, OrgReadSchema } from '../../schemas/org.schema.js';
-import type { Result, SuccessfulResult } from '../../utilities/result.js';
-import { OrgProblem } from '../../OrgProblem.js';
-import { mockSpy } from '../../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { NON_ASCII_ORG_NAME, ORG_NAME } from '../testUtils/stubs.js';
+import type { Result, SuccessfulResult } from '../utilities/result.js';
+import { mockSpy } from '../testUtils/jest.js';
+import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+
+import { OrgProblem } from './OrgProblem.js';
+import type { OrgCreationSchema, OrgPatchSchema, OrgReadSchema } from './org.schema.js';
 
 const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblem>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblem>>>());
 const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblem>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblem>>>());
-jest.unstable_mockModule('../../org.js', () => ({
+jest.unstable_mockModule('./org.js', () => ({
   createOrg: mockCreateOrg,
   updateOrg: mockUpdateOrg,
   getOrg: mockGetOrg,
   deleteOrg: mockDeleteOrg,
 }));
 
-const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../testUtils/apiServer.js');
 
 describe('org routes', () => {
   const publicKey = 'the public key';

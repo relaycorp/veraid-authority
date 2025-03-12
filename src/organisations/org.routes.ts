@@ -1,16 +1,12 @@
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import {
-  ORG_CREATION_SCHEMA,
-  ORG_PATCH_SCHEMA,
-  type OrgCreationSchema,
-} from '../../schemas/org.schema.js';
-import { createOrg, deleteOrg, getOrg, updateOrg } from '../../org.js';
-import { OrgProblem } from '../../OrgProblem.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
-import orgAuthPlugin from '../orgAuthPlugin.js';
+import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
+import orgAuthPlugin from '../api/orgAuthPlugin.js';
+import memberRoutes from '../api/routes/member.routes.js';
 
-import memberRoutes from './member.routes.js';
+import { OrgProblem } from './OrgProblem.js';
+import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
+import { ORG_CREATION_SCHEMA, ORG_PATCH_SCHEMA, type OrgCreationSchema } from './org.schema.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in OrgProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];

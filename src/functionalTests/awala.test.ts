@@ -15,7 +15,7 @@ import { CloudEvent } from 'cloudevents';
 import { addMinutes, formatISO } from 'date-fns';
 
 import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
-import { Org } from '../models/Org.model.js';
+import { Org } from '../organisations/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { AWALA_PEER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';

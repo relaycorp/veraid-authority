@@ -12,7 +12,7 @@ import type { ServiceOptions } from './serviceTypes.js';
 import { MemberPublicKey } from './models/MemberPublicKey.model.js';
 import { Member } from './models/Member.model.js';
 import { Kms } from './utilities/kms/Kms.js';
-import { Org } from './models/Org.model.js';
+import { Org } from './organisations/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';
 import type { Result } from './utilities/result.js';
 import type { MemberBundleRequest } from './schemas/awala.schema.js';

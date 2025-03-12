@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { createConnection, type Connection, type ConnectOptions, STATES } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
-import { Org } from '../models/Org.model.js';
+import { Org } from '../organisations/Org.model.js';
 import { Member } from '../models/Member.model.js';
 import { MemberPublicKey } from '../models/MemberPublicKey.model.js';
 import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';

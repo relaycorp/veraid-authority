@@ -5,7 +5,7 @@ import { addDays, addSeconds, subSeconds } from 'date-fns';
 
 import type { Kms } from './utilities/kms/Kms.js';
 import { mockedVeraidModule } from './testUtils/veraid.mock.js';
-import { Org } from './models/Org.model.js';
+import { Org } from './organisations/Org.model.js';
 import { setUpTestDbConnection } from './testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
 import {
