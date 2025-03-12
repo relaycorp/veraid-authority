@@ -74,7 +74,7 @@ export async function getWorkloadIdentity(
     didSucceed: true,
 
     result: {
-      jwksUrl: workloadIdentity.jwksUrl,
+      openidProviderIssuerUrl: workloadIdentity.openidProviderIssuerUrl,
       jwtSubjectField: workloadIdentity.jwtSubjectField,
       jwtSubjectValue: workloadIdentity.jwtSubjectValue,
       veraidServiceOid: workloadIdentity.veraidServiceOid,

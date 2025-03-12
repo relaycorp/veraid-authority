@@ -15,7 +15,7 @@ import {
 } from './memberWorkloadIdentity.js';
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 
-const JWKS_URL = 'https://example.com/.well-known/jwks.json';
+const OPENID_PROVIDER_ISSUER_URL = 'https://idp.example.com';
 const JWT_SUBJECT_FIELD = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
@@ -44,7 +44,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -65,7 +65,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -85,7 +85,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -98,7 +98,7 @@ describe('Member workload identities', () => {
       const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
-      expect(dbResult!.jwksUrl).toStrictEqual(JWKS_URL);
+      expect(dbResult!.openidProviderIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
       expect(dbResult!.jwtSubjectField).toStrictEqual(JWT_SUBJECT_FIELD);
       expect(dbResult!.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
       expect(dbResult!.veraidServiceOid).toStrictEqual(TEST_SERVICE_OID);
@@ -111,7 +111,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -134,7 +134,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -154,7 +154,7 @@ describe('Member workload identities', () => {
       const workloadIdentity = await createWorkloadIdentity(
         MEMBER_ID,
         {
-          jwksUrl: JWKS_URL,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectField: JWT_SUBJECT_FIELD,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
@@ -173,7 +173,7 @@ describe('Member workload identities', () => {
     test('Existing id should return the corresponding data', async () => {
       const workloadIdentity = await workloadIdentityModel.create({
         memberId: MEMBER_ID,
-        jwksUrl: JWKS_URL,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
@@ -189,7 +189,7 @@ describe('Member workload identities', () => {
 
       requireSuccessfulResult(result);
       expect(result.result).toMatchObject({
-        jwksUrl: JWKS_URL,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
@@ -201,7 +201,7 @@ describe('Member workload identities', () => {
     test('Non existing id should return non existing error', async () => {
       await workloadIdentityModel.create({
         memberId: MEMBER_ID,
-        jwksUrl: JWKS_URL,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
@@ -219,7 +219,7 @@ describe('Member workload identities', () => {
       const invalidMemberId = '222222222222222222222222';
       const workloadIdentity = await workloadIdentityModel.create({
         memberId: MEMBER_ID,
-        jwksUrl: JWKS_URL,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectField: JWT_SUBJECT_FIELD,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
@@ -241,7 +241,7 @@ describe('Member workload identities', () => {
   describe('deleteWorkloadIdentity', () => {
     const workloadIdentityData: Partial<MemberWorkloadIdentity> = {
       memberId: MEMBER_ID,
-      jwksUrl: JWKS_URL,
+      openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
       jwtSubjectField: JWT_SUBJECT_FIELD,
       jwtSubjectValue: JWT_SUBJECT_VALUE,
       veraidServiceOid: TEST_SERVICE_OID,

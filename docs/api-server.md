@@ -78,7 +78,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `POST /orgs/{orgName}/members/{memberId}/workload-identities`: Create workload identity.
   - Auth: Org member.
   - Input:
-    - `jwksUrl`: URL to the JWKS endpoint.
+    - `openidProviderIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
     - `jwtSubjectField`: The field in the JWT that contains the subject.
     - `jwtSubjectValue`: The value of the subject field.
     - `veraidServiceOid`: The OID for the service where the signature will be valid.

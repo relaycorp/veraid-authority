@@ -6,7 +6,7 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   type: 'object',
 
   properties: {
-    jwksUrl: { type: 'string' },
+    openidProviderIssuerUrl: { type: 'string' },
     jwtSubjectField: { type: 'string' },
     jwtSubjectValue: { type: 'string' },
     veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
@@ -15,7 +15,7 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   },
 
   required: [
-    'jwksUrl',
+    'openidProviderIssuerUrl',
     'jwtSubjectField',
     'jwtSubjectValue',
     'veraidServiceOid',
