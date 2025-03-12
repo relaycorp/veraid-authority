@@ -9,7 +9,7 @@ import type { Result } from '../../utilities/result.js';
 import { type MockLogSet, partialPinoLog } from '../../testUtils/logging.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
-import { MemberPublicKeyImportProblem } from '../../MemberKeyImportTokenProblem.js';
+import { MemberPublicKeyImportProblem } from '../../memberKeyImports/MemberKeyImportTokenProblem.js';
 import type { MemberProblem } from '../../members/MemberProblem.js';
 import {
   AWALA_PEER_ID,
@@ -25,7 +25,7 @@ import type { MemberKeyImportRequest } from '../../schemas/awala.schema.js';
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblem>>>(),
 );
-jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
+jest.unstable_mockModule('../../memberKeyImports/memberKeyImportToken.js', () => ({
   processMemberKeyImportToken: mockProcessMemberKeyImportToken,
   createMemberKeyImportToken: jest.fn(),
 }));

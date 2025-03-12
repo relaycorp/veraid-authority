@@ -6,22 +6,23 @@ import {
   MEMBER_KEY_IMPORT_TOKEN,
   ORG_NAME,
   TEST_SERVICE_OID,
-} from '../../testUtils/stubs.js';
-import type { SuccessfulResult } from '../../utilities/result.js';
-import { mockSpy } from '../../testUtils/jest.js';
-import type { MemberKeyImportTokenCreationResult } from '../../memberKeyImportTokenTypes.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import type { MemberKeyImportTokenSchema } from '../../schemas/memberKeyImportToken.schema.js';
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+} from '../testUtils/stubs.js';
+import type { SuccessfulResult } from '../utilities/result.js';
+import { mockSpy } from '../testUtils/jest.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import { HTTP_STATUS_CODES } from '../utilities/http.js';
+
+import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
+import type { MemberKeyImportTokenSchema } from './memberKeyImportToken.schema.js';
 
 const mockCreateMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<SuccessfulResult<MemberKeyImportTokenCreationResult>>>(),
 );
-jest.unstable_mockModule('../../memberKeyImportToken.js', () => ({
+jest.unstable_mockModule('./memberKeyImportToken.js', () => ({
   createMemberKeyImportToken: mockCreateMemberKeyImportToken,
   processMemberKeyImportToken: jest.fn(),
 }));
-const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../testUtils/apiServer.js');
 
 describe('member key import token routes', () => {
   const getTestServerFixture = makeTestApiServer();

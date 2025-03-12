@@ -23,7 +23,7 @@ import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';
 
 import { MemberProblem } from './MemberProblem.js';
 import { ROLE_MAPPING } from './memberTypes.js';

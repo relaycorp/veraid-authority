@@ -1,16 +1,17 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import { CloudEvent } from 'cloudevents';
 
-import type { Result, SuccessfulResult } from './utilities/result.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
-import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
+import type { Result, SuccessfulResult } from '../utilities/result.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+import { createMemberPublicKey } from '../memberKeys/memberPublicKey.js';
+import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
+import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
+import { Emitter } from '../utilities/eventing/Emitter.js';
+import { EmitterChannel } from '../utilities/eventing/EmitterChannel.js';
+
 import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
-import { createMemberPublicKey } from './memberKeys/memberPublicKey.js';
-import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
-import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
-import { Emitter } from './utilities/eventing/Emitter.js';
-import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
+import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
+import { MemberKeyImportToken } from './MemberKeyImportToken.model.js';
 
 export async function createMemberKeyImportToken(
   memberId: string,

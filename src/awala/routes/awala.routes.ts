@@ -11,7 +11,7 @@ import {
   type MemberKeyImportRequest,
 } from '../../schemas/awala.schema.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { processMemberKeyImportToken } from '../../memberKeyImportToken.js';
+import { processMemberKeyImportToken } from '../../memberKeyImports/memberKeyImportToken.js';
 import { createMemberBundleRequest } from '../../memberBundle.js';
 import {
   getIncomingServiceMessageEvent,

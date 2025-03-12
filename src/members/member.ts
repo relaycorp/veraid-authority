@@ -6,7 +6,7 @@ import type { Result } from '../utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
 import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
 import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
-import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';
+import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';
 
 import type { MemberSchema, PatchMemberSchema } from './member.schema.js';
 import { Member } from './Member.model.js';
