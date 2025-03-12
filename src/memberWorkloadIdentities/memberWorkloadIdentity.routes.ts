@@ -1,15 +1,16 @@
 import type { FastifyReply, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
-import { MemberWorkloadIdentityProblem } from '../../MemberWorkloadIdentityProblem.js';
+import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import type { PluginDone } from '../utilities/fastify/PluginDone.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+
+import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 import {
   createWorkloadIdentity,
   deleteWorkloadIdentity,
   getWorkloadIdentity,
-} from '../../memberWorkloadIdentity.js';
-import { MEMBER_WORKLOAD_IDENTITY_SCHEMA } from '../../schemas/memberWorkloadIdentity.schema.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+} from './memberWorkloadIdentity.js';
+import { MEMBER_WORKLOAD_IDENTITY_SCHEMA } from './memberWorkloadIdentity.schema.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   // eslint-disable-next-line max-len

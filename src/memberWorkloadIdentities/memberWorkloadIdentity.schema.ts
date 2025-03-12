@@ -1,6 +1,6 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
-import { SERVICE_OID_REGEX } from './validation.js';
+import { SERVICE_OID_REGEX } from '../schemas/validation.js';
 
 export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   type: 'object',

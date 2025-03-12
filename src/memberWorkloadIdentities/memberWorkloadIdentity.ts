@@ -1,9 +1,10 @@
 import { getModelForClass } from '@typegoose/typegoose';
 
-import type { Result } from './utilities/result.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { MemberWorkloadIdentity } from './models/MemberWorkloadIdentity.model.js';
-import type { MemberWorkloadIdentitySchema } from './schemas/memberWorkloadIdentity.schema.js';
+import type { Result } from '../utilities/result.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+
+import { MemberWorkloadIdentity } from './MemberWorkloadIdentity.model.js';
+import type { MemberWorkloadIdentitySchema } from './memberWorkloadIdentity.schema.js';
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 import type { MemberWorkloadIdentityCreationResult } from './memberWorkloadIdentityTypes.js';
 
