@@ -24,7 +24,7 @@ import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { type MockKms, mockKms } from '../testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { stringToArrayBuffer } from '../testUtils/buffer.js';
-import type { MemberBundleRequest } from '../awala/awala.schema.js';
+import type { MemberBundleRequest } from '../servers/awala/awala.schema.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';

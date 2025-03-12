@@ -1,7 +1,7 @@
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
-import { requireUserToBeAdmin } from '../api/orgAuthPlugin.js';
+import { requireUserToBeAdmin } from '../servers/api/orgAuthPlugin.js';
 import memberPublicKeyRoutes from '../memberKeys/memberPublicKey.routes.js';
 import memberKeyImportToken from '../memberKeyImports/memberKeyImportToken.routes.js';
 // eslint-disable-next-line max-len

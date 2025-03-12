@@ -1,8 +1,8 @@
 import { argv } from 'node:process';
 
-import { makeApiServer } from '../api/server.js';
-import { makeQueueServer } from '../backgroundQueue/server.js';
-import { makeAwalaServer } from '../awala/server.js';
+import { makeApiServer } from '../servers/api/server.js';
+import { makeQueueServer } from '../servers/backgroundQueue/server.js';
+import { makeAwalaServer } from '../servers/awala/server.js';
 import { runFastify } from '../utilities/fastify/server.js';
 import type { ServerMaker } from '../utilities/fastify/ServerMaker.js';
 

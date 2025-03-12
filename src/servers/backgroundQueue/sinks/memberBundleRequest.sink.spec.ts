@@ -4,41 +4,41 @@ import type { Connection } from 'mongoose';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import { addDays, parseISO } from 'date-fns';
 
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import { CE_SOURCE } from '../../testUtils/eventing/stubs.js';
-import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
+import type { FastifyTypedInstance } from '../../../utilities/fastify/FastifyTypedInstance.js';
+import { CE_SOURCE } from '../../../testUtils/eventing/stubs.js';
+import { postEvent } from '../../../testUtils/eventing/cloudEvents.js';
 import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
-} from '../../events/bundleRequest.event.js';
+} from '../../../events/bundleRequest.event.js';
 import {
   AWALA_PEER_ID,
   MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
-} from '../../testUtils/stubs.js';
-import { mockSpy } from '../../testUtils/jest.js';
-import type { Result } from '../../utilities/result.js';
-import type { ServiceOptions } from '../../utilities/serviceTypes.js';
-import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
-import { partialPinoLog } from '../../testUtils/logging.js';
-import { stringToArrayBuffer } from '../../testUtils/buffer.js';
-import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
-import { OUTGOING_SERVICE_MESSAGE_TYPE } from '../../events/outgoingServiceMessage.event.js';
-import { VeraidContentType } from '../../utilities/veraid.js';
-import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
-import type { BundleCreationFailure } from '../../memberKeys/memberBundle.js';
+} from '../../../testUtils/stubs.js';
+import { mockSpy } from '../../../testUtils/jest.js';
+import type { Result } from '../../../utilities/result.js';
+import type { ServiceOptions } from '../../../utilities/serviceTypes.js';
+import { MemberBundleRequestModel } from '../../../memberKeys/MemberBundleRequest.model.js';
+import { partialPinoLog } from '../../../testUtils/logging.js';
+import { stringToArrayBuffer } from '../../../testUtils/buffer.js';
+import { mockEmitters } from '../../../testUtils/eventing/mockEmitters.js';
+import { OUTGOING_SERVICE_MESSAGE_TYPE } from '../../../events/outgoingServiceMessage.event.js';
+import { VeraidContentType } from '../../../utilities/veraid.js';
+import { EmitterChannel } from '../../../utilities/eventing/EmitterChannel.js';
+import type { BundleCreationFailure } from '../../../memberKeys/memberBundle.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
   jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
 );
-jest.unstable_mockModule('../../memberKeys/memberBundle.js', () => ({
+jest.unstable_mockModule('../../../memberKeys/memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS,
 }));
 
-const { setUpTestQueueServer } = await import('../../testUtils/queueServer.js');
+const { setUpTestQueueServer } = await import('../../../testUtils/queueServer.js');
 
 describe('memberBundleIssuance', () => {
   const getTestServerFixture = setUpTestQueueServer();

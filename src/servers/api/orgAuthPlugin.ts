@@ -4,10 +4,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyPlugin, { type PluginMetadata } from 'fastify-plugin';
 import type { Connection } from 'mongoose';
 
-import { Member, Role } from '../members/Member.model.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import type { Result } from '../utilities/result.js';
-import type { PluginDone } from '../utilities/fastify/PluginDone.js';
+import { Member, Role } from '../../members/Member.model.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { Result } from '../../utilities/result.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 
 interface OrgRequestParams {
   readonly orgName: string;

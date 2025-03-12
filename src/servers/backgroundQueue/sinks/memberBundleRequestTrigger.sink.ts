@@ -3,14 +3,14 @@ import { addDays } from 'date-fns';
 import { getModelForClass } from '@typegoose/typegoose';
 import type { HydratedDocument } from 'mongoose';
 
-import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { Emitter } from '../../../utilities/eventing/Emitter.js';
 import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
-} from '../../events/bundleRequest.event.js';
-import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
-import type { ServiceOptions } from '../../utilities/serviceTypes.js';
-import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
+} from '../../../events/bundleRequest.event.js';
+import { MemberBundleRequestModel } from '../../../memberKeys/MemberBundleRequest.model.js';
+import type { ServiceOptions } from '../../../utilities/serviceTypes.js';
+import { EmitterChannel } from '../../../utilities/eventing/EmitterChannel.js';
 
 async function triggerMemberBundleIssuance(
   memberBundleRequest: HydratedDocument<MemberBundleRequestModel>,

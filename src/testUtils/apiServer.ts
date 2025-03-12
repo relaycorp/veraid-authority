@@ -13,7 +13,7 @@ import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import { Member, Role } from '../members/Member.model.js';
 import type { Result, SuccessfulResult } from '../utilities/result.js';
-import type { AuthenticatedFastifyRequest } from '../api/orgAuthPlugin.js';
+import type { AuthenticatedFastifyRequest } from '../servers/api/orgAuthPlugin.js';
 
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { OAUTH2_JWKS_URL, OAUTH2_TOKEN_AUDIENCE, OAUTH2_TOKEN_ISSUER } from './authn.js';
@@ -54,7 +54,7 @@ function mockJwksAuthentication(
 jest.unstable_mockModule('../utilities/fastify/plugins/jwksAuthentication.js', () => ({
   default: fastifyPlugin(mockJwksAuthentication, { name: 'mock-jwks-authentication' }),
 }));
-const { makeApiServer } = await import('../api/server.js');
+const { makeApiServer } = await import('../servers/api/server.js');
 
 const SUPER_ADMIN_EMAIL = 'admin@veraid-authority.example';
 

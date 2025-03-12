@@ -3,30 +3,30 @@ import type { FastifyInstance } from 'fastify';
 import { HTTP, CloudEvent } from 'cloudevents';
 import { addDays, formatISO } from 'date-fns';
 
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import { mockSpy } from '../../testUtils/jest.js';
-import type { Result } from '../../utilities/result.js';
-import { type MockLogSet, partialPinoLog } from '../../testUtils/logging.js';
-import { generateKeyPair } from '../../testUtils/webcrypto.js';
-import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
+import { HTTP_STATUS_CODES } from '../../../utilities/http.js';
+import { mockSpy } from '../../../testUtils/jest.js';
+import type { Result } from '../../../utilities/result.js';
+import { type MockLogSet, partialPinoLog } from '../../../testUtils/logging.js';
+import { generateKeyPair } from '../../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../../utilities/webcrypto.js';
 // eslint-disable-next-line max-len
-import { MemberPublicKeyImportProblem } from '../../memberKeyImports/MemberKeyImportTokenProblem.js';
-import type { MemberProblem } from '../../members/MemberProblem.js';
+import { MemberPublicKeyImportProblem } from '../../../memberKeyImports/MemberKeyImportTokenProblem.js';
+import type { MemberProblem } from '../../../members/MemberProblem.js';
 import {
   AWALA_PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   MEMBER_KEY_IMPORT_TOKEN,
   SIGNATURE,
-} from '../../testUtils/stubs.js';
-import { CE_ID } from '../../testUtils/eventing/stubs.js';
-import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../events/incomingServiceMessage.event.js';
-import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
+} from '../../../testUtils/stubs.js';
+import { CE_ID } from '../../../testUtils/eventing/stubs.js';
+import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../../events/incomingServiceMessage.event.js';
+import { postEvent } from '../../../testUtils/eventing/cloudEvents.js';
 import type { MemberKeyImportRequest } from '../awala.schema.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblem>>>(),
 );
-jest.unstable_mockModule('../../memberKeyImports/memberKeyImportToken.js', () => ({
+jest.unstable_mockModule('../../../memberKeyImports/memberKeyImportToken.js', () => ({
   processMemberKeyImportToken: mockProcessMemberKeyImportToken,
   createMemberKeyImportToken: jest.fn(),
 }));
@@ -47,13 +47,13 @@ const mockGenerateMemberBundle = mockSpy(
     >
   >(),
 );
-jest.unstable_mockModule('../../memberKeys/memberBundle.js', () => ({
+jest.unstable_mockModule('../../../memberKeys/memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS: 90,
 }));
 
-const { setUpTestAwalaServer } = await import('../../testUtils/awalaServer.js');
+const { setUpTestAwalaServer } = await import('../../../testUtils/awalaServer.js');
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);

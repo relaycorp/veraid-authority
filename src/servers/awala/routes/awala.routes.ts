@@ -1,24 +1,24 @@
 import type { CloudEventV1 } from 'cloudevents';
 import type { RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { HTTP_STATUS_CODES } from '../../../utilities/http.js';
+import type { PluginDone } from '../../../utilities/fastify/PluginDone.js';
+import type { FastifyTypedInstance } from '../../../utilities/fastify/FastifyTypedInstance.js';
 import {
   isMemberBundleRequest,
   isMemberKeyImportRequest,
   type MemberBundleRequest,
   type MemberKeyImportRequest,
 } from '../awala.schema.js';
-import type { ServiceOptions } from '../../utilities/serviceTypes.js';
-import { processMemberKeyImportToken } from '../../memberKeyImports/memberKeyImportToken.js';
-import { createMemberBundleRequest } from '../../memberKeys/memberBundle.js';
+import type { ServiceOptions } from '../../../utilities/serviceTypes.js';
+import { processMemberKeyImportToken } from '../../../memberKeyImports/memberKeyImportToken.js';
+import { createMemberBundleRequest } from '../../../memberKeys/memberBundle.js';
 import {
   getIncomingServiceMessageEvent,
   type IncomingServiceMessageOptions,
-} from '../../events/incomingServiceMessage.event.js';
-import { bufferToJson } from '../../utilities/buffer.js';
-import { convertMessageToEvent } from '../../utilities/eventing/receiver.js';
+} from '../../../events/incomingServiceMessage.event.js';
+import { bufferToJson } from '../../../utilities/buffer.js';
+import { convertMessageToEvent } from '../../../utilities/eventing/receiver.js';
 
 async function processMemberBundleRequest(
   incomingMessage: IncomingServiceMessageOptions,

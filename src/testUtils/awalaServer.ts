@@ -1,4 +1,4 @@
-import { makeAwalaServer } from '../awala/server.js';
+import { makeAwalaServer } from '../servers/awala/server.js';
 
 import { makeTestServer, type TestServerFixture } from './server.js';
 import { REQUIRED_ENV_VARS } from './envVars.js';

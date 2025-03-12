@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 
-import { setUpTestAwalaServer } from '../testUtils/awalaServer.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import { setUpTestAwalaServer } from '../../testUtils/awalaServer.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 describe('makeAwalaServer', () => {
   const getTestServerFixture = setUpTestAwalaServer();

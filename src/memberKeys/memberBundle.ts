@@ -14,7 +14,7 @@ import { Kms } from '../utilities/kms/Kms.js';
 import { Org } from '../organisations/Org.model.js';
 import { derDeserialisePublicKey } from '../utilities/webcrypto.js';
 import type { Result } from '../utilities/result.js';
-import type { MemberBundleRequest } from '../awala/awala.schema.js';
+import type { MemberBundleRequest } from '../servers/awala/awala.schema.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';

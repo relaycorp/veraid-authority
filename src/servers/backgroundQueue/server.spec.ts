@@ -1,10 +1,10 @@
 import { CloudEvent } from 'cloudevents';
 
-import { setUpTestQueueServer } from '../testUtils/queueServer.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import { CE_ID, CE_SOURCE } from '../testUtils/eventing/stubs.js';
-import { postEvent } from '../testUtils/eventing/cloudEvents.js';
-import { partialPinoLog } from '../testUtils/logging.js';
+import { setUpTestQueueServer } from '../../testUtils/queueServer.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { CE_ID, CE_SOURCE } from '../../testUtils/eventing/stubs.js';
+import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
+import { partialPinoLog } from '../../testUtils/logging.js';
 
 import { QueueProblem } from './QueueProblem.js';
 

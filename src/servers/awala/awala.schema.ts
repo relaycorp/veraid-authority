@@ -1,7 +1,7 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
-import { compileSchema } from '../utilities/ajv.js';
-import { BASE_64_REGEX } from '../utilities/schemaValidation.js';
+import { compileSchema } from '../../utilities/ajv.js';
+import { BASE_64_REGEX } from '../../utilities/schemaValidation.js';
 
 const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   type: 'object',
