@@ -2,8 +2,8 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection, HydratedDocument } from 'mongoose';
 
-import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
+import { setUpTestDbConnection } from '../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_EMAIL,
@@ -15,24 +15,21 @@ import {
   ORG_NAME,
   SIGNATURE,
   TEST_SERVICE_OID,
-} from './testUtils/stubs.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { Member, Role } from './models/Member.model.js';
-import {
-  type MemberSchema,
-  type MemberSchemaRole,
-  memberSchemaRoles,
-} from './schemas/member.schema.js';
-import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { getPromiseRejection } from './testUtils/jest.js';
-import { createMember, deleteMember, getMember, updateMember } from './member.js';
-import { ROLE_MAPPING } from './memberTypes.js';
+} from '../testUtils/stubs.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
+import { getPromiseRejection } from '../testUtils/jest.js';
+import { MemberPublicKey } from '../models/MemberPublicKey.model.js';
+import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
+import { generateKeyPair } from '../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';
+
 import { MemberProblem } from './MemberProblem.js';
-import { MemberPublicKey } from './models/MemberPublicKey.model.js';
-import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
-import { generateKeyPair } from './testUtils/webcrypto.js';
-import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
+import { ROLE_MAPPING } from './memberTypes.js';
+import { createMember, deleteMember, getMember, updateMember } from './member.js';
+import { type MemberSchema, type MemberSchemaRole, memberSchemaRoles } from './member.schema.js';
+import { Member, Role } from './Member.model.js';
 
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);

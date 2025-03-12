@@ -1,5 +1,5 @@
-import type { MemberSchema } from './schemas/member.schema.js';
-import { Role } from './models/Member.model.js';
+import { Role } from './Member.model.js';
+import type { MemberSchema } from './member.schema.js';
 
 export interface MemberCreationResult {
   id: string;

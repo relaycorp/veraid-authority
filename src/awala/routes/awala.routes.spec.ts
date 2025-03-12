@@ -10,7 +10,7 @@ import { type MockLogSet, partialPinoLog } from '../../testUtils/logging.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberPublicKeyImportProblem } from '../../MemberKeyImportTokenProblem.js';
-import type { MemberProblem } from '../../MemberProblem.js';
+import type { MemberProblem } from '../../members/MemberProblem.js';
 import {
   AWALA_PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,

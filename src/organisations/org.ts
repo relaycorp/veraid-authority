@@ -6,8 +6,8 @@ import type { Result } from '../utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
 import { Kms } from '../utilities/kms/Kms.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { Member, Role } from '../models/Member.model.js';
-import { deleteMember } from '../member.js';
+import { Member, Role } from '../members/Member.model.js';
+import { deleteMember } from '../members/member.js';
 
 import { OrgProblem } from './OrgProblem.js';
 import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './org.schema.js';

@@ -10,7 +10,7 @@ import type { BaseLogger } from 'pino';
 
 import type { ServiceOptions } from './serviceTypes.js';
 import { MemberPublicKey } from './models/MemberPublicKey.model.js';
-import { Member } from './models/Member.model.js';
+import { Member } from './members/Member.model.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { Org } from './organisations/Org.model.js';
 import { derDeserialisePublicKey } from './utilities/webcrypto.js';

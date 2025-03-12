@@ -2,15 +2,16 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { validateUserName } from '@relaycorp/veraid';
 import type { HydratedDocument } from 'mongoose';
 
-import type { Result } from './utilities/result.js';
-import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from './serviceTypes.js';
-import type { MemberSchema, PatchMemberSchema } from './schemas/member.schema.js';
-import { Member } from './models/Member.model.js';
+import type { Result } from '../utilities/result.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
+import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
+import { MemberPublicKey } from '../models/MemberPublicKey.model.js';
+import { MemberKeyImportToken } from '../models/MemberKeyImportToken.model.js';
+
+import type { MemberSchema, PatchMemberSchema } from './member.schema.js';
+import { Member } from './Member.model.js';
 import { MemberProblem } from './MemberProblem.js';
 import { type MemberCreationResult, REVERSE_ROLE_MAPPING, ROLE_MAPPING } from './memberTypes.js';
-import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
-import { MemberPublicKey } from './models/MemberPublicKey.model.js';
-import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 
 function validateMemberData(
   memberData: PatchMemberSchema,

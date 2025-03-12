@@ -11,7 +11,7 @@ import fastifyPlugin, { type PluginMetadata } from 'fastify-plugin';
 
 import type { PluginDone } from '../utilities/fastify/PluginDone.js';
 import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import { Member, Role } from '../models/Member.model.js';
+import { Member, Role } from '../members/Member.model.js';
 import type { Result, SuccessfulResult } from '../utilities/result.js';
 import type { AuthenticatedFastifyRequest } from '../api/orgAuthPlugin.js';
 

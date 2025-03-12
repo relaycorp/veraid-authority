@@ -1,14 +1,14 @@
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
-import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from '../../schemas/member.schema.js';
-import { createMember, deleteMember, getMember, updateMember } from '../../member.js';
-import { MemberProblem } from '../../MemberProblem.js';
-import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
-import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
-import { requireUserToBeAdmin } from '../orgAuthPlugin.js';
+import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
+import { requireUserToBeAdmin } from '../api/orgAuthPlugin.js';
+import memberPublicKeyRoutes from '../api/routes/memberPublicKey.routes.js';
+import memberKeyImportToken from '../api/routes/memberKeyImportToken.routes.js';
+import memberWorkloadIdentityRoutes from '../api/routes/memberWorkloadIdentity.routes.js';
 
-import memberPublicKeyRoutes from './memberPublicKey.routes.js';
-import memberKeyImportToken from './memberKeyImportToken.routes.js';
-import memberWorkloadIdentityRoutes from './memberWorkloadIdentity.routes.js';
+import { MemberProblem } from './MemberProblem.js';
+import { createMember, deleteMember, getMember, updateMember } from './member.js';
+import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from './member.schema.js';
 
 const RESPONSE_CODE_BY_PROBLEM: {
   [key in MemberProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
