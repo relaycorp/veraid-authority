@@ -1,19 +1,19 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { setUpTestDbConnection } from '../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   SIGNATURE,
   TEST_SERVICE_OID,
-} from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
-import { generateKeyPair } from '../testUtils/webcrypto.js';
-import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+} from '../../testUtils/stubs.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 import { MemberPublicKey } from './MemberPublicKey.model.js';

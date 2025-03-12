@@ -8,13 +8,13 @@ import {
 } from '@relaycorp/veraid';
 import type { BaseLogger } from 'pino';
 
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { Member } from '../members/Member.model.js';
-import { Kms } from '../utilities/kms/Kms.js';
+import { Kms } from '../../utilities/kms/Kms.js';
 import { Org } from '../organisations/Org.model.js';
-import { derDeserialisePublicKey } from '../utilities/webcrypto.js';
-import type { Result } from '../utilities/result.js';
-import type { MemberBundleRequest } from '../servers/awala/awala.schema.js';
+import { derDeserialisePublicKey } from '../../utilities/webcrypto.js';
+import type { Result } from '../../utilities/result.js';
+import type { MemberBundleRequest } from '../../servers/awala/awala.schema.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';

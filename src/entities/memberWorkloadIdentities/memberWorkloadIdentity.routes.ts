@@ -1,8 +1,8 @@
 import type { FastifyReply, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import type { PluginDone } from '../utilities/fastify/PluginDone.js';
-import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 import {

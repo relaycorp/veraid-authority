@@ -11,8 +11,9 @@ import {
   type MemberKeyImportRequest,
 } from '../awala.schema.js';
 import type { ServiceOptions } from '../../../utilities/serviceTypes.js';
-import { processMemberKeyImportToken } from '../../../memberKeyImports/memberKeyImportToken.js';
-import { createMemberBundleRequest } from '../../../memberKeys/memberBundle.js';
+// eslint-disable-next-line max-len
+import { processMemberKeyImportToken } from '../../../entities/memberKeyImports/memberKeyImportToken.js';
+import { createMemberBundleRequest } from '../../../entities/memberKeys/memberBundle.js';
 import {
   getIncomingServiceMessageEvent,
   type IncomingServiceMessageOptions,

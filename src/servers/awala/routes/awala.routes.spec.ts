@@ -10,8 +10,8 @@ import { type MockLogSet, partialPinoLog } from '../../../testUtils/logging.js';
 import { generateKeyPair } from '../../../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../../../utilities/webcrypto.js';
 // eslint-disable-next-line max-len
-import { MemberPublicKeyImportProblem } from '../../../memberKeyImports/MemberKeyImportTokenProblem.js';
-import type { MemberProblem } from '../../../members/MemberProblem.js';
+import { MemberPublicKeyImportProblem } from '../../../entities/memberKeyImports/MemberKeyImportTokenProblem.js';
+import type { MemberProblem } from '../../../entities/members/MemberProblem.js';
 import {
   AWALA_PEER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -26,7 +26,7 @@ import type { MemberKeyImportRequest } from '../awala.schema.js';
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblem>>>(),
 );
-jest.unstable_mockModule('../../../memberKeyImports/memberKeyImportToken.js', () => ({
+jest.unstable_mockModule('../../../entities/memberKeyImports/memberKeyImportToken.js', () => ({
   processMemberKeyImportToken: mockProcessMemberKeyImportToken,
   createMemberKeyImportToken: jest.fn(),
 }));
@@ -47,7 +47,7 @@ const mockGenerateMemberBundle = mockSpy(
     >
   >(),
 );
-jest.unstable_mockModule('../../../memberKeys/memberBundle.js', () => ({
+jest.unstable_mockModule('../../../entities/memberKeys/memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS: 90,

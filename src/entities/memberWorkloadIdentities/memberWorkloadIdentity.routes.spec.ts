@@ -1,11 +1,11 @@
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { MEMBER_ID, ORG_NAME, TEST_SERVICE_OID } from '../testUtils/stubs.js';
-import type { Result } from '../utilities/result.js';
-import { mockSpy } from '../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
+import { MEMBER_ID, ORG_NAME, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
+import type { Result } from '../../utilities/result.js';
+import { mockSpy } from '../../testUtils/jest.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
 import type { MemberWorkloadIdentityCreationResult } from './memberWorkloadIdentityTypes.js';
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
@@ -38,7 +38,7 @@ jest.unstable_mockModule('./memberWorkloadIdentity.js', () => ({
   deleteWorkloadIdentity: mockDeleteWorkloadIdentity,
 }));
 
-const { makeTestApiServer, testOrgRouteAuth } = await import('../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('member workload identity routes', () => {
   const getTestServerFixture = makeTestApiServer();

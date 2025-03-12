@@ -3,25 +3,25 @@ import type { Connection } from 'mongoose';
 import { jest } from '@jest/globals';
 import type { CloudEvent } from 'cloudevents';
 
-import { setUpTestDbConnection } from '../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_ID,
   MEMBER_PUBLIC_KEY_MONGO_ID,
   TEST_SERVICE_OID,
-} from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
-import { generateKeyPair } from '../testUtils/webcrypto.js';
-import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { mockSpy } from '../testUtils/jest.js';
-import type { Result } from '../utilities/result.js';
+} from '../../testUtils/stubs.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
+import { mockSpy } from '../../testUtils/jest.js';
+import type { Result } from '../../utilities/result.js';
 import type { MemberPublicKeyCreationResult } from '../memberKeys/memberPublicKeyTypes.js';
 import { MemberPublicKeyProblem } from '../memberKeys/MemberPublicKeyProblem.js';
-import { mockEmitters } from '../testUtils/eventing/mockEmitters.js';
-import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
-import { EmitterChannel } from '../utilities/eventing/EmitterChannel.js';
+import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
+import { BUNDLE_REQUEST_TYPE } from '../../events/bundleRequest.event.js';
+import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
 import { MemberKeyImportToken } from './MemberKeyImportToken.model.js';

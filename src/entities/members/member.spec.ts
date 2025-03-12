@@ -2,8 +2,8 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection, HydratedDocument } from 'mongoose';
 
-import { setUpTestDbConnection } from '../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_EMAIL,
@@ -15,14 +15,14 @@ import {
   ORG_NAME,
   SIGNATURE,
   TEST_SERVICE_OID,
-} from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
-import { getPromiseRejection } from '../testUtils/jest.js';
+} from '../../testUtils/stubs.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { getPromiseRejection } from '../../testUtils/jest.js';
 import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from '../memberKeys/MemberBundleRequest.model.js';
-import { generateKeyPair } from '../testUtils/webcrypto.js';
-import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';
 
 import { MemberProblem } from './MemberProblem.js';

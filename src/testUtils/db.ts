@@ -5,11 +5,11 @@ import { randomUUID } from 'node:crypto';
 import { createConnection, type Connection, type ConnectOptions, STATES } from 'mongoose';
 import { deleteModelWithClass } from '@typegoose/typegoose';
 
-import { Org } from '../organisations/Org.model.js';
-import { Member } from '../members/Member.model.js';
-import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
-import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';
-import { MemberBundleRequestModel } from '../memberKeys/MemberBundleRequest.model.js';
+import { Org } from '../entities/organisations/Org.model.js';
+import { Member } from '../entities/members/Member.model.js';
+import { MemberPublicKey } from '../entities/memberKeys/MemberPublicKey.model.js';
+import { MemberKeyImportToken } from '../entities/memberKeyImports/MemberKeyImportToken.model.js';
+import { MemberBundleRequestModel } from '../entities/memberKeys/MemberBundleRequest.model.js';
 
 const MODEL_SCHEMAS = Object.values([
   Org,

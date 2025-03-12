@@ -1,11 +1,11 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { setUpTestDbConnection } from '../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
-import { MEMBER_ID, TEST_SERVICE_OID } from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
-import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import { MEMBER_ID, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 
 import { MemberWorkloadIdentity } from './MemberWorkloadIdentity.model.js';
 import {

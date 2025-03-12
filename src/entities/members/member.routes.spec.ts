@@ -2,10 +2,10 @@
 import type { FastifyInstance, InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
 
-import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from '../testUtils/stubs.js';
-import type { Result, SuccessfulResult } from '../utilities/result.js';
-import { mockSpy } from '../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
+import { MEMBER_EMAIL, MEMBER_ID, MEMBER_NAME, ORG_NAME } from '../../testUtils/stubs.js';
+import type { Result, SuccessfulResult } from '../../utilities/result.js';
+import { mockSpy } from '../../testUtils/jest.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 
 import type { MemberCreationResult } from './memberTypes.js';
 import { MemberProblem } from './MemberProblem.js';
@@ -30,7 +30,7 @@ jest.unstable_mockModule('./member.js', () => ({
   updateMember: mockUpdateMember,
 }));
 
-const { makeTestApiServer, testOrgRouteAuth } = await import('../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
 describe('member routes', () => {
   const testMemberId = 'TEST_ID';

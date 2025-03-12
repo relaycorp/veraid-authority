@@ -8,7 +8,8 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../../events/bundleRequest.event.js';
-import { MemberBundleRequestModel } from '../../../memberKeys/MemberBundleRequest.model.js';
+// eslint-disable-next-line max-len
+import { MemberBundleRequestModel } from '../../../entities/memberKeys/MemberBundleRequest.model.js';
 import type { ServiceOptions } from '../../../utilities/serviceTypes.js';
 import { EmitterChannel } from '../../../utilities/eventing/EmitterChannel.js';
 

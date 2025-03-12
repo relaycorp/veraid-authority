@@ -6,15 +6,15 @@ import {
   MEMBER_PUBLIC_KEY_MONGO_ID as PUBLIC_KEY_ID,
   ORG_NAME,
   TEST_SERVICE_OID,
-} from '../testUtils/stubs.js';
-import type { Result } from '../utilities/result.js';
-import { mockSpy } from '../testUtils/jest.js';
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import { generateKeyPair } from '../testUtils/webcrypto.js';
-import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
-import { bufferToArrayBuffer } from '../utilities/buffer.js';
-import { VeraidContentType } from '../utilities/veraid.js';
+} from '../../testUtils/stubs.js';
+import type { Result } from '../../utilities/result.js';
+import { mockSpy } from '../../testUtils/jest.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { bufferToArrayBuffer } from '../../utilities/buffer.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
 
 import type { BundleCreationFailure } from './memberBundle.js';
 import type { MemberPublicKeySchema } from './memberPublicKey.schema.js';
@@ -46,7 +46,7 @@ jest.unstable_mockModule('./memberBundle.js', () => ({
   CERTIFICATE_EXPIRY_DAYS,
 }));
 
-const { makeTestApiServer, testOrgRouteAuth } = await import('../testUtils/apiServer.js');
+const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 const { publicKey } = await generateKeyPair();
 const publicKeyBuffer = await derSerialisePublicKey(publicKey);
 const publicKeyBase64 = publicKeyBuffer.toString('base64');

@@ -1,7 +1,7 @@
 import { getModelForClass } from '@typegoose/typegoose';
 
-import type { Result } from '../utilities/result.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
+import type { Result } from '../../utilities/result.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 
 import { MemberWorkloadIdentity } from './MemberWorkloadIdentity.model.js';
 import type { MemberWorkloadIdentitySchema } from './memberWorkloadIdentity.schema.js';

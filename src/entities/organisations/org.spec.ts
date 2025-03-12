@@ -3,16 +3,16 @@ import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
-import { setUpTestDbConnection } from '../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
-import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
-import { MEMBER_EMAIL, MEMBER_NAME, NON_ASCII_ORG_NAME, ORG_NAME } from '../testUtils/stubs.js';
-import { getPromiseRejection, mockSpy } from '../testUtils/jest.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
-import { mockKms } from '../testUtils/kms/mockKms.js';
-import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+import { setUpTestDbConnection } from '../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
+import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { MEMBER_EMAIL, MEMBER_NAME, NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
+import { getPromiseRejection, mockSpy } from '../../testUtils/jest.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
+import { mockKms } from '../../testUtils/kms/mockKms.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';
-import type { Result } from '../utilities/result.js';
+import type { Result } from '../../utilities/result.js';
 import type { MemberProblem } from '../members/MemberProblem.js';
 
 import { OrgProblem } from './OrgProblem.js';

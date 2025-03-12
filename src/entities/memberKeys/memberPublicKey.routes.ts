@@ -1,9 +1,9 @@
 import type { FastifyReply, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../utilities/http.js';
-import type { PluginDone } from '../utilities/fastify/PluginDone.js';
-import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
-import { VeraidContentType } from '../utilities/veraid.js';
+import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
+import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { VeraidContentType } from '../../utilities/veraid.js';
 
 import { generateMemberBundle } from './memberBundle.js';
 import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';

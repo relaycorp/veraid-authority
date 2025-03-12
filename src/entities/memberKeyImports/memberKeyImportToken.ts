@@ -1,13 +1,13 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import { CloudEvent } from 'cloudevents';
 
-import type { Result, SuccessfulResult } from '../utilities/result.js';
-import type { ServiceOptions } from '../utilities/serviceTypes.js';
+import type { Result, SuccessfulResult } from '../../utilities/result.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { createMemberPublicKey } from '../memberKeys/memberPublicKey.js';
-import type { MemberKeyImportRequest } from '../servers/awala/awala.schema.js';
-import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
-import { Emitter } from '../utilities/eventing/Emitter.js';
-import { EmitterChannel } from '../utilities/eventing/EmitterChannel.js';
+import type { MemberKeyImportRequest } from '../../servers/awala/awala.schema.js';
+import { BUNDLE_REQUEST_TYPE } from '../../events/bundleRequest.event.js';
+import { Emitter } from '../../utilities/eventing/Emitter.js';
+import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
 import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
