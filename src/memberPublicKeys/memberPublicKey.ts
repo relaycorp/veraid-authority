@@ -2,13 +2,14 @@ import { createPublicKey } from 'node:crypto';
 
 import { getModelForClass } from '@typegoose/typegoose';
 
-import type { Result } from './utilities/result.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { MemberPublicKey } from './models/MemberPublicKey.model.js';
-import type { MemberPublicKeySchema } from './schemas/memberPublicKey.schema.js';
+import type { Result } from '../utilities/result.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
+
+import { MemberPublicKey } from './MemberPublicKey.model.js';
+import type { MemberPublicKeySchema } from './memberPublicKey.schema.js';
 import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
-import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
 
 export async function createMemberPublicKey(
   memberId: string,

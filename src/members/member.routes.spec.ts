@@ -23,7 +23,7 @@ const mockGetMember = mockSpy(jest.fn<() => Promise<Result<MemberSchema, MemberP
 const mockDeleteMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblem>>>());
 const mockUpdateMember = mockSpy(jest.fn<() => Promise<Result<undefined, MemberProblem>>>());
 
-jest.unstable_mockModule('../../member.js', () => ({
+jest.unstable_mockModule('./member.js', () => ({
   createMember: mockCreateMember,
   getMember: mockGetMember,
   deleteMember: mockDeleteMember,

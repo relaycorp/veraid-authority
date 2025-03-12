@@ -2,7 +2,7 @@ import { HTTP_STATUS_CODES } from '../utilities/http.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../utilities/fastify/RouteOptions.js';
 import { requireUserToBeAdmin } from '../api/orgAuthPlugin.js';
-import memberPublicKeyRoutes from '../api/routes/memberPublicKey.routes.js';
+import memberPublicKeyRoutes from '../memberPublicKeys/memberPublicKey.routes.js';
 import memberKeyImportToken from '../api/routes/memberKeyImportToken.routes.js';
 import memberWorkloadIdentityRoutes from '../api/routes/memberWorkloadIdentity.routes.js';
 

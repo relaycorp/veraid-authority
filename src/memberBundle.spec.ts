@@ -20,7 +20,7 @@ import {
 import type { ServiceOptions } from './serviceTypes.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { Member, Role } from './members/Member.model.js';
-import { MemberPublicKey } from './models/MemberPublicKey.model.js';
+import { MemberPublicKey } from './memberPublicKeys/MemberPublicKey.model.js';
 import { generateKeyPair } from './testUtils/webcrypto.js';
 import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
