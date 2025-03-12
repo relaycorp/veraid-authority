@@ -14,8 +14,8 @@ import type { ServiceOptions } from '../serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
-import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
 
+import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import {
   createMemberPublicKey,

@@ -9,7 +9,7 @@ import { Org } from '../organisations/Org.model.js';
 import { Member } from '../members/Member.model.js';
 import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
 import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';
-import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../memberKeys/MemberBundleRequest.model.js';
 
 const MODEL_SCHEMAS = Object.values([
   Org,

@@ -2,8 +2,8 @@ import type { CloudEventV1 } from 'cloudevents';
 import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 
-import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberBundle.js';
-import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
+import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberKeys/memberBundle.js';
+import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import type { ServiceOptions } from '../../serviceTypes.js';

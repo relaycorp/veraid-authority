@@ -8,7 +8,7 @@ import {
   BUNDLE_REQUEST_TYPE,
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
-import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 

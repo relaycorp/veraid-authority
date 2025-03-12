@@ -4,8 +4,8 @@ import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from '../utilities/result.js';
 import type { ServiceOptions } from '../serviceTypes.js';
-import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
 
+import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import type { MemberPublicKeySchema } from './memberPublicKey.schema.js';
 import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';

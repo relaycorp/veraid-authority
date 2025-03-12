@@ -46,7 +46,7 @@ const mockGenerateMemberBundle = mockSpy(
     >
   >(),
 );
-jest.unstable_mockModule('../../memberBundle.js', () => ({
+jest.unstable_mockModule('../../memberKeys/memberBundle.js', () => ({
   createMemberBundleRequest: mockCreateMemberBundleRequest,
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS: 90,

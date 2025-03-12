@@ -51,7 +51,7 @@ function mockJwksAuthentication(
 
   done();
 }
-jest.unstable_mockModule('../../utilities/fastify/plugins/jwksAuthentication.js', () => ({
+jest.unstable_mockModule('../utilities/fastify/plugins/jwksAuthentication.js', () => ({
   default: fastifyPlugin(mockJwksAuthentication, { name: 'mock-jwks-authentication' }),
 }));
 const { makeApiServer } = await import('../api/server.js');

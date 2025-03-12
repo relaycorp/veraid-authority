@@ -3,11 +3,11 @@ import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection, HydratedDocument } from 'mongoose';
 import { addDays, addSeconds, subSeconds } from 'date-fns';
 
-import type { Kms } from './utilities/kms/Kms.js';
-import { mockedVeraidModule } from './testUtils/veraid.mock.js';
-import { Org } from './organisations/Org.model.js';
-import { setUpTestDbConnection } from './testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from './testUtils/logging.js';
+import type { Kms } from '../utilities/kms/Kms.js';
+import { mockedVeraidModule } from '../testUtils/veraid.mock.js';
+import { Org } from '../organisations/Org.model.js';
+import { setUpTestDbConnection } from '../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
 import {
   AWALA_PEER_ID,
   MEMBER_ID,
@@ -16,17 +16,18 @@ import {
   ORG_NAME,
   SIGNATURE,
   TEST_SERVICE_OID,
-} from './testUtils/stubs.js';
-import type { ServiceOptions } from './serviceTypes.js';
-import { derSerialisePublicKey } from './utilities/webcrypto.js';
-import { Member, Role } from './members/Member.model.js';
-import { MemberPublicKey } from './memberKeys/MemberPublicKey.model.js';
-import { generateKeyPair } from './testUtils/webcrypto.js';
-import { type MockKms, mockKms } from './testUtils/kms/mockKms.js';
-import { requireFailureResult, requireSuccessfulResult } from './testUtils/result.js';
-import { stringToArrayBuffer } from './testUtils/buffer.js';
-import { MemberBundleRequestModel } from './models/MemberBundleRequest.model.js';
-import type { MemberBundleRequest } from './schemas/awala.schema.js';
+} from '../testUtils/stubs.js';
+import type { ServiceOptions } from '../serviceTypes.js';
+import { derSerialisePublicKey } from '../utilities/webcrypto.js';
+import { Member, Role } from '../members/Member.model.js';
+import { generateKeyPair } from '../testUtils/webcrypto.js';
+import { type MockKms, mockKms } from '../testUtils/kms/mockKms.js';
+import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
+import { stringToArrayBuffer } from '../testUtils/buffer.js';
+import type { MemberBundleRequest } from '../schemas/awala.schema.js';
+
+import { MemberPublicKey } from './MemberPublicKey.model.js';
+import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 
 import SpiedFunction = jest.SpiedFunction;
 

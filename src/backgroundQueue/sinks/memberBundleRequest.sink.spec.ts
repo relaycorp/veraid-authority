@@ -20,20 +20,20 @@ import {
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
 import type { ServiceOptions } from '../../serviceTypes.js';
-import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { mockEmitters } from '../../testUtils/eventing/mockEmitters.js';
 import { OUTGOING_SERVICE_MESSAGE_TYPE } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
-import type { BundleCreationFailure } from '../../memberBundle.js';
+import type { BundleCreationFailure } from '../../memberKeys/memberBundle.js';
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
   jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
 );
-jest.unstable_mockModule('../../memberBundle.js', () => ({
+jest.unstable_mockModule('../../memberKeys/memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS,
 }));

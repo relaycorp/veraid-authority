@@ -19,7 +19,7 @@ import {
   MEMBER_PUBLIC_KEY_MONGO_ID,
   SIGNATURE,
 } from '../../testUtils/stubs.js';
-import { MemberBundleRequestModel } from '../../models/MemberBundleRequest.model.js';
+import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 import { BUNDLE_REQUEST_DATE_RANGE } from './memberBundleRequestTrigger.sink.js';

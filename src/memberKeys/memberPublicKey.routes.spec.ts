@@ -15,8 +15,8 @@ import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import type { FastifyTypedInstance } from '../utilities/fastify/FastifyTypedInstance.js';
 import { bufferToArrayBuffer } from '../utilities/buffer.js';
 import { VeraidContentType } from '../utilities/veraid.js';
-import type { BundleCreationFailure } from '../memberBundle.js';
 
+import type { BundleCreationFailure } from './memberBundle.js';
 import type { MemberPublicKeySchema } from './memberPublicKey.schema.js';
 import { MemberPublicKeyProblem } from './MemberPublicKeyProblem.js';
 import type { MemberPublicKeyCreationResult } from './memberPublicKeyTypes.js';
@@ -31,7 +31,7 @@ const mockDeleteMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyProblem>>>(),
 );
 
-jest.unstable_mockModule('../memberKeys/memberPublicKey.js', () => ({
+jest.unstable_mockModule('./memberPublicKey.js', () => ({
   createMemberPublicKey: mockCreateMemberPublicKey,
   getMemberPublicKey: mockGetMemberPublicKey,
   deleteMemberPublicKey: mockDeleteMemberPublicKey,
@@ -41,7 +41,7 @@ const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
   jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
 );
-jest.unstable_mockModule('../memberBundle.js', () => ({
+jest.unstable_mockModule('./memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
   CERTIFICATE_EXPIRY_DAYS,
 }));
