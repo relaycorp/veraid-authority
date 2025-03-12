@@ -6,7 +6,7 @@ import type { ServiceOptions } from './serviceTypes.js';
 import { MemberKeyImportToken } from './models/MemberKeyImportToken.model.js';
 import type { MemberKeyImportTokenCreationResult } from './memberKeyImportTokenTypes.js';
 import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
-import { createMemberPublicKey } from './memberPublicKeys/memberPublicKey.js';
+import { createMemberPublicKey } from './memberKeys/memberPublicKey.js';
 import type { MemberKeyImportRequest } from './schemas/awala.schema.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 import { Emitter } from './utilities/eventing/Emitter.js';

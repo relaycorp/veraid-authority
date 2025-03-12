@@ -19,7 +19,7 @@ import {
 import type { ServiceOptions } from '../serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { getPromiseRejection } from '../testUtils/jest.js';
-import { MemberPublicKey } from '../memberPublicKeys/MemberPublicKey.model.js';
+import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from '../models/MemberBundleRequest.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';

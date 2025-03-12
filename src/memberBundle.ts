@@ -9,7 +9,7 @@ import {
 import type { BaseLogger } from 'pino';
 
 import type { ServiceOptions } from './serviceTypes.js';
-import { MemberPublicKey } from './memberPublicKeys/MemberPublicKey.model.js';
+import { MemberPublicKey } from './memberKeys/MemberPublicKey.model.js';
 import { Member } from './members/Member.model.js';
 import { Kms } from './utilities/kms/Kms.js';
 import { Org } from './organisations/Org.model.js';

@@ -18,9 +18,9 @@ import { generateKeyPair } from './testUtils/webcrypto.js';
 import { derSerialisePublicKey } from './utilities/webcrypto.js';
 import { mockSpy } from './testUtils/jest.js';
 import type { Result } from './utilities/result.js';
-import type { MemberPublicKeyCreationResult } from './memberPublicKeys/memberPublicKeyTypes.js';
+import type { MemberPublicKeyCreationResult } from './memberKeys/memberPublicKeyTypes.js';
 import { MemberPublicKeyImportProblem } from './MemberKeyImportTokenProblem.js';
-import { MemberPublicKeyProblem } from './memberPublicKeys/MemberPublicKeyProblem.js';
+import { MemberPublicKeyProblem } from './memberKeys/MemberPublicKeyProblem.js';
 import { mockEmitters } from './testUtils/eventing/mockEmitters.js';
 import { BUNDLE_REQUEST_TYPE } from './events/bundleRequest.event.js';
 import { EmitterChannel } from './utilities/eventing/EmitterChannel.js';
@@ -33,7 +33,7 @@ const mockCreateMemberPublicKey = mockSpy(
   jest.fn<() => Promise<Result<MemberPublicKeyCreationResult, MemberPublicKeyProblem>>>(),
 );
 
-jest.unstable_mockModule('./memberPublicKeys/memberPublicKey.js', () => ({
+jest.unstable_mockModule('./memberKeys/memberPublicKey.js', () => ({
   createMemberPublicKey: mockCreateMemberPublicKey,
 }));
 
