@@ -6,7 +6,7 @@ import { CERTIFICATE_EXPIRY_DAYS, generateMemberBundle } from '../../memberKeys/
 import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import { makeOutgoingServiceMessageEvent } from '../../events/outgoingServiceMessage.event.js';
 import { VeraidContentType } from '../../utilities/veraid.js';
-import type { ServiceOptions } from '../../serviceTypes.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { Emitter } from '../../utilities/eventing/Emitter.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 

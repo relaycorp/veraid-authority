@@ -14,7 +14,7 @@ import { createConnection, type ConnectOptions } from 'mongoose';
 import { CloudEvent } from 'cloudevents';
 import { addMinutes, formatISO } from 'date-fns';
 
-import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
+import type { MemberKeyImportRequest } from '../awala/awala.schema.js';
 import { Org } from '../organisations/Org.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';

@@ -2,9 +2,9 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { CloudEvent } from 'cloudevents';
 
 import type { Result, SuccessfulResult } from '../utilities/result.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import type { ServiceOptions } from '../utilities/serviceTypes.js';
 import { createMemberPublicKey } from '../memberKeys/memberPublicKey.js';
-import type { MemberKeyImportRequest } from '../schemas/awala.schema.js';
+import type { MemberKeyImportRequest } from '../awala/awala.schema.js';
 import { BUNDLE_REQUEST_TYPE } from '../events/bundleRequest.event.js';
 import { Emitter } from '../utilities/eventing/Emitter.js';
 import { EmitterChannel } from '../utilities/eventing/EmitterChannel.js';

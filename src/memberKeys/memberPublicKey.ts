@@ -3,7 +3,7 @@ import { createPublicKey } from 'node:crypto';
 import { getModelForClass } from '@typegoose/typegoose';
 
 import type { Result } from '../utilities/result.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import type { ServiceOptions } from '../utilities/serviceTypes.js';
 
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 import { MemberPublicKey } from './MemberPublicKey.model.js';

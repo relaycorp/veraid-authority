@@ -21,7 +21,7 @@ import {
 import { CE_ID } from '../../testUtils/eventing/stubs.js';
 import { INCOMING_SERVICE_MESSAGE_TYPE } from '../../events/incomingServiceMessage.event.js';
 import { postEvent } from '../../testUtils/eventing/cloudEvents.js';
-import type { MemberKeyImportRequest } from '../../schemas/awala.schema.js';
+import type { MemberKeyImportRequest } from '../awala.schema.js';
 
 const mockProcessMemberKeyImportToken = mockSpy(
   jest.fn<() => Promise<Result<undefined, MemberPublicKeyImportProblem>>>(),

@@ -9,7 +9,7 @@ import {
   type MemberBundleRequestPayload,
 } from '../../events/bundleRequest.event.js';
 import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
-import type { ServiceOptions } from '../../serviceTypes.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { EmitterChannel } from '../../utilities/eventing/EmitterChannel.js';
 
 async function triggerMemberBundleIssuance(

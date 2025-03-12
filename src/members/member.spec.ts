@@ -16,7 +16,7 @@ import {
   SIGNATURE,
   TEST_SERVICE_OID,
 } from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import type { ServiceOptions } from '../utilities/serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { getPromiseRejection } from '../testUtils/jest.js';
 import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';

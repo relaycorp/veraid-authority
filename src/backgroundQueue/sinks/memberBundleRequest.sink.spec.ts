@@ -19,7 +19,7 @@ import {
 } from '../../testUtils/stubs.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
-import type { ServiceOptions } from '../../serviceTypes.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { MemberBundleRequestModel } from '../../memberKeys/MemberBundleRequest.model.js';
 import { partialPinoLog } from '../../testUtils/logging.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';

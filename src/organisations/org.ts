@@ -3,7 +3,7 @@ import isValidDomain from 'is-valid-domain';
 import type { AnyKeys } from 'mongoose';
 
 import type { Result } from '../utilities/result.js';
-import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../utilities/serviceTypes.js';
 import { Kms } from '../utilities/kms/Kms.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';

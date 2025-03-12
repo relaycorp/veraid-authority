@@ -11,7 +11,7 @@ import {
   MEMBER_PUBLIC_KEY_MONGO_ID,
   TEST_SERVICE_OID,
 } from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import type { ServiceOptions } from '../utilities/serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';

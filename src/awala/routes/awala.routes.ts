@@ -9,8 +9,8 @@ import {
   isMemberKeyImportRequest,
   type MemberBundleRequest,
   type MemberKeyImportRequest,
-} from '../../schemas/awala.schema.js';
-import type { ServiceOptions } from '../../serviceTypes.js';
+} from '../awala.schema.js';
+import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { processMemberKeyImportToken } from '../../memberKeyImports/memberKeyImportToken.js';
 import { createMemberBundleRequest } from '../../memberKeys/memberBundle.js';
 import {

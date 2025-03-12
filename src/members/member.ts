@@ -3,7 +3,7 @@ import { validateUserName } from '@relaycorp/veraid';
 import type { HydratedDocument } from 'mongoose';
 
 import type { Result } from '../utilities/result.js';
-import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../serviceTypes.js';
+import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../utilities/serviceTypes.js';
 import { MemberBundleRequestModel } from '../memberKeys/MemberBundleRequest.model.js';
 import { MemberPublicKey } from '../memberKeys/MemberPublicKey.model.js';
 import { MemberKeyImportToken } from '../memberKeyImports/MemberKeyImportToken.model.js';

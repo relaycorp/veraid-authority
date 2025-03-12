@@ -17,14 +17,14 @@ import {
   SIGNATURE,
   TEST_SERVICE_OID,
 } from '../testUtils/stubs.js';
-import type { ServiceOptions } from '../serviceTypes.js';
+import type { ServiceOptions } from '../utilities/serviceTypes.js';
 import { derSerialisePublicKey } from '../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';
 import { generateKeyPair } from '../testUtils/webcrypto.js';
 import { type MockKms, mockKms } from '../testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from '../testUtils/result.js';
 import { stringToArrayBuffer } from '../testUtils/buffer.js';
-import type { MemberBundleRequest } from '../schemas/awala.schema.js';
+import type { MemberBundleRequest } from '../awala/awala.schema.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
