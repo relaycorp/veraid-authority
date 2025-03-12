@@ -75,7 +75,7 @@ export async function getWorkloadIdentity(
 
     result: {
       openidProviderIssuerUrl: workloadIdentity.openidProviderIssuerUrl,
-      jwtSubjectField: workloadIdentity.jwtSubjectField,
+      jwtSubjectClaim: workloadIdentity.jwtSubjectClaim,
       jwtSubjectValue: workloadIdentity.jwtSubjectValue,
       veraidServiceOid: workloadIdentity.veraidServiceOid,
       veraidSignatureTtlSeconds: workloadIdentity.veraidSignatureTtlSeconds,

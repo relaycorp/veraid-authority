@@ -7,7 +7,7 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
 
   properties: {
     openidProviderIssuerUrl: { type: 'string' },
-    jwtSubjectField: { type: 'string' },
+    jwtSubjectClaim: { type: 'string' },
     jwtSubjectValue: { type: 'string' },
     veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
     veraidSignatureTtlSeconds: { type: 'integer', minimum: 1, maximum: 3600 },
@@ -16,7 +16,7 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
 
   required: [
     'openidProviderIssuerUrl',
-    'jwtSubjectField',
+    'jwtSubjectClaim',
     'jwtSubjectValue',
     'veraidServiceOid',
     'veraidSignaturePlaintext',

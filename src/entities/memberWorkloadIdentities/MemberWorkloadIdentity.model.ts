@@ -18,7 +18,7 @@ export class MemberWorkloadIdentity {
   public openidProviderIssuerUrl!: string;
 
   @prop({ required: true })
-  public jwtSubjectField!: string;
+  public jwtSubjectClaim!: string;
 
   @prop({ required: true })
   public jwtSubjectValue!: string;
