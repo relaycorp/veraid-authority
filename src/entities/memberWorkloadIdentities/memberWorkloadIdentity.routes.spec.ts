@@ -11,8 +11,8 @@ import type { MemberWorkloadIdentityCreationResult } from './memberWorkloadIdent
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 import type { MemberWorkloadIdentitySchema } from './memberWorkloadIdentity.schema.js';
 
-const JWKS_URL = 'https://example.com/.well-known/jwks.json';
-const JWT_SUBJECT_FIELD = 'sub';
+const OPENID_PROVIDER_ISSUER_URL = 'https://idp.example.com';
+const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
@@ -55,8 +55,8 @@ describe('member workload identity routes', () => {
 
     describe('Auth', () => {
       const payload: MemberWorkloadIdentitySchema = {
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -69,8 +69,8 @@ describe('member workload identity routes', () => {
 
     test('Valid data should be stored', async () => {
       const payload: MemberWorkloadIdentitySchema = {
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -96,8 +96,8 @@ describe('member workload identity routes', () => {
 
     test('Invalid TTL should be refused', async () => {
       const payload: MemberWorkloadIdentitySchema = {
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -115,8 +115,8 @@ describe('member workload identity routes', () => {
 
     test('Malformed service OID should be refused', async () => {
       const payload: MemberWorkloadIdentitySchema = {
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: `${TEST_SERVICE_OID}@`,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -132,8 +132,8 @@ describe('member workload identity routes', () => {
 
     test('Service function returning INVALID_TTL should be refused', async () => {
       const payload: MemberWorkloadIdentitySchema = {
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -165,8 +165,8 @@ describe('member workload identity routes', () => {
           didSucceed: true,
 
           result: {
-            jwksUrl: JWKS_URL,
-            jwtSubjectField: JWT_SUBJECT_FIELD,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
             veraidServiceOid: TEST_SERVICE_OID,
             veraidSignatureTtlSeconds: 3600,
@@ -185,8 +185,8 @@ describe('member workload identity routes', () => {
         didSucceed: true,
 
         result: {
-          jwksUrl: JWKS_URL,
-          jwtSubjectField: JWT_SUBJECT_FIELD,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: 3600,
@@ -235,8 +235,8 @@ describe('member workload identity routes', () => {
           didSucceed: true,
 
           result: {
-            jwksUrl: JWKS_URL,
-            jwtSubjectField: JWT_SUBJECT_FIELD,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
             veraidServiceOid: TEST_SERVICE_OID,
             veraidSignatureTtlSeconds: 3600,
@@ -255,8 +255,8 @@ describe('member workload identity routes', () => {
         didSucceed: true,
 
         result: {
-          jwksUrl: JWKS_URL,
-          jwtSubjectField: JWT_SUBJECT_FIELD,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: 3600,
@@ -268,8 +268,8 @@ describe('member workload identity routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        jwksUrl: JWKS_URL,
-        jwtSubjectField: JWT_SUBJECT_FIELD,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
