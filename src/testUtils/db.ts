@@ -10,8 +10,10 @@ import { Member } from '../entities/members/Member.model.js';
 import { MemberPublicKey } from '../entities/memberKeys/MemberPublicKey.model.js';
 import { MemberKeyImportToken } from '../entities/memberKeyImports/MemberKeyImportToken.model.js';
 import { MemberBundleRequestModel } from '../entities/memberKeys/MemberBundleRequest.model.js';
+import { CachedJwks } from '../entities/memberWorkloadIdentities/jwks/CachedJwks.model.js';
 
 const MODEL_SCHEMAS = Object.values([
+  CachedJwks,
   Org,
   Member,
   MemberPublicKey,
