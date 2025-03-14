@@ -647,5 +647,36 @@ describe('fetchAndCacheJwks', () => {
         }),
       );
     });
+
+    test('should cap cache TTL at 7 days even if max-age is longer', async () => {
+      const sevenDaysInSeconds = 604_800;
+      const maxAgeSeconds = sevenDaysInSeconds + 10;
+      const startTime = Date.now();
+      mockFetch
+        .mockResolvedValueOnce(
+          makeJsonResponse(DISCOVERY_DOC, {
+            additionalHeaders: {
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              'Cache-Control': `max-age=${maxAgeSeconds}`,
+            },
+          }),
+        )
+        .mockResolvedValueOnce(
+          makeJsonResponse(JWKS_DOC, {
+            additionalHeaders: {
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              'Cache-Control': `max-age=${maxAgeSeconds}`,
+            },
+          }),
+        );
+
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
+
+      const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
+      expect(cachedJwks).not.toBeNull();
+      const expectedMinExpiry = new Date(startTime + sevenDaysInSeconds * 1000);
+      const expectedMaxExpiry = new Date(Date.now() + sevenDaysInSeconds * 1000);
+      expect(cachedJwks!.expiry).toBeBetween(expectedMinExpiry, expectedMaxExpiry);
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import { addSeconds } from 'date-fns';
+import { addSeconds, secondsInDay } from 'date-fns';
 import type { Connection } from 'mongoose';
 import type { Logger } from 'pino';
 
@@ -9,6 +9,8 @@ import { type JwksDocumentSchema, validateJwksDocument } from './jwksDocument.sc
 
 const REQUEST_TIMEOUT_MS = 5000;
 const DEFAULT_CACHE_TTL_SECONDS = 300;
+const MAX_CACHE_TTL_DAYS = 7;
+const MAX_CACHE_TTL_SECONDS = MAX_CACHE_TTL_DAYS * secondsInDay;
 
 const DISCOVERY_ENDPOINT_PATH = '/.well-known/openid-configuration';
 
@@ -33,7 +35,7 @@ function getCacheTtlFromResponse(response: Response, logger: Logger): number {
         logger.info({ cacheControlMaxAge: maxAgeValue }, 'Malformed Cache-Control maxAge');
         return DEFAULT_CACHE_TTL_SECONDS;
       }
-      return parsedMaxAge;
+      return Math.min(parsedMaxAge, MAX_CACHE_TTL_SECONDS);
     }
   }
 
@@ -136,7 +138,7 @@ async function cacheJwksIfAllowed(
 ): Promise<void> {
   const discoveryMaxAge = getCacheTtlFromResponse(discoveryResponse, logger);
   const jwksMaxAge = getCacheTtlFromResponse(jwksResponse, logger);
-  const maxAgeSeconds = Math.min(discoveryMaxAge, jwksMaxAge);
+  const maxAgeSeconds = Math.min(discoveryMaxAge, jwksMaxAge, MAX_CACHE_TTL_SECONDS);
 
   if (maxAgeSeconds > 0) {
     const expiry = addSeconds(new Date(), maxAgeSeconds);
