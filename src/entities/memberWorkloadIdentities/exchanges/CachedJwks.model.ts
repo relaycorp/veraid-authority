@@ -1,4 +1,4 @@
-import { prop, modelOptions, index } from '@typegoose/typegoose';
+import { prop, modelOptions, index, Severity } from '@typegoose/typegoose';
 
 import { JwksDocumentSchema } from './jwksDocument.schema.js';
 
@@ -18,7 +18,7 @@ export class CachedJwks {
   })
   public issuerUrl!: URL;
 
-  @prop({ required: true, type: Object })
+  @prop({ allowMixed: Severity.ALLOW, required: true })
   public document!: JwksDocumentSchema;
 
   @prop({ required: true })
