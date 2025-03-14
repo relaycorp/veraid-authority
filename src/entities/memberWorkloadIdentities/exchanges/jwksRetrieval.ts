@@ -39,10 +39,10 @@ function getCacheTtlFromResponse(response: Response, logger: Logger): number {
 }
 
 async function fetchDiscoveryDocument(
-  issuerUrl: string,
+  issuerUrl: URL,
   logger: Logger,
 ): Promise<{ jwksUri: string; discoveryResponse: Response }> {
-  const discoveryUrl = `${issuerUrl}/.well-known/openid-configuration`;
+  const discoveryUrl = `${issuerUrl.toString()}/.well-known/openid-configuration`;
   let discoveryResponse;
   try {
     discoveryResponse = await fetch(discoveryUrl, {
@@ -115,7 +115,7 @@ async function fetchJwksDocument(
 
 async function cacheJwksIfAllowed(
   jwksDocument: JwksDocumentSchema,
-  issuerUrl: string,
+  issuerUrl: URL,
   discoveryResponse: Response,
   jwksResponse: Response,
   cachedJwksModel: ReturnModelType<typeof CachedJwks>,
@@ -146,7 +146,7 @@ async function cacheJwksIfAllowed(
 }
 
 export async function fetchAndCacheJwks(
-  issuerUrl: string,
+  issuerUrl: URL,
   connection: Connection,
   logger: Logger,
 ): Promise<JwksDocumentSchema> {

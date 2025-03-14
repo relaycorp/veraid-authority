@@ -10,10 +10,10 @@ import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
 import { fetchAndCacheJwks } from './jwksRetrieval.js';
 import { CachedJwks } from './CachedJwks.model.js';
 
-const ISSUER_URL = 'https://example.com/issuer';
-const JWKS_URL = 'https://example.com/issuer/.well-known/jwks.json';
+const ISSUER_URL = new URL('https://example.com/issuer');
+const JWKS_URL = `${ISSUER_URL.toString()}/.well-known/jwks.json`;
 const JWKS_DOC = { keys: [{ kid: 'key1' }] };
-const DISCOVERY_URL = 'https://example.com/issuer/.well-known/openid-configuration';
+const DISCOVERY_URL = `${ISSUER_URL.toString()}/.well-known/openid-configuration`;
 // eslint-disable-next-line @typescript-eslint/naming-convention, camelcase
 const DISCOVERY_DOC = { jwks_uri: JWKS_URL };
 const DEFAULT_MAX_AGE_SECONDS = 300;
@@ -439,7 +439,7 @@ describe('fetchAndCacheJwks', () => {
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
-      expect(cachedJwks?.issuerUrl).toBe(ISSUER_URL);
+      expect(cachedJwks?.issuerUrl).toMatchObject(ISSUER_URL);
     });
 
     test('should set document to JWKS if caching is allowed', async () => {

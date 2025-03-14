@@ -10,8 +10,13 @@ import { JwksDocumentSchema } from './jwksDocument.schema.js';
 @index({ issuerUrl: 1 }, { unique: true })
 @index({ expiry: 1 }, { expireAfterSeconds: 0 })
 export class CachedJwks {
-  @prop({ required: true })
-  public issuerUrl!: string;
+  @prop({
+    required: true,
+    type: String,
+    get: (url: string) => new URL(url),
+    set: (url: URL) => url.toString(),
+  })
+  public issuerUrl!: URL;
 
   @prop({ required: true, type: Object })
   public document!: JwksDocumentSchema;
