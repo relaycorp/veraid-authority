@@ -163,7 +163,7 @@ export async function fetchAndCacheJwks(
 
   const { jwksUri, discoveryResponse } = await fetchDiscoveryDocument(issuerUrl, issuerAwareLogger);
 
-  const jwksAwareLogger = issuerAwareLogger.child({ jwksUrl: jwksUri });
+  const jwksAwareLogger = issuerAwareLogger.child({ jwksUri });
   const { jwksDocument, jwksResponse } = await fetchJwksDocument(jwksUri, jwksAwareLogger);
 
   await cacheJwksIfAllowed(

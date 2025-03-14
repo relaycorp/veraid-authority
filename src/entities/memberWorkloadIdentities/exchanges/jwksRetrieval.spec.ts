@@ -194,7 +194,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Retrieved JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -229,7 +229,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'JWKS document retrieval failed', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
 
           err: expect.objectContaining({
             message: error.message,
@@ -251,7 +251,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'JWKS document retrieval failed', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
           httpStatus,
         }),
       );
@@ -273,7 +273,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Got malformed JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
 
           err: expect.objectContaining({
             message: expect.stringMatching(/is not valid JSON/u),
@@ -295,7 +295,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Got invalid JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -322,7 +322,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -347,7 +347,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -379,7 +379,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -411,7 +411,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
         }),
       );
     });
@@ -500,7 +500,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cached JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
           maxAgeSeconds: discoveryMaxAge,
           discoveryMaxAge,
           jwksMaxAge,
@@ -540,7 +540,7 @@ describe('fetchAndCacheJwks', () => {
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('debug', 'Cached JWKS document', {
           issuerUrl: ISSUER_URL,
-          jwksUrl: JWKS_URL,
+          jwksUri: JWKS_URL,
           maxAgeSeconds: jwksMaxAge,
           discoveryMaxAge,
           jwksMaxAge,
