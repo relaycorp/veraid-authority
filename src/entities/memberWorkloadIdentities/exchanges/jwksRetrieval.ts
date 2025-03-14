@@ -10,6 +10,8 @@ import { type JwksDocumentSchema, validateJwksDocument } from './jwksDocument.sc
 const REQUEST_TIMEOUT_MS = 5000;
 const DEFAULT_CACHE_TTL_SECONDS = 300;
 
+const DISCOVERY_ENDPOINT_PATH = '/.well-known/openid-configuration';
+
 function getCacheTtlFromResponse(response: Response, logger: Logger): number {
   const cacheControl = response.headers.get('Cache-Control');
   if (cacheControl === null || cacheControl === '') {
@@ -38,11 +40,20 @@ function getCacheTtlFromResponse(response: Response, logger: Logger): number {
   return DEFAULT_CACHE_TTL_SECONDS;
 }
 
+function sanitiseJwksUri(jwksUri: string, logger: Logger): URL {
+  try {
+    return new URL(jwksUri);
+  } catch (err) {
+    logger.info({ jwksUri, err }, 'Malformed JWKS URI');
+    throw new Error('Malformed JWKS URI');
+  }
+}
+
 async function fetchDiscoveryDocument(
   issuerUrl: URL,
   logger: Logger,
-): Promise<{ jwksUri: string; discoveryResponse: Response }> {
-  const discoveryUrl = `${issuerUrl.toString()}/.well-known/openid-configuration`;
+): Promise<{ jwksUri: URL; discoveryResponse: Response }> {
+  const discoveryUrl = new URL(`${issuerUrl.toString()}${DISCOVERY_ENDPOINT_PATH}`);
   let discoveryResponse;
   try {
     discoveryResponse = await fetch(discoveryUrl, {
@@ -71,14 +82,16 @@ async function fetchDiscoveryDocument(
     throw new Error('Invalid discovery document: missing or invalid jwksUri');
   }
 
+  const jwksUri = sanitiseJwksUri(discoveryDocument.jwks_uri, logger);
+
   return {
-    jwksUri: discoveryDocument.jwks_uri,
+    jwksUri,
     discoveryResponse,
   };
 }
 
 async function fetchJwksDocument(
-  jwksUri: string,
+  jwksUri: URL,
   logger: Logger,
 ): Promise<{ jwksDocument: JwksDocumentSchema; jwksResponse: Response }> {
   let jwksResponse;
