@@ -5,6 +5,7 @@ import { addMinutes } from 'date-fns';
 
 import { mockSpy } from '../../../testUtils/jest.js';
 import { setUpTestDbConnection } from '../../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
 
 import { fetchAndCacheJwks } from './jwksRetrieval.js';
 import { CachedJwks } from './CachedJwks.model.js';
@@ -41,6 +42,7 @@ function makeJsonResponse(
 
 describe('fetchAndCacheJwks', () => {
   const getConnection = setUpTestDbConnection();
+  const mockLogging = makeMockLogging();
 
   let connection: Connection;
   let cachedJwksModel: ReturnModelType<typeof CachedJwks>;
@@ -58,10 +60,15 @@ describe('fetchAndCacheJwks', () => {
       expiry,
     });
 
-    const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+    const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
     expect(mockFetch).not.toHaveBeenCalled();
     expect(result).toMatchObject(JWKS_DOC);
+    expect(mockLogging.logs).toContainEqual(
+      partialPinoLog('debug', 'JWKS cache hit', {
+        issuerUrl: ISSUER_URL,
+      }),
+    );
   });
 
   describe('Discovery endpoint retrieval', () => {
@@ -70,10 +77,15 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(mockFetch).toHaveBeenNthCalledWith(1, DISCOVERY_URL, expect.anything());
       expect(result).toMatchObject(JWKS_DOC);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'JWKS cache missed', {
+          issuerUrl: ISSUER_URL,
+        }),
+      );
     });
 
     test('should time out after 5 seconds', async () => {
@@ -84,7 +96,7 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(mockFetch).toHaveBeenCalledWith(
         DISCOVERY_URL,
@@ -95,11 +107,38 @@ describe('fetchAndCacheJwks', () => {
       expect(mockAbortSignalTimeout).toHaveBeenNthCalledWith(1, 5000);
     });
 
-    test('should error out if discovery document results in 4XX-5XX error', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse('Not Found', { status: 404 }));
+    test('should log connection errors', async () => {
+      const error = new Error('Network error');
+      mockFetch.mockRejectedValueOnce(error);
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
+        error,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Discovery document retrieval failed', {
+          issuerUrl: ISSUER_URL,
+
+          err: expect.objectContaining({
+            message: error.message,
+          }),
+        }),
+      );
+    });
+
+    test('should error out if discovery document results in 4XX-5XX error', async () => {
+      const httpStatus = 404;
+      mockFetch.mockResolvedValueOnce(makeJsonResponse('Not Found', { status: httpStatus }));
+
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
         /Failed to retrieve discovery document/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Discovery document retrieval failed', {
+          issuerUrl: ISSUER_URL,
+          httpStatus,
+        }),
       );
     });
 
@@ -112,16 +151,32 @@ describe('fetchAndCacheJwks', () => {
         }),
       );
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
         /Malformed discovery document/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Got malformed discovery document', {
+          issuerUrl: ISSUER_URL,
+
+          err: expect.objectContaining({
+            message: expect.stringMatching(/is not valid JSON/u),
+          }),
+        }),
       );
     });
 
     test('should error out if discovery document is invalid', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse([]));
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
         /Invalid discovery document/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Got invalid discovery document', {
+          issuerUrl: ISSUER_URL,
+        }),
       );
     });
   });
@@ -132,10 +187,16 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(mockFetch).toHaveBeenNthCalledWith(2, JWKS_URL, expect.anything());
       expect(result).toMatchObject(JWKS_DOC);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Retrieved JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
+      );
     });
 
     test('should time out after 5 seconds', async () => {
@@ -146,7 +207,7 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(mockFetch).toHaveBeenCalledWith(
         JWKS_URL,
@@ -157,13 +218,42 @@ describe('fetchAndCacheJwks', () => {
       expect(mockAbortSignalTimeout).toHaveBeenNthCalledWith(2, 5000);
     });
 
+    test('should log connection errors', async () => {
+      const error = new Error('Network error');
+      mockFetch.mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC)).mockRejectedValueOnce(error);
+
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
+        error,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'JWKS document retrieval failed', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+
+          err: expect.objectContaining({
+            message: error.message,
+          }),
+        }),
+      );
+    });
+
     test('should error out if JWKS results in 4XX-5XX error', async () => {
+      const httpStatus = 404;
       mockFetch
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
-        .mockResolvedValueOnce(makeJsonResponse('Not Found', { status: 404 }));
+        .mockResolvedValueOnce(makeJsonResponse('Not Found', { status: httpStatus }));
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
         /Failed to retrieve JWKS/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'JWKS document retrieval failed', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+          httpStatus,
+        }),
       );
     });
 
@@ -176,7 +266,20 @@ describe('fetchAndCacheJwks', () => {
         }),
       );
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(/Malformed JWKS/u);
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
+        /Malformed JWKS/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Got malformed JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+
+          err: expect.objectContaining({
+            message: expect.stringMatching(/is not valid JSON/u),
+          }),
+        }),
+      );
     });
 
     test('should error out if JWKS document format is invalid', async () => {
@@ -185,8 +288,15 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(invalidJwksDoc));
 
-      await expect(fetchAndCacheJwks(ISSUER_URL, connection)).rejects.toThrow(
+      await expect(fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger)).rejects.toThrow(
         /Invalid JWKS document format/u,
+      );
+
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Got invalid JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
       );
     });
   });
@@ -204,11 +314,17 @@ describe('fetchAndCacheJwks', () => {
         )
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(result).toMatchObject(JWKS_DOC);
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
+      );
     });
 
     test('should return but not cache if discovery had max-age=0 in Cache-Control', async () => {
@@ -223,11 +339,17 @@ describe('fetchAndCacheJwks', () => {
         )
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(result).toMatchObject(JWKS_DOC);
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
+      );
     });
 
     test('should return but not cache if it had no-store in Cache-Control', async () => {
@@ -249,11 +371,17 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(result).toMatchObject(JWKS_DOC);
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
+      );
     });
 
     test('should return but not cache if it had max-age=0 in Cache-Control', async () => {
@@ -275,11 +403,17 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      const result = await fetchAndCacheJwks(ISSUER_URL, connection);
+      const result = await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       expect(result).toMatchObject(JWKS_DOC);
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).toBeNull();
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cache-Control prevented caching of JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+        }),
+      );
     });
 
     test('should set issuerUrl to that of issuer if caching is allowed', async () => {
@@ -301,7 +435,7 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
@@ -327,7 +461,7 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
@@ -356,13 +490,22 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
       const expectedMinExpiry = new Date(startTime + discoveryMaxAge * 1000);
       const expectedMaxExpiry = new Date(Date.now() + discoveryMaxAge * 1000);
       expect(cachedJwks!.expiry).toBeBetween(expectedMinExpiry, expectedMaxExpiry);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cached JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+          maxAgeSeconds: discoveryMaxAge,
+          discoveryMaxAge,
+          jwksMaxAge,
+        }),
+      );
     });
 
     test('should calculate expiry from max-age of JWKS response if lower', async () => {
@@ -387,13 +530,22 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
       const expectedMinExpiry = new Date(startTime + jwksMaxAge * 1000);
       const expectedMaxExpiry = new Date(Date.now() + jwksMaxAge * 1000);
       expect(cachedJwks!.expiry).toBeBetween(expectedMinExpiry, expectedMaxExpiry);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('debug', 'Cached JWKS document', {
+          issuerUrl: ISSUER_URL,
+          jwksUrl: JWKS_URL,
+          maxAgeSeconds: jwksMaxAge,
+          discoveryMaxAge,
+          jwksMaxAge,
+        }),
+      );
     });
 
     test('should cache document for 5 minutes if Cache-Control is missing', async () => {
@@ -402,7 +554,7 @@ describe('fetchAndCacheJwks', () => {
         .mockResolvedValueOnce(makeJsonResponse(DISCOVERY_DOC))
         .mockResolvedValueOnce(makeJsonResponse(JWKS_DOC));
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
@@ -431,7 +583,7 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
@@ -460,13 +612,19 @@ describe('fetchAndCacheJwks', () => {
           }),
         );
 
-      await fetchAndCacheJwks(ISSUER_URL, connection);
+      await fetchAndCacheJwks(ISSUER_URL, connection, mockLogging.logger);
 
       const cachedJwks = await cachedJwksModel.findOne({ issuerUrl: ISSUER_URL });
       expect(cachedJwks).not.toBeNull();
       const expectedMinExpiry = new Date(startTime + DEFAULT_MAX_AGE_SECONDS * 1000);
       const expectedMaxExpiry = new Date(Date.now() + DEFAULT_MAX_AGE_SECONDS * 1000);
       expect(cachedJwks!.expiry).toBeBetween(expectedMinExpiry, expectedMaxExpiry);
+      expect(mockLogging.logs).toContainEqual(
+        partialPinoLog('info', 'Malformed Cache-Control maxAge', {
+          issuerUrl: ISSUER_URL,
+          cacheControlMaxAge: 'invalid',
+        }),
+      );
     });
   });
 });

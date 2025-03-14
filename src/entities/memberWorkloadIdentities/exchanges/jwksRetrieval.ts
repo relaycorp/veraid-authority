@@ -1,6 +1,7 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import { addSeconds } from 'date-fns';
 import type { Connection } from 'mongoose';
+import type { Logger } from 'pino';
 
 import { CachedJwks } from './CachedJwks.model.js';
 import { validateDiscoveryDocument } from './discoveryDocument.schema.js';
@@ -9,7 +10,7 @@ import { type JwksDocumentSchema, validateJwksDocument } from './jwksDocument.sc
 const REQUEST_TIMEOUT_MS = 5000;
 const DEFAULT_CACHE_TTL_SECONDS = 300;
 
-function getCacheTtlFromResponse(response: Response): number {
+function getCacheTtlFromResponse(response: Response, logger: Logger): number {
   const cacheControl = response.headers.get('Cache-Control');
   if (cacheControl === null || cacheControl === '') {
     return DEFAULT_CACHE_TTL_SECONDS;
@@ -26,7 +27,11 @@ function getCacheTtlFromResponse(response: Response): number {
     const [, maxAgeValue] = maxAgeDirective.split('=');
     if (maxAgeValue && maxAgeValue.length !== 0) {
       const parsedMaxAge = Number.parseInt(maxAgeValue, 10);
-      return Number.isNaN(parsedMaxAge) ? DEFAULT_CACHE_TTL_SECONDS : parsedMaxAge;
+      if (Number.isNaN(parsedMaxAge)) {
+        logger.info({ cacheControlMaxAge: maxAgeValue }, 'Malformed Cache-Control maxAge');
+        return DEFAULT_CACHE_TTL_SECONDS;
+      }
+      return parsedMaxAge;
     }
   }
 
@@ -35,24 +40,34 @@ function getCacheTtlFromResponse(response: Response): number {
 
 async function fetchDiscoveryDocument(
   issuerUrl: string,
+  logger: Logger,
 ): Promise<{ jwksUri: string; discoveryResponse: Response }> {
   const discoveryUrl = `${issuerUrl}/.well-known/openid-configuration`;
-  const discoveryResponse = await fetch(discoveryUrl, {
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let discoveryResponse;
+  try {
+    discoveryResponse = await fetch(discoveryUrl, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    logger.info({ err }, 'Discovery document retrieval failed');
+    throw err as Error;
+  }
 
   if (!discoveryResponse.ok) {
+    logger.info({ httpStatus: discoveryResponse.status }, 'Discovery document retrieval failed');
     throw new Error(`Failed to retrieve discovery document: ${discoveryResponse.status}`);
   }
 
   let discoveryDocument;
   try {
     discoveryDocument = await discoveryResponse.json();
-  } catch {
+  } catch (err) {
+    logger.info({ err }, 'Got malformed discovery document');
     throw new Error('Malformed discovery document');
   }
 
   if (!validateDiscoveryDocument(discoveryDocument)) {
+    logger.info('Got invalid discovery document');
     throw new Error('Invalid discovery document: missing or invalid jwksUri');
   }
 
@@ -64,26 +79,37 @@ async function fetchDiscoveryDocument(
 
 async function fetchJwksDocument(
   jwksUri: string,
+  logger: Logger,
 ): Promise<{ jwksDocument: JwksDocumentSchema; jwksResponse: Response }> {
-  const jwksResponse = await fetch(jwksUri, {
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let jwksResponse;
+  try {
+    jwksResponse = await fetch(jwksUri, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    logger.info({ err }, 'JWKS document retrieval failed');
+    throw err as Error;
+  }
 
   if (!jwksResponse.ok) {
+    logger.info({ httpStatus: jwksResponse.status }, 'JWKS document retrieval failed');
     throw new Error(`Failed to retrieve JWKS: ${jwksResponse.status}`);
   }
 
   let jwksDocument;
   try {
     jwksDocument = await jwksResponse.json();
-  } catch {
+  } catch (err) {
+    logger.info({ err }, 'Got malformed JWKS document');
     throw new Error('Malformed JWKS');
   }
 
   if (!validateJwksDocument(jwksDocument)) {
+    logger.info('Got invalid JWKS document');
     throw new Error('Invalid JWKS document format');
   }
 
+  logger.debug('Retrieved JWKS document');
   return { jwksDocument, jwksResponse };
 }
 
@@ -93,9 +119,10 @@ async function cacheJwksIfAllowed(
   discoveryResponse: Response,
   jwksResponse: Response,
   cachedJwksModel: ReturnModelType<typeof CachedJwks>,
+  logger: Logger,
 ): Promise<void> {
-  const discoveryMaxAge = getCacheTtlFromResponse(discoveryResponse);
-  const jwksMaxAge = getCacheTtlFromResponse(jwksResponse);
+  const discoveryMaxAge = getCacheTtlFromResponse(discoveryResponse, logger);
+  const jwksMaxAge = getCacheTtlFromResponse(jwksResponse, logger);
   const maxAgeSeconds = Math.min(discoveryMaxAge, jwksMaxAge);
 
   if (maxAgeSeconds > 0) {
@@ -105,21 +132,39 @@ async function cacheJwksIfAllowed(
       { issuerUrl, document: jwksDocument, expiry },
       { upsert: true },
     );
+    logger.debug(
+      {
+        maxAgeSeconds,
+        discoveryMaxAge,
+        jwksMaxAge,
+      },
+      'Cached JWKS document',
+    );
+  } else {
+    logger.debug('Cache-Control prevented caching of JWKS document');
   }
 }
 
 export async function fetchAndCacheJwks(
   issuerUrl: string,
   connection: Connection,
+  logger: Logger,
 ): Promise<JwksDocumentSchema> {
+  const issuerAwareLogger = logger.child({ issuerUrl });
+
   const cachedJwksModel = getModelForClass(CachedJwks, { existingConnection: connection });
   const cachedJwks = await cachedJwksModel.findOne({ issuerUrl });
   if (cachedJwks) {
+    issuerAwareLogger.debug('JWKS cache hit');
     return cachedJwks.document;
   }
 
-  const { jwksUri, discoveryResponse } = await fetchDiscoveryDocument(issuerUrl);
-  const { jwksDocument, jwksResponse } = await fetchJwksDocument(jwksUri);
+  issuerAwareLogger.debug('JWKS cache missed');
+
+  const { jwksUri, discoveryResponse } = await fetchDiscoveryDocument(issuerUrl, issuerAwareLogger);
+
+  const jwksAwareLogger = issuerAwareLogger.child({ jwksUrl: jwksUri });
+  const { jwksDocument, jwksResponse } = await fetchJwksDocument(jwksUri, jwksAwareLogger);
 
   await cacheJwksIfAllowed(
     jwksDocument,
@@ -127,6 +172,7 @@ export async function fetchAndCacheJwks(
     discoveryResponse,
     jwksResponse,
     cachedJwksModel,
+    jwksAwareLogger,
   );
 
   return jwksDocument;
