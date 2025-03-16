@@ -14,8 +14,13 @@ export class MemberWorkloadIdentity {
   @prop({ required: true })
   public memberId!: string;
 
-  @prop({ required: true })
-  public openidProviderIssuerUrl!: string;
+  @prop({
+    required: true,
+    type: String,
+    get: (url: string) => new URL(url),
+    set: (url: URL) => url.toString(),
+  })
+  public openidProviderIssuerUrl!: URL;
 
   @prop({ required: true })
   public jwtSubjectClaim!: string;

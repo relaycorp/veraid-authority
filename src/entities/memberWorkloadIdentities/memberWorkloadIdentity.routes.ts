@@ -12,11 +12,15 @@ import {
 } from './memberWorkloadIdentity.js';
 import { MEMBER_WORKLOAD_IDENTITY_SCHEMA } from './memberWorkloadIdentity.schema.js';
 
+const HTTP_OR_HTTPS_URL_REGEX = /^https?:/u;
+
 const RESPONSE_CODE_BY_PROBLEM: {
   // eslint-disable-next-line max-len
   [key in MemberWorkloadIdentityProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
   [MemberWorkloadIdentityProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+
+  [MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL]: HTTP_STATUS_CODES.BAD_REQUEST,
 
   [MemberWorkloadIdentityProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
@@ -74,7 +78,18 @@ export default function registerRoutes(
 
     async handler(request, reply): Promise<void> {
       const { memberId, orgName } = request.params;
-      const result = await createWorkloadIdentity(memberId, request.body, {
+
+      if (!HTTP_OR_HTTPS_URL_REGEX.test(request.body.openidProviderIssuerUrl)) {
+        await reply
+          .code(HTTP_STATUS_CODES.BAD_REQUEST)
+          .send({ type: MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL });
+        return;
+      }
+
+      const openidProviderIssuerUrl = new URL(request.body.openidProviderIssuerUrl);
+
+      const workloadIdentity = { ...request.body, openidProviderIssuerUrl };
+      const result = await createWorkloadIdentity(memberId, workloadIdentity, {
         logger: request.log,
         dbConnection: this.mongoose,
       });

@@ -11,7 +11,7 @@ import type { MemberWorkloadIdentityCreationResult } from './memberWorkloadIdent
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 import type { MemberWorkloadIdentitySchema } from './memberWorkloadIdentity.schema.js';
 
-const OPENID_PROVIDER_ISSUER_URL = 'https://idp.example.com';
+const OPENID_PROVIDER_ISSUER_URL = new URL('https://idp.example.com');
 const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
@@ -92,6 +92,48 @@ describe('member workload identity routes', () => {
       expect(response.json()).toStrictEqual({
         self: WORKLOAD_IDENTITY_PATH,
       });
+    });
+
+    test('Malformed issuer URI should be refused', async () => {
+      const payload: MemberWorkloadIdentitySchema = {
+        openidProviderIssuerUrl: 'Not a URI' as any,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        veraidServiceOid: TEST_SERVICE_OID,
+        veraidSignaturePlaintext: PLAINTEXT,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(response.json()).toHaveProperty(
+        'message',
+        'body/openidProviderIssuerUrl must match format "uri"',
+      );
+    });
+
+    test('Non-HTTP(S) issuer URL should be refused', async () => {
+      const payload: MemberWorkloadIdentitySchema = {
+        openidProviderIssuerUrl: 'mailto:alice@example.com' as any,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        veraidServiceOid: TEST_SERVICE_OID,
+        veraidSignaturePlaintext: PLAINTEXT,
+      };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
+      expect(response.json()).toHaveProperty(
+        'type',
+        MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL,
+      );
     });
 
     test('Invalid TTL should be refused', async () => {
@@ -268,7 +310,7 @@ describe('member workload identity routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL.toString(),
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,

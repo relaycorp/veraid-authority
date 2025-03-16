@@ -6,7 +6,7 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   type: 'object',
 
   properties: {
-    openidProviderIssuerUrl: { type: 'string' },
+    openidProviderIssuerUrl: { type: 'string', format: 'uri' },
     jwtSubjectClaim: { type: 'string' },
     jwtSubjectValue: { type: 'string' },
     veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
@@ -23,4 +23,9 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   ],
 } as const;
 
-export type MemberWorkloadIdentitySchema = FromSchema<typeof MEMBER_WORKLOAD_IDENTITY_SCHEMA>;
+export type MemberWorkloadIdentitySchema = FromSchema<
+  typeof MEMBER_WORKLOAD_IDENTITY_SCHEMA,
+  {
+    deserialize: [{ pattern: { type: 'string'; format: 'uri' }; output: URL }];
+  }
+>;

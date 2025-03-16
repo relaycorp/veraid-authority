@@ -15,7 +15,7 @@ import {
 } from './memberWorkloadIdentity.js';
 import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
 
-const OPENID_PROVIDER_ISSUER_URL = 'https://idp.example.com';
+const OPENID_PROVIDER_ISSUER_URL = new URL('https://idp.example.com');
 const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
