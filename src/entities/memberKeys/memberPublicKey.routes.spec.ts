@@ -39,7 +39,7 @@ jest.unstable_mockModule('./memberPublicKey.js', () => ({
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
-  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
+  jest.fn<() => Promise<Result<{ serialise: () => ArrayBuffer }, BundleCreationFailure>>>(),
 );
 jest.unstable_mockModule('./memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
@@ -203,7 +203,7 @@ describe('member public keys routes', () => {
     beforeEach(() => {
       mockGenerateMemberBundle.mockResolvedValue({
         didSucceed: true,
-        result: bufferToArrayBuffer(bundleSerialised),
+        result: { serialise: () => bufferToArrayBuffer(bundleSerialised) },
       });
     });
 

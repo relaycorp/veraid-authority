@@ -138,7 +138,7 @@ export default function registerRoutes(
         return reply
           .code(HTTP_STATUS_CODES.OK)
           .header('Content-Type', VeraidContentType.MEMBER_BUNDLE)
-          .send(Buffer.from(result.result));
+          .send(Buffer.from(result.result.serialise()));
       }
 
       if (result.context.chainRetrievalFailed) {

@@ -40,7 +40,7 @@ export default async function memberBundleIssuance(
     const message = makeOutgoingServiceMessageEvent({
       peerId: event.subject,
       contentType: VeraidContentType.MEMBER_BUNDLE,
-      content: Buffer.from(memberBundle.result),
+      content: Buffer.from(memberBundle.result.serialise()),
       creationDate: now,
       expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS),
     });

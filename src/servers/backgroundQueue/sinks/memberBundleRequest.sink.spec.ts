@@ -32,7 +32,7 @@ import type { BundleCreationFailure } from '../../../entities/memberKeys/memberB
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
-  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
+  jest.fn<() => Promise<Result<{ serialise: () => ArrayBuffer }, BundleCreationFailure>>>(),
 );
 jest.unstable_mockModule('../../../entities/memberKeys/memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
@@ -69,7 +69,7 @@ describe('memberBundleIssuance', () => {
     beforeEach(() => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: true,
-        result: memberBundle,
+        result: { serialise: () => memberBundle },
       });
     });
 

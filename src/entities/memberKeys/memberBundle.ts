@@ -2,9 +2,9 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 import {
   issueMemberCertificate,
-  retrieveVeraidDnssecChain,
+  MemberIdBundle,
   selfIssueOrganisationCertificate,
-  serialiseMemberIdBundle,
+  VeraidDnssecChain,
 } from '@relaycorp/veraid';
 import type { BaseLogger } from 'pino';
 
@@ -40,10 +40,10 @@ async function generateBundle(
     certificateExpiryDays,
   }: BundleCreationInput,
   logger: BaseLogger,
-): Promise<ArrayBuffer | undefined> {
+): Promise<MemberIdBundle | undefined> {
   let dnssecChain;
   try {
-    dnssecChain = await retrieveVeraidDnssecChain(orgName);
+    dnssecChain = await VeraidDnssecChain.retrieve(orgName);
   } catch (err) {
     logger.warn(
       {
@@ -76,7 +76,7 @@ async function generateBundle(
     expiryDate,
   );
 
-  return serialiseMemberIdBundle(memberCertificate, orgCertificate, dnssecChain);
+  return new MemberIdBundle(dnssecChain, orgCertificate, memberCertificate);
 }
 
 export const CERTIFICATE_EXPIRY_DAYS = 90;
@@ -136,7 +136,7 @@ export async function createMemberBundleRequest(
 export async function generateMemberBundle(
   publicKeyId: string,
   options: ServiceOptions,
-): Promise<Result<ArrayBuffer, BundleCreationFailure>> {
+): Promise<Result<MemberIdBundle, BundleCreationFailure>> {
   const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
