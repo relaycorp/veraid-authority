@@ -70,17 +70,17 @@ export default function registerRoutes(
     async handler(request, reply): Promise<void> {
       const { memberId, orgName } = request.params;
 
-      if (!HTTP_OR_HTTPS_URL_REGEX.test(request.body.auth.openidProviderIssuerUrl)) {
+      if (!HTTP_OR_HTTPS_URL_REGEX.test(request.body.auth.providerIssuerUrl)) {
         await reply
           .code(HTTP_STATUS_CODES.BAD_REQUEST)
           .send({ type: SignatureSpecProblem.MALFORMED_ISSUER_URL });
         return;
       }
 
-      const openidProviderIssuerUrl = new URL(request.body.auth.openidProviderIssuerUrl);
+      const providerIssuerUrl = new URL(request.body.auth.providerIssuerUrl);
       const updatedAuth = {
         ...request.body.auth,
-        openidProviderIssuerUrl,
+        providerIssuerUrl,
       };
 
       const signatureSpec = {

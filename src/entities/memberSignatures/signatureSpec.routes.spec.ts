@@ -56,7 +56,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -74,7 +74,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -105,7 +105,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: 'Not a URI' as any,
+          providerIssuerUrl: 'Not a URI' as any,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -122,7 +122,7 @@ describe('signature spec routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty(
         'message',
-        'body/auth/openidProviderIssuerUrl must match format "uri"',
+        'body/auth/providerIssuerUrl must match format "uri"',
       );
     });
 
@@ -130,7 +130,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: 'mailto:alice@example.com' as any,
+          providerIssuerUrl: 'mailto:alice@example.com' as any,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -152,7 +152,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -175,7 +175,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -196,7 +196,7 @@ describe('signature spec routes', () => {
       const payload: SignatureSpecSchema = {
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -233,7 +233,7 @@ describe('signature spec routes', () => {
           result: {
             auth: {
               type: AUTH_TYPE,
-              openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+              providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
               jwtSubjectClaim: JWT_SUBJECT_CLAIM,
               jwtSubjectValue: JWT_SUBJECT_VALUE,
             },
@@ -257,7 +257,7 @@ describe('signature spec routes', () => {
         result: {
           auth: {
             type: AUTH_TYPE,
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
@@ -311,7 +311,7 @@ describe('signature spec routes', () => {
           result: {
             auth: {
               type: AUTH_TYPE,
-              openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+              providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
               jwtSubjectClaim: JWT_SUBJECT_CLAIM,
               jwtSubjectValue: JWT_SUBJECT_VALUE,
             },
@@ -335,7 +335,7 @@ describe('signature spec routes', () => {
         result: {
           auth: {
             type: AUTH_TYPE,
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
@@ -352,7 +352,7 @@ describe('signature spec routes', () => {
       expect(response.json()).toStrictEqual({
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL.toString(),
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL.toString(),
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },

@@ -11,12 +11,12 @@ export const SIGNATURE_SPEC_SCHEMA = {
 
       properties: {
         type: { type: 'string', enum: ['oidc-discovery'] },
-        openidProviderIssuerUrl: { type: 'string', format: 'uri' },
+        providerIssuerUrl: { type: 'string', format: 'uri' },
         jwtSubjectClaim: { type: 'string' },
         jwtSubjectValue: { type: 'string' },
       },
 
-      required: ['type', 'openidProviderIssuerUrl', 'jwtSubjectClaim', 'jwtSubjectValue'],
+      required: ['type', 'providerIssuerUrl', 'jwtSubjectClaim', 'jwtSubjectValue'],
     },
 
     veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },

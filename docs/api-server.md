@@ -78,7 +78,7 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `POST /orgs/{orgName}/members/{memberId}/signature-specs`: Create signature spec.
   - Auth: Org member.
   - Input:
-    - `openidProviderIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
+    - `providerIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
     - `jwtSubjectField`: The field in the JWT that contains the subject.
     - `jwtSubjectValue`: The value of the subject field.
     - `veraidServiceOid`: The OID for the service where the signature will be valid.

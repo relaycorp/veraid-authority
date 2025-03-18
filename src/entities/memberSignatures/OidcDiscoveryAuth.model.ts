@@ -7,7 +7,7 @@ export class OidcDiscoveryAuth {
     get: (url: string) => new URL(url),
     set: (url: URL) => url.toString(),
   })
-  public openidProviderIssuerUrl!: URL;
+  public providerIssuerUrl!: URL;
 
   @prop({ required: true })
   public jwtSubjectClaim!: string;

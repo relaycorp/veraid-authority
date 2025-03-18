@@ -43,11 +43,8 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
@@ -72,11 +69,8 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
@@ -101,11 +95,8 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
@@ -120,7 +111,7 @@ describe('Member signature specs', () => {
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
-      expect(dbResult!.auth.openidProviderIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
+      expect(dbResult!.auth.providerIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
       expect(dbResult!.auth.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
       expect(dbResult!.auth.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
       expect(dbResult!.veraidServiceOid).toStrictEqual(TEST_SERVICE_OID);
@@ -135,7 +126,7 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
@@ -162,7 +153,7 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
@@ -186,7 +177,7 @@ describe('Member signature specs', () => {
         {
           auth: {
             type: AUTH_TYPE,
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
             jwtSubjectClaim: JWT_SUBJECT_CLAIM,
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
@@ -209,7 +200,7 @@ describe('Member signature specs', () => {
         memberId: MEMBER_ID,
 
         auth: {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -229,7 +220,7 @@ describe('Member signature specs', () => {
       expect(result.result).toMatchObject({
         auth: {
           type: AUTH_TYPE,
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -245,7 +236,7 @@ describe('Member signature specs', () => {
         memberId: MEMBER_ID,
 
         auth: {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -267,7 +258,7 @@ describe('Member signature specs', () => {
         memberId: MEMBER_ID,
 
         auth: {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
           jwtSubjectClaim: JWT_SUBJECT_CLAIM,
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
@@ -293,7 +284,7 @@ describe('Member signature specs', () => {
       memberId: MEMBER_ID,
 
       auth: {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
       },

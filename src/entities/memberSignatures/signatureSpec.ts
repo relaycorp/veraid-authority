@@ -73,7 +73,7 @@ export async function getSignatureSpec(
     result: {
       auth: {
         type: 'oidc-discovery',
-        openidProviderIssuerUrl: signatureSpec.auth.openidProviderIssuerUrl,
+        providerIssuerUrl: signatureSpec.auth.providerIssuerUrl,
         jwtSubjectClaim: signatureSpec.auth.jwtSubjectClaim,
         jwtSubjectValue: signatureSpec.auth.jwtSubjectValue,
       },
