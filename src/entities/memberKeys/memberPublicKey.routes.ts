@@ -141,7 +141,7 @@ export default function registerRoutes(
           .send(Buffer.from(result.result.serialise()));
       }
 
-      if (result.context.chainRetrievalFailed) {
+      if (result.context.didChainRetrievalFail) {
         return reply.code(HTTP_STATUS_CODES.SERVICE_UNAVAILABLE).send();
       }
       return reply.code(HTTP_STATUS_CODES.NOT_FOUND).send();

@@ -1,6 +1,10 @@
 import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import { VeraidDnssecChain } from '@relaycorp/veraid';
+import {
+  type Certificate,
+  selfIssueOrganisationCertificate,
+  VeraidDnssecChain,
+} from '@relaycorp/veraid';
 import type { Connection, HydratedDocument } from 'mongoose';
 import { addDays, addSeconds, setMilliseconds } from 'date-fns';
 
@@ -17,22 +21,32 @@ import {
   TEST_SERVICE_OID,
 } from '../../testUtils/stubs.js';
 import type { ServiceOptions } from '../../utilities/serviceTypes.js';
-import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
+import { derDeserialisePublicKey, derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { mockKms } from '../../testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 import { stringToArrayBuffer } from '../../testUtils/buffer.js';
-import { mockSpy } from '../../testUtils/jest.js';
 import type { MemberBundleRequest } from '../../servers/awala/awala.schema.js';
+import type { OrgChain } from '../organisations/orgChain.js';
+import { OrgChainCreationProblem } from '../organisations/OrgChainCreationProblem.js';
+import { mockSpy } from '../../testUtils/jest.js';
+import type { Result } from '../../utilities/result.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
-import { generateMemberBundle, createMemberBundleRequest } from './memberBundle.js';
 
-const CERTIFICATE_EXPIRY_DAYS = 90;
-const { publicKey: testPublicKey } = await generateKeyPair();
-const testPublicKeyBuffer = await derSerialisePublicKey(testPublicKey);
+const mockMakeOrgChain = mockSpy(
+  jest.fn<() => Promise<Result<OrgChain, OrgChainCreationProblem>>>(),
+);
+jest.unstable_mockModule('../organisations/orgChain.js', () => ({
+  makeOrgChain: mockMakeOrgChain,
+}));
+
+const { generateMemberBundle, createMemberBundleRequest } = await import('./memberBundle.js');
+
+const { publicKey: MEMBER_PUBLIC_KEY } = await generateKeyPair();
+const MEMBER_PUBLIC_KEY_BUFFER = await derSerialisePublicKey(MEMBER_PUBLIC_KEY);
 
 describe('memberBundle', () => {
   const getConnection = setUpTestDbConnection();
@@ -47,7 +61,7 @@ describe('memberBundle', () => {
   let memberPublicKeyModel: ReturnModelType<typeof MemberPublicKey>;
   let memberPublicKeyBuffer: Buffer;
   let orgPrivateKeyRef: Buffer;
-  let orgPublicKey: Buffer;
+  let orgPublicKeyDer: Buffer;
 
   beforeEach(async () => {
     const { kms } = getMockKms();
@@ -55,7 +69,7 @@ describe('memberBundle', () => {
       await kms.generateKeyPair();
 
     orgPrivateKeyRef = await kms.getPrivateKeyRef(orgPrivateCryptoKey);
-    orgPublicKey = await derSerialisePublicKey(orgPublicCryptoKey);
+    orgPublicKeyDer = await derSerialisePublicKey(orgPublicCryptoKey);
 
     const { publicKey: memberPublicCryptoKey } = await generateKeyPair();
     memberPublicKeyBuffer = await derSerialisePublicKey(memberPublicCryptoKey);
@@ -89,7 +103,7 @@ describe('memberBundle', () => {
       memberPublicKey = await memberPublicKeyModel.create({
         memberId: MEMBER_ID,
         serviceOid: TEST_SERVICE_OID,
-        publicKey: testPublicKeyBuffer,
+        publicKey: MEMBER_PUBLIC_KEY_BUFFER,
       });
 
       futureTimestamp = addSeconds(new Date(), 5).toISOString();
@@ -177,173 +191,157 @@ describe('memberBundle', () => {
   });
 
   describe('generateMemberBundle', () => {
-    const mockDnssecChainRetrieve = mockSpy(jest.spyOn(VeraidDnssecChain, 'retrieve'));
-
     const mockDnssecChain = new VeraidDnssecChain(ORG_NAME, [stringToArrayBuffer(ORG_NAME)]);
-    beforeEach(() => {
-      mockDnssecChainRetrieve.mockResolvedValue(mockDnssecChain);
+    let memberPublicKeyId: string;
+    let orgCertificate: Certificate;
+    let orgPrivateKey: CryptoKey;
+
+    beforeEach(async () => {
+      const { kms } = getMockKms();
+      orgPrivateKey = await kms.retrievePrivateKeyByRef(orgPrivateKeyRef);
+      const orgKeyPair: CryptoKeyPair = {
+        publicKey: await derDeserialisePublicKey(orgPublicKeyDer),
+        privateKey: orgPrivateKey,
+      };
+      const expiryDate = addDays(new Date(), 91); // To check member certificate is capped at 90d
+      orgCertificate = await selfIssueOrganisationCertificate(ORG_NAME, orgKeyPair, expiryDate);
+
+      await orgModel.create({
+        name: ORG_NAME,
+        privateKeyRef: orgPrivateKeyRef,
+        publicKey: orgPublicKeyDer,
+      });
+
+      const member = await memberModel.create({
+        orgName: ORG_NAME,
+        name: MEMBER_NAME,
+        role: Role.REGULAR,
+      });
+
+      const memberPublicKey = await memberPublicKeyModel.create({
+        memberId: member.id,
+        publicKey: memberPublicKeyBuffer,
+        serviceOid: TEST_SERVICE_OID,
+      });
+      memberPublicKeyId = memberPublicKey._id.toString();
+
+      mockMakeOrgChain.mockResolvedValue({
+        didSucceed: true,
+
+        result: {
+          dnssecChain: mockDnssecChain,
+          certificate: orgCertificate,
+          privateKey: orgPrivateKey,
+        },
+      });
     });
 
-    describe('Valid data should generate member bundle', () => {
-      let botPublicKey: HydratedDocument<MemberPublicKey>;
-      beforeEach(async () => {
-        await orgModel.create({
-          name: ORG_NAME,
-          privateKeyRef: orgPrivateKeyRef,
-          publicKey: orgPublicKey,
-        });
-        const member = await memberModel.create({
-          orgName: ORG_NAME,
-          name: MEMBER_NAME,
-          role: Role.REGULAR,
-        });
-        botPublicKey = await memberPublicKeyModel.create({
-          memberId: member.id,
-          publicKey: memberPublicKeyBuffer,
-          serviceOid: TEST_SERVICE_OID,
-        });
+    test('Should call generate org chain with correct org name and service options', async () => {
+      await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+      expect(mockMakeOrgChain).toHaveBeenCalledWith(ORG_NAME, serviceOptions);
+    });
+
+    test('Should propagate chain retrieval failure', async () => {
+      mockMakeOrgChain.mockResolvedValue({
+        didSucceed: false,
+        context: OrgChainCreationProblem.DNSSEC_CHAIN_RETRIEVAL_FAILED,
       });
 
-      test('KMS should be initialised', async () => {
-        await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
+      const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
-        const { kmsInitMock } = getMockKms();
-        expect(kmsInitMock).toHaveBeenCalledOnce();
+      requireFailureResult(result);
+      expect(result.context.didChainRetrievalFail).toBeTrue();
+    });
+
+    test('Should propagate org not found failure', async () => {
+      mockMakeOrgChain.mockResolvedValue({
+        didSucceed: false,
+        context: OrgChainCreationProblem.ORG_NOT_FOUND,
       });
 
-      describe('Self issued organisation certificate', () => {
-        test('Should be issued with existing org name', async () => {
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
+      const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
-          requireSuccessfulResult(result);
-          const { orgCertificate } = result.result;
-          expect(orgCertificate.commonName).toBe(ORG_NAME);
-        });
+      requireFailureResult(result);
+      expect(result.context.didChainRetrievalFail).toBeFalse();
+    });
 
-        test('Should be issued with org private and public keys', async () => {
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { orgCertificate } = result.result;
-          await expect(
-            derSerialisePublicKey(await orgCertificate.getPublicKey()),
-          ).resolves.toStrictEqual(orgPublicKey);
-
-          // Can't check the use of the private key per se, but we can check the certification path
-          await expect(
-            orgCertificate.getCertificationPath([], [orgCertificate]),
-          ).resolves.toHaveLength(2);
-        });
-
-        test('Should be valid at the time of generation', async () => {
-          const startDate = setMilliseconds(new Date(), 0);
-
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { orgCertificate } = result.result;
-          expect(orgCertificate.validityPeriod.start).toBeBetween(startDate, new Date());
-        });
-
-        test('Should expire in 90 days', async () => {
-          const startDate = setMilliseconds(new Date(), 0);
-
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { orgCertificate } = result.result;
-          expect(orgCertificate.validityPeriod.end).toBeBetween(
-            addDays(startDate, CERTIFICATE_EXPIRY_DAYS),
-            addDays(new Date(), CERTIFICATE_EXPIRY_DAYS),
-          );
-        });
-      });
-
-      describe('Issued Member Certificate', () => {
-        test('Should be issued using the correct member name', async () => {
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { memberCertificate } = result.result;
-          expect(memberCertificate.commonName).toBe(MEMBER_NAME);
-        });
-
-        test('Should be issued with member public key', async () => {
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { memberCertificate } = result.result;
-          await expect(
-            derSerialisePublicKey(await memberCertificate.getPublicKey()),
-          ).resolves.toStrictEqual(memberPublicKeyBuffer);
-        });
-
-        test('Should be issued with org self signed certificate', async () => {
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { memberCertificate, orgCertificate } = result.result;
-          await expect(
-            memberCertificate.getCertificationPath([], [orgCertificate]),
-          ).resolves.toHaveLength(2);
-        });
-
-        test('Should be valid at the time of generation', async () => {
-          const startDate = setMilliseconds(new Date(), 0);
-
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { memberCertificate } = result.result;
-          expect(memberCertificate.validityPeriod.start).toBeBetween(startDate, new Date());
-        });
-
-        test('Should expire in 90 days', async () => {
-          const startDate = setMilliseconds(new Date(), 0);
-
-          const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-          requireSuccessfulResult(result);
-          const { memberCertificate } = result.result;
-          expect(memberCertificate.validityPeriod.end).toBeBetween(
-            addDays(startDate, CERTIFICATE_EXPIRY_DAYS),
-            addDays(new Date(), CERTIFICATE_EXPIRY_DAYS),
-          );
-        });
-      });
-
-      test('Dnssec chain should be retrieved with org name', async () => {
-        const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
-
-        requireSuccessfulResult(result);
-        const { dnssecChain } = result.result;
-        expect(dnssecChain.domainName).toBe(ORG_NAME);
-      });
-
-      test('Member bundle for member without name should output bot certificate', async () => {
-        const botMember = await memberModel.create({
-          orgName: ORG_NAME,
-          role: Role.REGULAR,
-        });
-        botPublicKey = await memberPublicKeyModel.create({
-          memberId: botMember.id,
-          publicKey: memberPublicKeyBuffer,
-          serviceOid: TEST_SERVICE_OID,
-        });
-
-        const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
+    describe('Issued Member Certificate', () => {
+      test('Should be issued using the correct member name', async () => {
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
 
         requireSuccessfulResult(result);
         const { memberCertificate } = result.result;
-        expect(memberCertificate.commonName).toBe('@');
+        expect(memberCertificate.commonName).toBe(MEMBER_NAME);
       });
+
+      test('Should be issued with member public key', async () => {
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { memberCertificate } = result.result;
+        await expect(
+          derSerialisePublicKey(await memberCertificate.getPublicKey()),
+        ).resolves.toStrictEqual(memberPublicKeyBuffer);
+      });
+
+      test('Should be issued with org certificate', async () => {
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { memberCertificate } = result.result;
+        await expect(
+          memberCertificate.getCertificationPath([], [orgCertificate]),
+        ).resolves.toHaveLength(2);
+      });
+
+      test('Should be valid at the time of generation', async () => {
+        const startDate = setMilliseconds(new Date(), 0);
+
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { memberCertificate } = result.result;
+        expect(memberCertificate.validityPeriod.start).toBeBetween(startDate, new Date());
+      });
+
+      test('Should expire in 90 days', async () => {
+        const startDate = setMilliseconds(new Date(), 0);
+
+        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { memberCertificate } = result.result;
+        expect(memberCertificate.validityPeriod.end).toBeBetween(
+          addDays(startDate, 90),
+          addDays(new Date(), 90),
+        );
+      });
+    });
+
+    test('Member bundle for member without name should output bot certificate', async () => {
+      const botMember = await memberModel.create({
+        orgName: ORG_NAME,
+        role: Role.REGULAR,
+      });
+      const botPublicKey = await memberPublicKeyModel.create({
+        memberId: botMember.id,
+        publicKey: memberPublicKeyBuffer,
+        serviceOid: TEST_SERVICE_OID,
+      });
+
+      const result = await generateMemberBundle(botPublicKey._id.toString(), serviceOptions);
+
+      requireSuccessfulResult(result);
+      const { memberCertificate } = result.result;
+      expect(memberCertificate.commonName).toBe('@');
     });
 
     test('Invalid member public key should fail', async () => {
       const result = await generateMemberBundle(MEMBER_PUBLIC_KEY_MONGO_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context.chainRetrievalFailed).not.toBeTrue();
+      expect(result.context.didChainRetrievalFail).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member public key not found', {
           memberPublicKeyId: MEMBER_PUBLIC_KEY_MONGO_ID,
@@ -352,86 +350,22 @@ describe('memberBundle', () => {
     });
 
     test('Missing member should fail', async () => {
-      const memberPublicKey = await memberPublicKeyModel.create({
+      const { _id: missingMemberPublicKeyId } = await memberPublicKeyModel.create({
         memberId: MEMBER_ID,
         publicKey: memberPublicKeyBuffer,
         serviceOid: TEST_SERVICE_OID,
       });
-      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
+
+      const result = await generateMemberBundle(
+        missingMemberPublicKeyId.toString(),
+        serviceOptions,
+      );
 
       requireFailureResult(result);
-      expect(result.context.chainRetrievalFailed).not.toBeTrue();
+      expect(result.context.didChainRetrievalFail).not.toBeTrue();
       expect(mockLogging.logs).toContainEqual(
         partialPinoLog('info', 'Member not found', { memberId: MEMBER_ID }),
       );
-    });
-
-    test('Missing org should fail', async () => {
-      const member = await memberModel.create({
-        orgName: ORG_NAME,
-        name: MEMBER_NAME,
-        role: Role.REGULAR,
-      });
-      const memberPublicKey = await memberPublicKeyModel.create({
-        memberId: member._id,
-        publicKey: memberPublicKeyBuffer,
-        serviceOid: TEST_SERVICE_OID,
-      });
-      const result = await generateMemberBundle(memberPublicKey._id.toString(), serviceOptions);
-
-      requireFailureResult(result);
-      expect(result.context.chainRetrievalFailed).not.toBeTrue();
-      expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Org not found', { orgName: ORG_NAME }),
-      );
-    });
-
-    describe('Retrieving DNSSEC chain error', () => {
-      let memberPublicKeyId: string;
-      beforeEach(async () => {
-        await orgModel.create({
-          name: ORG_NAME,
-          privateKeyRef: orgPrivateKeyRef,
-          publicKey: orgPublicKey,
-        });
-        const member = await memberModel.create({
-          orgName: ORG_NAME,
-          name: MEMBER_NAME,
-          role: Role.REGULAR,
-        });
-        const memberPublicKey = await memberPublicKeyModel.create({
-          memberId: member.id,
-          publicKey: memberPublicKeyBuffer,
-          serviceOid: TEST_SERVICE_OID,
-        });
-        memberPublicKeyId = memberPublicKey._id.toString();
-      });
-
-      test('Should mark retrieval as failed', async () => {
-        const error = new Error('Oh noes');
-        mockDnssecChainRetrieve.mockRejectedValueOnce(error);
-
-        const result = await generateMemberBundle(memberPublicKeyId, serviceOptions);
-
-        requireFailureResult(result);
-        expect(result.context.chainRetrievalFailed).toBeTrue();
-        expect(mockLogging.logs).toContainEqual(
-          partialPinoLog('warn', 'Failed to retrieve DNSSEC chain', {
-            memberPublicKeyId,
-            err: expect.objectContaining({ message: error.message }),
-          }),
-        );
-      });
-
-      test('Should not initialise KMS', async () => {
-        const error = new Error('Oh noes');
-        mockDnssecChainRetrieve.mockRejectedValueOnce(error);
-
-        await generateMemberBundle(memberPublicKeyId, serviceOptions);
-
-        const { kmsInitMock } = getMockKms();
-        expect(kmsInitMock).not.toHaveBeenCalled();
-      });
     });
   });
 });
