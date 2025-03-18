@@ -7,40 +7,38 @@ import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
-import type { MemberWorkloadIdentityCreationResult } from './memberWorkloadIdentityTypes.js';
-import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
-import type { MemberWorkloadIdentitySchema } from './memberWorkloadIdentity.schema.js';
+import type { SignatureSpecCreationResult } from './SignatureSpecTypes.js';
+import { SignatureSpecProblem } from './SignatureSpecProblem.js';
+import type { SignatureSpecSchema } from './SignatureSpec.schema.js';
 
 const OPENID_PROVIDER_ISSUER_URL = new URL('https://idp.example.com');
 const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
-const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
-const WORKLOAD_IDENTITIES_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/workload-identities/`;
-const WORKLOAD_IDENTITY_PATH = `${WORKLOAD_IDENTITIES_PATH}${WORKLOAD_IDENTITY_ID}`;
+const SIGNATURE_SPEC_ID = '111111111111111111111111';
+const SIGNATURE_SPECS_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/signature-specs/`;
+const SIGNATURE_SPEC_PATH = `${SIGNATURE_SPECS_PATH}${SIGNATURE_SPEC_ID}`;
 
-const mockCreateWorkloadIdentity = mockSpy(
-  jest.fn<
-    () => Promise<Result<MemberWorkloadIdentityCreationResult, MemberWorkloadIdentityProblem>>
-  >(),
+const mockCreateSignatureSpec = mockSpy(
+  jest.fn<() => Promise<Result<SignatureSpecCreationResult, SignatureSpecProblem>>>(),
 );
-const mockGetWorkloadIdentity = mockSpy(
-  jest.fn<() => Promise<Result<MemberWorkloadIdentitySchema, MemberWorkloadIdentityProblem>>>(),
+const mockGetSignatureSpec = mockSpy(
+  jest.fn<() => Promise<Result<SignatureSpecSchema, SignatureSpecProblem>>>(),
 );
-const mockDeleteWorkloadIdentity = mockSpy(
-  jest.fn<() => Promise<Result<undefined, MemberWorkloadIdentityProblem>>>(),
+const mockDeleteSignatureSpec = mockSpy(
+  jest.fn<() => Promise<Result<undefined, SignatureSpecProblem>>>(),
 );
 
-jest.unstable_mockModule('./memberWorkloadIdentity.js', () => ({
-  createWorkloadIdentity: mockCreateWorkloadIdentity,
-  getWorkloadIdentity: mockGetWorkloadIdentity,
-  deleteWorkloadIdentity: mockDeleteWorkloadIdentity,
+jest.unstable_mockModule('./signatureSpec.js', () => ({
+  createSignatureSpec: mockCreateSignatureSpec,
+  getSignatureSpec: mockGetSignatureSpec,
+  deleteSignatureSpec: mockDeleteSignatureSpec,
 }));
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
-describe('member workload identity routes', () => {
+describe('signature spec routes', () => {
   const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
@@ -50,11 +48,11 @@ describe('member workload identity routes', () => {
   describe('creation', () => {
     const injectionOptions: InjectOptions = {
       method: 'POST',
-      url: WORKLOAD_IDENTITIES_PATH,
+      url: SIGNATURE_SPECS_PATH,
     };
 
     describe('Auth', () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -62,24 +60,24 @@ describe('member workload identity routes', () => {
         veraidSignaturePlaintext: PLAINTEXT,
       };
       testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
-        spy: mockCreateWorkloadIdentity,
-        result: { id: WORKLOAD_IDENTITY_ID },
+        spy: mockCreateSignatureSpec,
+        result: { id: SIGNATURE_SPEC_ID },
       });
     });
 
     test('Valid data should be stored', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
-      mockCreateWorkloadIdentity.mockResolvedValueOnce({
+      mockCreateSignatureSpec.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
-          id: WORKLOAD_IDENTITY_ID,
+          id: SIGNATURE_SPEC_ID,
         },
       });
 
@@ -90,12 +88,12 @@ describe('member workload identity routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        self: WORKLOAD_IDENTITY_PATH,
+        self: SIGNATURE_SPEC_PATH,
       });
     });
 
     test('Malformed issuer URI should be refused', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: 'Not a URI' as any,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -116,7 +114,7 @@ describe('member workload identity routes', () => {
     });
 
     test('Non-HTTP(S) issuer URL should be refused', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: 'mailto:alice@example.com' as any,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -130,14 +128,11 @@ describe('member workload identity routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty(
-        'type',
-        MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL,
-      );
+      expect(response.json()).toHaveProperty('type', SignatureSpecProblem.MALFORMED_ISSUER_URL);
     });
 
     test('Invalid TTL should be refused', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -156,7 +151,7 @@ describe('member workload identity routes', () => {
     });
 
     test('Malformed service OID should be refused', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
@@ -173,16 +168,16 @@ describe('member workload identity routes', () => {
     });
 
     test('Service function returning INVALID_TTL should be refused', async () => {
-      const payload: MemberWorkloadIdentitySchema = {
+      const payload: SignatureSpecSchema = {
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
         jwtSubjectValue: JWT_SUBJECT_VALUE,
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
-      mockCreateWorkloadIdentity.mockResolvedValueOnce({
+      mockCreateSignatureSpec.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberWorkloadIdentityProblem.INVALID_TTL,
+        context: SignatureSpecProblem.INVALID_TTL,
       });
 
       const response = await serverInstance.inject({
@@ -191,19 +186,19 @@ describe('member workload identity routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
-      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.INVALID_TTL);
+      expect(response.json()).toHaveProperty('type', SignatureSpecProblem.INVALID_TTL);
     });
   });
 
   describe('delete', () => {
     const injectionOptions: InjectOptions = {
       method: 'DELETE',
-      url: WORKLOAD_IDENTITY_PATH,
+      url: SIGNATURE_SPEC_PATH,
     };
 
     describe('Auth', () => {
       beforeEach(() => {
-        mockGetWorkloadIdentity.mockResolvedValueOnce({
+        mockGetSignatureSpec.mockResolvedValueOnce({
           didSucceed: true,
 
           result: {
@@ -218,12 +213,12 @@ describe('member workload identity routes', () => {
       });
 
       testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
-        spy: mockDeleteWorkloadIdentity,
+        spy: mockDeleteSignatureSpec,
       });
     });
 
     test('Valid id should be accepted', async () => {
-      mockGetWorkloadIdentity.mockResolvedValueOnce({
+      mockGetSignatureSpec.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
@@ -235,17 +230,17 @@ describe('member workload identity routes', () => {
           veraidSignaturePlaintext: PLAINTEXT,
         },
       });
-      mockDeleteWorkloadIdentity.mockResolvedValueOnce({
+      mockDeleteSignatureSpec.mockResolvedValueOnce({
         didSucceed: true,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
-      expect(mockGetWorkloadIdentity).toHaveBeenCalledWith(MEMBER_ID, WORKLOAD_IDENTITY_ID, {
+      expect(mockGetSignatureSpec).toHaveBeenCalledWith(MEMBER_ID, SIGNATURE_SPEC_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
-      expect(mockDeleteWorkloadIdentity).toHaveBeenCalledWith(WORKLOAD_IDENTITY_ID, {
+      expect(mockDeleteSignatureSpec).toHaveBeenCalledWith(SIGNATURE_SPEC_ID, {
         logger: expect.anything(),
         dbConnection: serverInstance.mongoose,
       });
@@ -253,27 +248,27 @@ describe('member workload identity routes', () => {
     });
 
     test('Non existing id should resolve into not found status', async () => {
-      mockGetWorkloadIdentity.mockResolvedValueOnce({
+      mockGetSignatureSpec.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberWorkloadIdentityProblem.NOT_FOUND,
+        context: SignatureSpecProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', SignatureSpecProblem.NOT_FOUND);
     });
   });
 
   describe('get', () => {
     const injectionOptions: InjectOptions = {
       method: 'GET',
-      url: WORKLOAD_IDENTITY_PATH,
+      url: SIGNATURE_SPEC_PATH,
     };
 
     describe('Auth', () => {
       beforeEach(() => {
-        mockGetWorkloadIdentity.mockResolvedValueOnce({
+        mockGetSignatureSpec.mockResolvedValueOnce({
           didSucceed: true,
 
           result: {
@@ -288,12 +283,12 @@ describe('member workload identity routes', () => {
       });
 
       testOrgRouteAuth('ORG_MEMBERSHIP', injectionOptions, getTestServerFixture, {
-        spy: mockGetWorkloadIdentity,
+        spy: mockGetSignatureSpec,
       });
     });
 
-    test('Valid id should return the workload identity', async () => {
-      mockGetWorkloadIdentity.mockResolvedValueOnce({
+    test('Valid id should return the signature spec', async () => {
+      mockGetSignatureSpec.mockResolvedValueOnce({
         didSucceed: true,
 
         result: {
@@ -320,15 +315,15 @@ describe('member workload identity routes', () => {
     });
 
     test('Non existing id should resolve into not found status', async () => {
-      mockGetWorkloadIdentity.mockResolvedValueOnce({
+      mockGetSignatureSpec.mockResolvedValueOnce({
         didSucceed: false,
-        context: MemberWorkloadIdentityProblem.NOT_FOUND,
+        context: SignatureSpecProblem.NOT_FOUND,
       });
 
       const response = await serverInstance.inject(injectionOptions);
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.NOT_FOUND);
-      expect(response.json()).toHaveProperty('type', MemberWorkloadIdentityProblem.NOT_FOUND);
+      expect(response.json()).toHaveProperty('type', SignatureSpecProblem.NOT_FOUND);
     });
   });
 });

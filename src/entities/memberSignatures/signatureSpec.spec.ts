@@ -7,41 +7,37 @@ import { MEMBER_ID, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
 import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 
-import { MemberWorkloadIdentity } from './MemberWorkloadIdentity.model.js';
-import {
-  createWorkloadIdentity,
-  deleteWorkloadIdentity,
-  getWorkloadIdentity,
-} from './memberWorkloadIdentity.js';
-import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
+import { SignatureSpec } from './SignatureSpec.model.js';
+import { createSignatureSpec, deleteSignatureSpec, getSignatureSpec } from './signatureSpec.js';
+import { SignatureSpecProblem } from './SignatureSpecProblem.js';
 
 const OPENID_PROVIDER_ISSUER_URL = new URL('https://idp.example.com');
 const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
-const WORKLOAD_IDENTITY_ID = '111111111111111111111111';
+const SIGNATURE_SPEC_ID = '111111111111111111111111';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 
-describe('Member workload identities', () => {
+describe('Member signature specs', () => {
   const getConnection = setUpTestDbConnection();
 
   const mockLogging = makeMockLogging();
   let connection: Connection;
   let serviceOptions: ServiceOptions;
-  let workloadIdentityModel: ReturnModelType<typeof MemberWorkloadIdentity>;
+  let signatureSpecModel: ReturnModelType<typeof SignatureSpec>;
   beforeEach(() => {
     connection = getConnection();
     serviceOptions = {
       dbConnection: connection,
       logger: mockLogging.logger,
     };
-    workloadIdentityModel = getModelForClass(MemberWorkloadIdentity, {
+    signatureSpecModel = getModelForClass(SignatureSpec, {
       existingConnection: connection,
     });
   });
 
-  describe('createWorkloadIdentity', () => {
-    test('Should create workload identity with default TTL', async () => {
-      const workloadIdentity = await createWorkloadIdentity(
+  describe('createSignatureSpec', () => {
+    test('Should create signature spec with default TTL', async () => {
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -53,16 +49,16 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(workloadIdentity);
-      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
+      requireSuccessfulResult(signatureSpec);
+      const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.veraidSignatureTtlSeconds).toBe(3600);
     });
 
-    test('Should create workload identity with custom TTL', async () => {
+    test('Should create signature spec with custom TTL', async () => {
       const customTtl = 1800;
 
-      const workloadIdentity = await createWorkloadIdentity(
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -75,14 +71,14 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(workloadIdentity);
-      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
+      requireSuccessfulResult(signatureSpec);
+      const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.veraidSignatureTtlSeconds).toStrictEqual(customTtl);
     });
 
     test('Should store all required fields correctly', async () => {
-      const workloadIdentity = await createWorkloadIdentity(
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -94,8 +90,8 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(workloadIdentity);
-      const dbResult = await workloadIdentityModel.findById(workloadIdentity.result.id);
+      requireSuccessfulResult(signatureSpec);
+      const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
       expect(dbResult!.openidProviderIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
@@ -108,7 +104,7 @@ describe('Member workload identities', () => {
     });
 
     test('Should log creation', async () => {
-      const workloadIdentity = await createWorkloadIdentity(
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -120,10 +116,10 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireSuccessfulResult(workloadIdentity);
+      requireSuccessfulResult(signatureSpec);
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member workload identity created', {
-          memberWorkloadIdentityId: workloadIdentity.result.id,
+        partialPinoLog('info', 'Signature spec created', {
+          signatureSpecId: signatureSpec.result.id,
         }),
       );
     });
@@ -131,7 +127,7 @@ describe('Member workload identities', () => {
     test('Should refuse TTL below minimum', async () => {
       const invalidTtl = 0;
 
-      const workloadIdentity = await createWorkloadIdentity(
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -144,14 +140,14 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireFailureResult(workloadIdentity);
-      expect(workloadIdentity.context).toBe(MemberWorkloadIdentityProblem.INVALID_TTL);
+      requireFailureResult(signatureSpec);
+      expect(signatureSpec.context).toBe(SignatureSpecProblem.INVALID_TTL);
     });
 
     test('Should refuse TTL exceeding maximum', async () => {
       const invalidTtl = 3601;
 
-      const workloadIdentity = await createWorkloadIdentity(
+      const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
           openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -164,14 +160,14 @@ describe('Member workload identities', () => {
         serviceOptions,
       );
 
-      requireFailureResult(workloadIdentity);
-      expect(workloadIdentity.context).toBe(MemberWorkloadIdentityProblem.INVALID_TTL);
+      requireFailureResult(signatureSpec);
+      expect(signatureSpec.context).toBe(SignatureSpecProblem.INVALID_TTL);
     });
   });
 
-  describe('getWorkloadIdentity', () => {
+  describe('getSignatureSpec', () => {
     test('Existing id should return the corresponding data', async () => {
-      const workloadIdentity = await workloadIdentityModel.create({
+      const signatureSpec = await signatureSpecModel.create({
         memberId: MEMBER_ID,
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
@@ -181,9 +177,9 @@ describe('Member workload identities', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getWorkloadIdentity(
+      const result = await getSignatureSpec(
         MEMBER_ID,
-        workloadIdentity._id.toString(),
+        signatureSpec._id.toString(),
         serviceOptions,
       );
 
@@ -199,7 +195,7 @@ describe('Member workload identities', () => {
     });
 
     test('Non existing id should return non existing error', async () => {
-      await workloadIdentityModel.create({
+      await signatureSpecModel.create({
         memberId: MEMBER_ID,
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
@@ -209,15 +205,15 @@ describe('Member workload identities', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getWorkloadIdentity(MEMBER_ID, WORKLOAD_IDENTITY_ID, serviceOptions);
+      const result = await getSignatureSpec(MEMBER_ID, SIGNATURE_SPEC_ID, serviceOptions);
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberWorkloadIdentityProblem.NOT_FOUND);
+      expect(result.context).toBe(SignatureSpecProblem.NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
       const invalidMemberId = '222222222222222222222222';
-      const workloadIdentity = await workloadIdentityModel.create({
+      const signatureSpec = await signatureSpecModel.create({
         memberId: MEMBER_ID,
         openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
         jwtSubjectClaim: JWT_SUBJECT_CLAIM,
@@ -227,19 +223,19 @@ describe('Member workload identities', () => {
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
-      const result = await getWorkloadIdentity(
+      const result = await getSignatureSpec(
         invalidMemberId,
-        workloadIdentity._id.toString(),
+        signatureSpec._id.toString(),
         serviceOptions,
       );
 
       requireFailureResult(result);
-      expect(result.context).toBe(MemberWorkloadIdentityProblem.NOT_FOUND);
+      expect(result.context).toBe(SignatureSpecProblem.NOT_FOUND);
     });
   });
 
-  describe('deleteWorkloadIdentity', () => {
-    const workloadIdentityData: Partial<MemberWorkloadIdentity> = {
+  describe('deleteSignatureSpec', () => {
+    const signatureSpecData: Partial<SignatureSpec> = {
       memberId: MEMBER_ID,
       openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
       jwtSubjectClaim: JWT_SUBJECT_CLAIM,
@@ -249,28 +245,28 @@ describe('Member workload identities', () => {
       veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
     };
 
-    test('Existing id should remove workload identity', async () => {
-      const workloadIdentity = await workloadIdentityModel.create(workloadIdentityData);
+    test('Existing id should remove signature spec', async () => {
+      const signatureSpec = await signatureSpecModel.create(signatureSpecData);
 
-      const result = await deleteWorkloadIdentity(workloadIdentity._id.toString(), serviceOptions);
+      const result = await deleteSignatureSpec(signatureSpec._id.toString(), serviceOptions);
 
       requireSuccessfulResult(result);
-      const dbResult = await workloadIdentityModel.findById(workloadIdentity._id);
+      const dbResult = await signatureSpecModel.findById(signatureSpec._id);
       expect(dbResult).toBeNull();
       expect(mockLogging.logs).toContainEqual(
-        partialPinoLog('info', 'Member workload identity deleted', {
-          memberWorkloadIdentityId: workloadIdentity.id,
+        partialPinoLog('info', 'Signature spec deleted', {
+          signatureSpecId: signatureSpec.id,
         }),
       );
     });
 
-    test('Non existing id should not remove any workload identity', async () => {
-      const workloadIdentity = await workloadIdentityModel.create(workloadIdentityData);
+    test('Non existing id should not remove any signature spec', async () => {
+      const signatureSpec = await signatureSpecModel.create(signatureSpecData);
 
-      const result = await deleteWorkloadIdentity(WORKLOAD_IDENTITY_ID, serviceOptions);
+      const result = await deleteSignatureSpec(SIGNATURE_SPEC_ID, serviceOptions);
 
       requireSuccessfulResult(result);
-      const dbResult = await workloadIdentityModel.findById(workloadIdentity.id);
+      const dbResult = await signatureSpecModel.findById(signatureSpec.id);
       expect(dbResult).not.toBeNull();
     });
   });

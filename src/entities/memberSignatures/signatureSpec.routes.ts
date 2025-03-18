@@ -4,25 +4,20 @@ import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
-import { MemberWorkloadIdentityProblem } from './MemberWorkloadIdentityProblem.js';
-import {
-  createWorkloadIdentity,
-  deleteWorkloadIdentity,
-  getWorkloadIdentity,
-} from './memberWorkloadIdentity.js';
-import { MEMBER_WORKLOAD_IDENTITY_SCHEMA } from './memberWorkloadIdentity.schema.js';
+import { SignatureSpecProblem } from './SignatureSpecProblem.js';
+import { createSignatureSpec, deleteSignatureSpec, getSignatureSpec } from './signatureSpec.js';
+import { SIGNATURE_SPEC_SCHEMA } from './SignatureSpec.schema.js';
 
 const HTTP_OR_HTTPS_URL_REGEX = /^https?:/u;
 
 const RESPONSE_CODE_BY_PROBLEM: {
-  // eslint-disable-next-line max-len
-  [key in MemberWorkloadIdentityProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+  [key in SignatureSpecProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
 } = {
-  [MemberWorkloadIdentityProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
+  [SignatureSpecProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 
-  [MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [SignatureSpecProblem.MALFORMED_ISSUER_URL]: HTTP_STATUS_CODES.BAD_REQUEST,
 
-  [MemberWorkloadIdentityProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
+  [SignatureSpecProblem.INVALID_TTL]: HTTP_STATUS_CODES.BAD_REQUEST,
 } as const;
 
 const CREATE_PARAMS = {
@@ -36,29 +31,25 @@ const CREATE_PARAMS = {
   required: ['orgName', 'memberId'],
 } as const;
 
-const WORKLOAD_IDENTITY_PARAMS = {
+const SIGNATURE_SPEC_PARAMS = {
   type: 'object',
 
   properties: {
     orgName: { type: 'string' },
     memberId: { type: 'string' },
-    workloadIdentityId: { type: 'string' },
+    signatureSpecId: { type: 'string' },
   },
 
-  required: ['orgName', 'memberId', 'workloadIdentityId'],
+  required: ['orgName', 'memberId', 'signatureSpecId'],
 } as const;
 
-interface WorkloadIdentityUrls {
+interface SignatureSpecUrls {
   self: string;
 }
 
-function makeUrls(
-  orgName: string,
-  memberId: string,
-  workloadIdentityId: string,
-): WorkloadIdentityUrls {
+function makeUrls(orgName: string, memberId: string, signatureSpecId: string): SignatureSpecUrls {
   return {
-    self: `/orgs/${orgName}/members/${memberId}/workload-identities/${workloadIdentityId}`,
+    self: `/orgs/${orgName}/members/${memberId}/signature-specs/${signatureSpecId}`,
   };
 }
 
@@ -73,7 +64,7 @@ export default function registerRoutes(
 
     schema: {
       params: CREATE_PARAMS,
-      body: MEMBER_WORKLOAD_IDENTITY_SCHEMA,
+      body: SIGNATURE_SPEC_SCHEMA,
     },
 
     async handler(request, reply): Promise<void> {
@@ -82,14 +73,14 @@ export default function registerRoutes(
       if (!HTTP_OR_HTTPS_URL_REGEX.test(request.body.openidProviderIssuerUrl)) {
         await reply
           .code(HTTP_STATUS_CODES.BAD_REQUEST)
-          .send({ type: MemberWorkloadIdentityProblem.MALFORMED_ISSUER_URL });
+          .send({ type: SignatureSpecProblem.MALFORMED_ISSUER_URL });
         return;
       }
 
       const openidProviderIssuerUrl = new URL(request.body.openidProviderIssuerUrl);
 
-      const workloadIdentity = { ...request.body, openidProviderIssuerUrl };
-      const result = await createWorkloadIdentity(memberId, workloadIdentity, {
+      const signatureSpec = { ...request.body, openidProviderIssuerUrl };
+      const result = await createSignatureSpec(memberId, signatureSpec, {
         logger: request.log,
         dbConnection: this.mongoose,
       });
@@ -106,32 +97,28 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['DELETE'],
-    url: '/:workloadIdentityId',
+    url: '/:signatureSpecId',
 
     schema: {
-      params: WORKLOAD_IDENTITY_PARAMS,
+      params: SIGNATURE_SPEC_PARAMS,
     },
 
     async handler(request, reply): Promise<void> {
-      const { memberId, workloadIdentityId } = request.params;
+      const { memberId, signatureSpecId } = request.params;
       const serviceOptions = {
         logger: request.log,
         dbConnection: this.mongoose,
       };
 
-      const workloadIdentity = await getWorkloadIdentity(
-        memberId,
-        workloadIdentityId,
-        serviceOptions,
-      );
-      if (!workloadIdentity.didSucceed) {
-        await reply.code(RESPONSE_CODE_BY_PROBLEM[workloadIdentity.context]).send({
-          type: workloadIdentity.context,
+      const signatureSpec = await getSignatureSpec(memberId, signatureSpecId, serviceOptions);
+      if (!signatureSpec.didSucceed) {
+        await reply.code(RESPONSE_CODE_BY_PROBLEM[signatureSpec.context]).send({
+          type: signatureSpec.context,
         });
         return;
       }
 
-      await deleteWorkloadIdentity(workloadIdentityId, serviceOptions);
+      await deleteSignatureSpec(signatureSpecId, serviceOptions);
 
       await reply.code(HTTP_STATUS_CODES.NO_CONTENT).send();
     },
@@ -139,15 +126,15 @@ export default function registerRoutes(
 
   fastify.route({
     method: ['GET'],
-    url: '/:workloadIdentityId',
+    url: '/:signatureSpecId',
 
     schema: {
-      params: WORKLOAD_IDENTITY_PARAMS,
+      params: SIGNATURE_SPEC_PARAMS,
     },
 
     async handler(request, reply): Promise<FastifyReply> {
-      const { memberId, workloadIdentityId } = request.params;
-      const result = await getWorkloadIdentity(memberId, workloadIdentityId, {
+      const { memberId, signatureSpecId } = request.params;
+      const result = await getSignatureSpec(memberId, signatureSpecId, {
         logger: request.log,
         dbConnection: this.mongoose,
       });

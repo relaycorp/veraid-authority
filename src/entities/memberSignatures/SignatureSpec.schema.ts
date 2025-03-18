@@ -2,7 +2,7 @@ import type { FromSchema } from 'json-schema-to-ts';
 
 import { SERVICE_OID_REGEX } from '../../utilities/schemaValidation.js';
 
-export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
+export const SIGNATURE_SPEC_SCHEMA = {
   type: 'object',
 
   properties: {
@@ -23,8 +23,8 @@ export const MEMBER_WORKLOAD_IDENTITY_SCHEMA = {
   ],
 } as const;
 
-export type MemberWorkloadIdentitySchema = FromSchema<
-  typeof MEMBER_WORKLOAD_IDENTITY_SCHEMA,
+export type SignatureSpecSchema = FromSchema<
+  typeof SIGNATURE_SPEC_SCHEMA,
   {
     deserialize: [{ pattern: { type: 'string'; format: 'uri' }; output: URL }];
   }
