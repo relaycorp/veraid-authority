@@ -71,9 +71,13 @@ export async function getSignatureSpec(
     didSucceed: true,
 
     result: {
-      openidProviderIssuerUrl: signatureSpec.openidProviderIssuerUrl,
-      jwtSubjectClaim: signatureSpec.jwtSubjectClaim,
-      jwtSubjectValue: signatureSpec.jwtSubjectValue,
+      auth: {
+        type: 'oidc-discovery',
+        openidProviderIssuerUrl: signatureSpec.auth.openidProviderIssuerUrl,
+        jwtSubjectClaim: signatureSpec.auth.jwtSubjectClaim,
+        jwtSubjectValue: signatureSpec.auth.jwtSubjectValue,
+      },
+
       veraidServiceOid: signatureSpec.veraidServiceOid,
       veraidSignatureTtlSeconds: signatureSpec.veraidSignatureTtlSeconds,
       veraidSignaturePlaintext: signatureSpec.veraidSignaturePlaintext.toString('base64'),

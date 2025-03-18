@@ -16,6 +16,7 @@ const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const SIGNATURE_SPEC_ID = '111111111111111111111111';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
+const AUTH_TYPE = 'oidc-discovery';
 
 describe('Member signature specs', () => {
   const getConnection = setUpTestDbConnection();
@@ -40,10 +41,18 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
+
           veraidSignaturePlaintext: PLAINTEXT,
         },
         serviceOptions,
@@ -61,11 +70,20 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
+
           veraidSignatureTtlSeconds: customTtl,
+
           veraidSignaturePlaintext: PLAINTEXT,
         },
         serviceOptions,
@@ -81,10 +99,18 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
+
           veraidSignaturePlaintext: PLAINTEXT,
         },
         serviceOptions,
@@ -94,9 +120,9 @@ describe('Member signature specs', () => {
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
-      expect(dbResult!.openidProviderIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
-      expect(dbResult!.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
-      expect(dbResult!.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
+      expect(dbResult!.auth.openidProviderIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
+      expect(dbResult!.auth.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
+      expect(dbResult!.auth.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
       expect(dbResult!.veraidServiceOid).toStrictEqual(TEST_SERVICE_OID);
       expect(dbResult!.veraidSignaturePlaintext.toString()).toStrictEqual(
         Buffer.from(PLAINTEXT, 'base64').toString(),
@@ -107,9 +133,13 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignaturePlaintext: PLAINTEXT,
         },
@@ -130,9 +160,13 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: invalidTtl,
           veraidSignaturePlaintext: PLAINTEXT,
@@ -150,9 +184,13 @@ describe('Member signature specs', () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
         {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: invalidTtl,
           veraidSignaturePlaintext: PLAINTEXT,
@@ -169,9 +207,13 @@ describe('Member signature specs', () => {
     test('Existing id should return the corresponding data', async () => {
       const signatureSpec = await signatureSpecModel.create({
         memberId: MEMBER_ID,
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+
+        auth: {
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
@@ -185,9 +227,13 @@ describe('Member signature specs', () => {
 
       requireSuccessfulResult(result);
       expect(result.result).toMatchObject({
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
         veraidSignaturePlaintext: PLAINTEXT,
@@ -197,9 +243,13 @@ describe('Member signature specs', () => {
     test('Non existing id should return non existing error', async () => {
       await signatureSpecModel.create({
         memberId: MEMBER_ID,
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+
+        auth: {
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
@@ -215,9 +265,13 @@ describe('Member signature specs', () => {
       const invalidMemberId = '222222222222222222222222';
       const signatureSpec = await signatureSpecModel.create({
         memberId: MEMBER_ID,
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+
+        auth: {
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
         veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
@@ -237,9 +291,13 @@ describe('Member signature specs', () => {
   describe('deleteSignatureSpec', () => {
     const signatureSpecData: Partial<SignatureSpec> = {
       memberId: MEMBER_ID,
-      openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-      jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-      jwtSubjectValue: JWT_SUBJECT_VALUE,
+
+      auth: {
+        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+        jwtSubjectValue: JWT_SUBJECT_VALUE,
+      },
+
       veraidServiceOid: TEST_SERVICE_OID,
       veraidSignatureTtlSeconds: 3600,
       veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),

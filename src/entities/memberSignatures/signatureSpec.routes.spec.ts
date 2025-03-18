@@ -15,6 +15,7 @@ const OPENID_PROVIDER_ISSUER_URL = new URL('https://idp.example.com');
 const JWT_SUBJECT_CLAIM = 'sub';
 const JWT_SUBJECT_VALUE = 'alice@example.com';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
+const AUTH_TYPE = 'oidc-discovery';
 
 const SIGNATURE_SPEC_ID = '111111111111111111111111';
 const SIGNATURE_SPECS_PATH = `/orgs/${ORG_NAME}/members/${MEMBER_ID}/signature-specs/`;
@@ -53,9 +54,13 @@ describe('signature spec routes', () => {
 
     describe('Auth', () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -67,9 +72,13 @@ describe('signature spec routes', () => {
 
     test('Valid data should be stored', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -94,9 +103,13 @@ describe('signature spec routes', () => {
 
     test('Malformed issuer URI should be refused', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: 'Not a URI' as any,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: 'Not a URI' as any,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -109,15 +122,19 @@ describe('signature spec routes', () => {
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.BAD_REQUEST);
       expect(response.json()).toHaveProperty(
         'message',
-        'body/openidProviderIssuerUrl must match format "uri"',
+        'body/auth/openidProviderIssuerUrl must match format "uri"',
       );
     });
 
     test('Non-HTTP(S) issuer URL should be refused', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: 'mailto:alice@example.com' as any,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: 'mailto:alice@example.com' as any,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -133,9 +150,13 @@ describe('signature spec routes', () => {
 
     test('Invalid TTL should be refused', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
         veraidSignatureTtlSeconds: 0,
@@ -152,9 +173,13 @@ describe('signature spec routes', () => {
 
     test('Malformed service OID should be refused', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: `${TEST_SERVICE_OID}@`,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -169,9 +194,13 @@ describe('signature spec routes', () => {
 
     test('Service function returning INVALID_TTL should be refused', async () => {
       const payload: SignatureSpecSchema = {
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignaturePlaintext: PLAINTEXT,
       };
@@ -202,9 +231,13 @@ describe('signature spec routes', () => {
           didSucceed: true,
 
           result: {
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-            jwtSubjectValue: JWT_SUBJECT_VALUE,
+            auth: {
+              type: AUTH_TYPE,
+              openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+              jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+              jwtSubjectValue: JWT_SUBJECT_VALUE,
+            },
+
             veraidServiceOid: TEST_SERVICE_OID,
             veraidSignatureTtlSeconds: 3600,
             veraidSignaturePlaintext: PLAINTEXT,
@@ -222,9 +255,13 @@ describe('signature spec routes', () => {
         didSucceed: true,
 
         result: {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: 3600,
           veraidSignaturePlaintext: PLAINTEXT,
@@ -272,9 +309,13 @@ describe('signature spec routes', () => {
           didSucceed: true,
 
           result: {
-            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-            jwtSubjectValue: JWT_SUBJECT_VALUE,
+            auth: {
+              type: AUTH_TYPE,
+              openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+              jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+              jwtSubjectValue: JWT_SUBJECT_VALUE,
+            },
+
             veraidServiceOid: TEST_SERVICE_OID,
             veraidSignatureTtlSeconds: 3600,
             veraidSignaturePlaintext: PLAINTEXT,
@@ -292,9 +333,13 @@ describe('signature spec routes', () => {
         didSucceed: true,
 
         result: {
-          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
+          auth: {
+            type: AUTH_TYPE,
+            openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+            jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+            jwtSubjectValue: JWT_SUBJECT_VALUE,
+          },
+
           veraidServiceOid: TEST_SERVICE_OID,
           veraidSignatureTtlSeconds: 3600,
           veraidSignaturePlaintext: PLAINTEXT,
@@ -305,9 +350,13 @@ describe('signature spec routes', () => {
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.json()).toStrictEqual({
-        openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL.toString(),
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
+        auth: {
+          type: AUTH_TYPE,
+          openidProviderIssuerUrl: OPENID_PROVIDER_ISSUER_URL.toString(),
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
         veraidServiceOid: TEST_SERVICE_OID,
         veraidSignatureTtlSeconds: 3600,
         veraidSignaturePlaintext: PLAINTEXT,

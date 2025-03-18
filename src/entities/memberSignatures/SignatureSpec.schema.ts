@@ -6,21 +6,25 @@ export const SIGNATURE_SPEC_SCHEMA = {
   type: 'object',
 
   properties: {
-    openidProviderIssuerUrl: { type: 'string', format: 'uri' },
-    jwtSubjectClaim: { type: 'string' },
-    jwtSubjectValue: { type: 'string' },
+    auth: {
+      type: 'object',
+
+      properties: {
+        type: { type: 'string', enum: ['oidc-discovery'] },
+        openidProviderIssuerUrl: { type: 'string', format: 'uri' },
+        jwtSubjectClaim: { type: 'string' },
+        jwtSubjectValue: { type: 'string' },
+      },
+
+      required: ['type', 'openidProviderIssuerUrl', 'jwtSubjectClaim', 'jwtSubjectValue'],
+    },
+
     veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
     veraidSignatureTtlSeconds: { type: 'integer', minimum: 1, maximum: 3600 },
     veraidSignaturePlaintext: { type: 'string', maxLength: 1024 },
   },
 
-  required: [
-    'openidProviderIssuerUrl',
-    'jwtSubjectClaim',
-    'jwtSubjectValue',
-    'veraidServiceOid',
-    'veraidSignaturePlaintext',
-  ],
+  required: ['auth', 'veraidServiceOid', 'veraidSignaturePlaintext'],
 } as const;
 
 export type SignatureSpecSchema = FromSchema<

@@ -1,5 +1,7 @@
 import { prop, modelOptions } from '@typegoose/typegoose';
 
+import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
+
 @modelOptions({
   schemaOptions: {
     collection: 'signature_specs',
@@ -14,19 +16,8 @@ export class SignatureSpec {
   @prop({ required: true })
   public memberId!: string;
 
-  @prop({
-    required: true,
-    type: String,
-    get: (url: string) => new URL(url),
-    set: (url: URL) => url.toString(),
-  })
-  public openidProviderIssuerUrl!: URL;
-
   @prop({ required: true })
-  public jwtSubjectClaim!: string;
-
-  @prop({ required: true })
-  public jwtSubjectValue!: string;
+  public auth!: OidcDiscoveryAuth;
 
   @prop({ required: true })
   public veraidServiceOid!: string;
