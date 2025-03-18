@@ -20,13 +20,13 @@ export class SignatureSpec {
   public auth!: OidcDiscoveryAuth;
 
   @prop({ required: true })
-  public veraidServiceOid!: string;
+  public serviceOid!: string;
 
   @prop({ required: true, default: 3600 })
-  public veraidSignatureTtlSeconds!: number;
+  public ttlSeconds!: number;
 
   @prop({ required: true })
-  public veraidSignaturePlaintext!: Buffer;
+  public plaintext!: Buffer;
 
   @prop()
   public readonly creationDate!: Date;

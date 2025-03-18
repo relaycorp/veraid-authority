@@ -19,12 +19,12 @@ export const SIGNATURE_SPEC_SCHEMA = {
       required: ['type', 'providerIssuerUrl', 'jwtSubjectClaim', 'jwtSubjectValue'],
     },
 
-    veraidServiceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
-    veraidSignatureTtlSeconds: { type: 'integer', minimum: 1, maximum: 3600 },
-    veraidSignaturePlaintext: { type: 'string', maxLength: 1024 },
+    serviceOid: { type: 'string', pattern: SERVICE_OID_REGEX },
+    ttlSeconds: { type: 'integer', minimum: 1, maximum: 3600 },
+    plaintext: { type: 'string', maxLength: 1024 },
   },
 
-  required: ['auth', 'veraidServiceOid', 'veraidSignaturePlaintext'],
+  required: ['auth', 'serviceOid', 'plaintext'],
 } as const;
 
 export type SignatureSpecSchema = FromSchema<

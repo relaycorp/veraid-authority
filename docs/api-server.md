@@ -81,9 +81,9 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
     - `providerIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
     - `jwtSubjectField`: The field in the JWT that contains the subject.
     - `jwtSubjectValue`: The value of the subject field.
-    - `veraidServiceOid`: The OID for the service where the signature will be valid.
-    - `veraidSignatureTtlSeconds`: Time-to-live for the signature in seconds (default: 3600).
-    - `veraidSignaturePlaintext`: The plaintext to be signed.
+    - `serviceOid`: The OID for the service where the signature will be valid.
+    - `ttlSeconds`: Time-to-live for the signature in seconds (default: 3600).
+    - `plaintext`: The plaintext to be signed.
   - Output: URL to the new signature spec.
 - `GET /orgs/{orgName}/members/{memberId}/signature-specs/{signatureSpecId}`: Get signature spec.
   - Auth: Org member.

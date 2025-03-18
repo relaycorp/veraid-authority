@@ -61,8 +61,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
       };
       testOrgRouteAuth('ORG_MEMBERSHIP', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateSignatureSpec,
@@ -79,8 +79,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
       };
       mockCreateSignatureSpec.mockResolvedValueOnce({
         didSucceed: true,
@@ -110,8 +110,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
       };
 
       const response = await serverInstance.inject({
@@ -135,8 +135,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
       };
 
       const response = await serverInstance.inject({
@@ -157,9 +157,9 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
-        veraidSignatureTtlSeconds: 0,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
+        ttlSeconds: 0,
       };
 
       const response = await serverInstance.inject({
@@ -180,8 +180,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: `${TEST_SERVICE_OID}@`,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: `${TEST_SERVICE_OID}@`,
+        plaintext: PLAINTEXT,
       };
 
       const response = await serverInstance.inject({
@@ -201,8 +201,8 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
       };
       mockCreateSignatureSpec.mockResolvedValueOnce({
         didSucceed: false,
@@ -238,9 +238,9 @@ describe('signature spec routes', () => {
               jwtSubjectValue: JWT_SUBJECT_VALUE,
             },
 
-            veraidServiceOid: TEST_SERVICE_OID,
-            veraidSignatureTtlSeconds: 3600,
-            veraidSignaturePlaintext: PLAINTEXT,
+            serviceOid: TEST_SERVICE_OID,
+            ttlSeconds: 3600,
+            plaintext: PLAINTEXT,
           },
         });
       });
@@ -262,9 +262,9 @@ describe('signature spec routes', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
-          veraidSignatureTtlSeconds: 3600,
-          veraidSignaturePlaintext: PLAINTEXT,
+          serviceOid: TEST_SERVICE_OID,
+          ttlSeconds: 3600,
+          plaintext: PLAINTEXT,
         },
       });
       mockDeleteSignatureSpec.mockResolvedValueOnce({
@@ -316,9 +316,9 @@ describe('signature spec routes', () => {
               jwtSubjectValue: JWT_SUBJECT_VALUE,
             },
 
-            veraidServiceOid: TEST_SERVICE_OID,
-            veraidSignatureTtlSeconds: 3600,
-            veraidSignaturePlaintext: PLAINTEXT,
+            serviceOid: TEST_SERVICE_OID,
+            ttlSeconds: 3600,
+            plaintext: PLAINTEXT,
           },
         });
       });
@@ -340,9 +340,9 @@ describe('signature spec routes', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
-          veraidSignatureTtlSeconds: 3600,
-          veraidSignaturePlaintext: PLAINTEXT,
+          serviceOid: TEST_SERVICE_OID,
+          ttlSeconds: 3600,
+          plaintext: PLAINTEXT,
         },
       });
 
@@ -357,9 +357,9 @@ describe('signature spec routes', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignatureTtlSeconds: 3600,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        ttlSeconds: 3600,
+        plaintext: PLAINTEXT,
       });
     });
 

@@ -16,12 +16,11 @@ export async function createSignatureSpec(
   options: ServiceOptions,
 ): Promise<Result<SignatureSpecCreationResult, SignatureSpecProblem>> {
   if (
-    signatureSpecData.veraidSignatureTtlSeconds !== undefined &&
-    (signatureSpecData.veraidSignatureTtlSeconds < 1 ||
-      signatureSpecData.veraidSignatureTtlSeconds > MAX_TTL_SECONDS)
+    signatureSpecData.ttlSeconds !== undefined &&
+    (signatureSpecData.ttlSeconds < 1 || signatureSpecData.ttlSeconds > MAX_TTL_SECONDS)
   ) {
     options.logger.info(
-      { ttl: signatureSpecData.veraidSignatureTtlSeconds },
+      { ttl: signatureSpecData.ttlSeconds },
       'Refused invalid TTL for signature spec',
     );
     return {
@@ -37,7 +36,7 @@ export async function createSignatureSpec(
     ...signatureSpecData,
     memberId,
 
-    veraidSignaturePlaintext: Buffer.from(signatureSpecData.veraidSignaturePlaintext, 'base64'),
+    plaintext: Buffer.from(signatureSpecData.plaintext, 'base64'),
   });
 
   options.logger.info({ signatureSpecId: signatureSpec.id }, 'Signature spec created');
@@ -78,9 +77,9 @@ export async function getSignatureSpec(
         jwtSubjectValue: signatureSpec.auth.jwtSubjectValue,
       },
 
-      veraidServiceOid: signatureSpec.veraidServiceOid,
-      veraidSignatureTtlSeconds: signatureSpec.veraidSignatureTtlSeconds,
-      veraidSignaturePlaintext: signatureSpec.veraidSignaturePlaintext.toString('base64'),
+      serviceOid: signatureSpec.serviceOid,
+      ttlSeconds: signatureSpec.ttlSeconds,
+      plaintext: signatureSpec.plaintext.toString('base64'),
     },
   };
 }

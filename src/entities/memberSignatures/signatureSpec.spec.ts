@@ -48,9 +48,9 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
+          serviceOid: TEST_SERVICE_OID,
 
-          veraidSignaturePlaintext: PLAINTEXT,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -58,7 +58,7 @@ describe('Member signature specs', () => {
       requireSuccessfulResult(signatureSpec);
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.veraidSignatureTtlSeconds).toBe(3600);
+      expect(dbResult!.ttlSeconds).toBe(3600);
     });
 
     test('Should create signature spec with custom TTL', async () => {
@@ -74,11 +74,11 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
+          serviceOid: TEST_SERVICE_OID,
 
-          veraidSignatureTtlSeconds: customTtl,
+          ttlSeconds: customTtl,
 
-          veraidSignaturePlaintext: PLAINTEXT,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -86,7 +86,7 @@ describe('Member signature specs', () => {
       requireSuccessfulResult(signatureSpec);
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.veraidSignatureTtlSeconds).toStrictEqual(customTtl);
+      expect(dbResult!.ttlSeconds).toStrictEqual(customTtl);
     });
 
     test('Should store all required fields correctly', async () => {
@@ -100,9 +100,9 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
+          serviceOid: TEST_SERVICE_OID,
 
-          veraidSignaturePlaintext: PLAINTEXT,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -114,8 +114,8 @@ describe('Member signature specs', () => {
       expect(dbResult!.auth.providerIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
       expect(dbResult!.auth.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
       expect(dbResult!.auth.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
-      expect(dbResult!.veraidServiceOid).toStrictEqual(TEST_SERVICE_OID);
-      expect(dbResult!.veraidSignaturePlaintext.toString()).toStrictEqual(
+      expect(dbResult!.serviceOid).toStrictEqual(TEST_SERVICE_OID);
+      expect(dbResult!.plaintext.toString()).toStrictEqual(
         Buffer.from(PLAINTEXT, 'base64').toString(),
       );
     });
@@ -131,8 +131,8 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
-          veraidSignaturePlaintext: PLAINTEXT,
+          serviceOid: TEST_SERVICE_OID,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -158,9 +158,9 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
-          veraidSignatureTtlSeconds: invalidTtl,
-          veraidSignaturePlaintext: PLAINTEXT,
+          serviceOid: TEST_SERVICE_OID,
+          ttlSeconds: invalidTtl,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -182,9 +182,9 @@ describe('Member signature specs', () => {
             jwtSubjectValue: JWT_SUBJECT_VALUE,
           },
 
-          veraidServiceOid: TEST_SERVICE_OID,
-          veraidSignatureTtlSeconds: invalidTtl,
-          veraidSignaturePlaintext: PLAINTEXT,
+          serviceOid: TEST_SERVICE_OID,
+          ttlSeconds: invalidTtl,
+          plaintext: PLAINTEXT,
         },
         serviceOptions,
       );
@@ -205,9 +205,9 @@ describe('Member signature specs', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignatureTtlSeconds: 3600,
-        veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
+        serviceOid: TEST_SERVICE_OID,
+        ttlSeconds: 3600,
+        plaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
       const result = await getSignatureSpec(
@@ -225,9 +225,9 @@ describe('Member signature specs', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignatureTtlSeconds: 3600,
-        veraidSignaturePlaintext: PLAINTEXT,
+        serviceOid: TEST_SERVICE_OID,
+        ttlSeconds: 3600,
+        plaintext: PLAINTEXT,
       });
     });
 
@@ -241,9 +241,9 @@ describe('Member signature specs', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignatureTtlSeconds: 3600,
-        veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
+        serviceOid: TEST_SERVICE_OID,
+        ttlSeconds: 3600,
+        plaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
       const result = await getSignatureSpec(MEMBER_ID, SIGNATURE_SPEC_ID, serviceOptions);
@@ -263,9 +263,9 @@ describe('Member signature specs', () => {
           jwtSubjectValue: JWT_SUBJECT_VALUE,
         },
 
-        veraidServiceOid: TEST_SERVICE_OID,
-        veraidSignatureTtlSeconds: 3600,
-        veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
+        serviceOid: TEST_SERVICE_OID,
+        ttlSeconds: 3600,
+        plaintext: Buffer.from(PLAINTEXT, 'base64'),
       });
 
       const result = await getSignatureSpec(
@@ -289,9 +289,9 @@ describe('Member signature specs', () => {
         jwtSubjectValue: JWT_SUBJECT_VALUE,
       },
 
-      veraidServiceOid: TEST_SERVICE_OID,
-      veraidSignatureTtlSeconds: 3600,
-      veraidSignaturePlaintext: Buffer.from(PLAINTEXT, 'base64'),
+      serviceOid: TEST_SERVICE_OID,
+      ttlSeconds: 3600,
+      plaintext: Buffer.from(PLAINTEXT, 'base64'),
     };
 
     test('Existing id should remove signature spec', async () => {
