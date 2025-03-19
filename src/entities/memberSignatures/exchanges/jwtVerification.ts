@@ -1,14 +1,13 @@
 import { jwtVerify, createLocalJWKSet, type JWTPayload, type JSONWebKeySet } from 'jose';
 import type { Connection } from 'mongoose';
 import type { Logger } from 'pino';
-import { setMilliseconds, subMinutes } from 'date-fns';
+import { fromUnixTime, setMilliseconds, subMinutes } from 'date-fns';
 
 import type { Result } from '../../../utilities/result.js';
 
 import { JwtVerificationProblem } from './JwtVerificationProblem.js';
 import { fetchAndCacheJwks } from './jwksRetrieval.js';
 
-const MILLISECONDS_IN_SECOND = 1000;
 const MAX_TOKEN_AGE_MINUTES = 60;
 
 async function verifyJwtWithJwks(
@@ -37,7 +36,7 @@ async function verifyJwtWithJwks(
 
   if (payload.iat !== undefined) {
     const now = setMilliseconds(new Date(), 0);
-    const issuanceDate = new Date(payload.iat * MILLISECONDS_IN_SECOND);
+    const issuanceDate = fromUnixTime(payload.iat);
     if (issuanceDate < subMinutes(now, MAX_TOKEN_AGE_MINUTES)) {
       logger.info({ issuanceDate }, 'JWT was issued more than an hour ago');
       return {
