@@ -133,12 +133,80 @@ describe('verifyJwt', () => {
     );
   });
 
+  test('should fail if JWT has been valid for more than an hour', async () => {
+    mockFetchAndCacheJwks.mockResolvedValue(JWKS);
+    const now = setMilliseconds(new Date(), 0);
+    const issuanceDate = subSeconds(now, 3601);
+    const jwtIssuedTooLongAgo = await new SignJWT(PAYLOAD)
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuedAt(issuanceDate)
+      .setIssuer(ISSUER.toString())
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(ISSUER_KEY_PAIR.privateKey);
+
+    const result = await verifyJwt(
+      jwtIssuedTooLongAgo,
+      ISSUER,
+      AUDIENCE,
+      connection,
+      mockLogging.logger,
+    );
+
+    requireFailureResult(result);
+    expect(result.context).toBe(JwtVerificationProblem.EXPIRED_JWT);
+    expect(mockLogging.logs).toContainEqual(
+      partialPinoLog('info', 'JWT was issued more than an hour ago', {
+        issuanceDate,
+      }),
+    );
+  });
+
+  test('should allow JWT issued an hour ago', async () => {
+    mockFetchAndCacheJwks.mockResolvedValue(JWKS);
+    const now = setMilliseconds(new Date(), 0);
+    const exactlyOneHourAgo = subSeconds(now, 3600);
+    const jwtIssuedOneHourAgo = await new SignJWT(PAYLOAD)
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuedAt(exactlyOneHourAgo)
+      .setIssuer(ISSUER.toString())
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(ISSUER_KEY_PAIR.privateKey);
+
+    const result = await verifyJwt(
+      jwtIssuedOneHourAgo,
+      ISSUER,
+      AUDIENCE,
+      connection,
+      mockLogging.logger,
+    );
+
+    requireSuccessfulResult(result);
+    expect(result.result).toMatchObject(PAYLOAD);
+  });
+
+  test('should allow JWT without iat claim', async () => {
+    mockFetchAndCacheJwks.mockResolvedValue(JWKS);
+    const jwtWithoutIat = await new SignJWT(PAYLOAD)
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuer(ISSUER.toString())
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(ISSUER_KEY_PAIR.privateKey);
+
+    const result = await verifyJwt(jwtWithoutIat, ISSUER, AUDIENCE, connection, mockLogging.logger);
+
+    requireSuccessfulResult(result);
+    expect(result.result).toMatchObject(PAYLOAD);
+  });
+
   test('should fail if JWT is expired', async () => {
     mockFetchAndCacheJwks.mockResolvedValue(JWKS);
     const now = setMilliseconds(new Date(), 0);
     const expiredJwt = await new SignJWT(PAYLOAD)
       .setProtectedHeader({ alg: 'RS256' })
-      .setIssuedAt(subSeconds(now, 2))
+      .setIssuedAt(subSeconds(now, 1))
       .setIssuer(ISSUER.toString())
       .setAudience(AUDIENCE)
       .setExpirationTime(subSeconds(now, 1))
@@ -147,7 +215,7 @@ describe('verifyJwt', () => {
     const result = await verifyJwt(expiredJwt, ISSUER, AUDIENCE, connection, mockLogging.logger);
 
     requireFailureResult(result);
-    expect(result.context).toBe(JwtVerificationProblem.INVALID_JWT);
+    expect(result.context).toBe(JwtVerificationProblem.EXPIRED_JWT);
     expect(mockLogging.logs).toContainEqual(
       partialPinoLog('info', 'JWT failed verification', {
         err: expect.objectContaining({

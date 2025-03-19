@@ -9,10 +9,15 @@ interface MockLogging {
 }
 
 function serialiseLogAttribute(attribute: unknown): unknown {
+  let value = attribute;
   if (attribute instanceof URL) {
-    return attribute.toString();
+    value = attribute.toString();
+  } else if (attribute instanceof Date) {
+    value = attribute.toISOString();
+  } else {
+    value = attribute;
   }
-  return attribute;
+  return value;
 }
 
 export type { MockLogSet };

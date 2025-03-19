@@ -1,11 +1,54 @@
 import { jwtVerify, createLocalJWKSet, type JWTPayload, type JSONWebKeySet } from 'jose';
 import type { Connection } from 'mongoose';
 import type { Logger } from 'pino';
+import { setMilliseconds, subMinutes } from 'date-fns';
 
 import type { Result } from '../../../utilities/result.js';
 
 import { JwtVerificationProblem } from './JwtVerificationProblem.js';
 import { fetchAndCacheJwks } from './jwksRetrieval.js';
+
+const MILLISECONDS_IN_SECOND = 1000;
+const MAX_TOKEN_AGE_MINUTES = 60;
+
+async function verifyJwtWithJwks(
+  jwt: string,
+  jwksKeySet: ReturnType<typeof createLocalJWKSet>,
+  issuer: string,
+  audience: string,
+  logger: Logger,
+): Promise<Result<JWTPayload, JwtVerificationProblem>> {
+  let payload: JWTPayload;
+  try {
+    ({ payload } = await jwtVerify(jwt, jwksKeySet, { issuer, audience }));
+  } catch (error) {
+    logger.info({ err: error }, 'JWT failed verification');
+
+    const jwtError = error as { code?: string };
+    const context =
+      jwtError.code === 'ERR_JWT_EXPIRED'
+        ? JwtVerificationProblem.EXPIRED_JWT
+        : JwtVerificationProblem.INVALID_JWT;
+    return {
+      didSucceed: false,
+      context,
+    };
+  }
+
+  if (payload.iat !== undefined) {
+    const now = setMilliseconds(new Date(), 0);
+    const issuanceDate = new Date(payload.iat * MILLISECONDS_IN_SECOND);
+    if (issuanceDate < subMinutes(now, MAX_TOKEN_AGE_MINUTES)) {
+      logger.info({ issuanceDate }, 'JWT was issued more than an hour ago');
+      return {
+        didSucceed: false,
+        context: JwtVerificationProblem.EXPIRED_JWT,
+      };
+    }
+  }
+
+  return { didSucceed: true, result: payload };
+}
 
 export async function verifyJwt(
   jwt: string,
@@ -26,19 +69,5 @@ export async function verifyJwt(
   }
 
   const jwksKeySet = createLocalJWKSet(jwksDocument);
-
-  try {
-    const { payload } = await jwtVerify(jwt, jwksKeySet, {
-      issuer: issuerUrl.toString(),
-      audience,
-    });
-
-    return { didSucceed: true, result: payload };
-  } catch (error) {
-    logger.info({ err: error }, 'JWT failed verification');
-    return {
-      didSucceed: false,
-      context: JwtVerificationProblem.INVALID_JWT,
-    };
-  }
+  return verifyJwtWithJwks(jwt, jwksKeySet, issuerUrl.toString(), audience, logger);
 }
