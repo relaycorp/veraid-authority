@@ -3,9 +3,9 @@ import type { Connection } from 'mongoose';
 import { jest } from '@jest/globals';
 import { addMinutes } from 'date-fns';
 
-import { mockSpy } from '../../../testUtils/jest.js';
-import { setUpTestDbConnection } from '../../../testUtils/db.js';
-import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
+import { mockSpy } from '../testUtils/jest.js';
+import { setUpTestDbConnection } from '../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
 
 import { fetchAndCacheJwks } from './jwksRetrieval.js';
 import { CachedJwks } from './CachedJwks.model.js';

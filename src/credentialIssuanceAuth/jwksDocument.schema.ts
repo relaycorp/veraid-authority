@@ -1,6 +1,6 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
-import { compileSchema } from '../../../utilities/ajv.js';
+import { compileSchema } from '../utilities/ajv.js';
 
 const JWKS_DOCUMENT_SCHEMA = {
   type: 'object',

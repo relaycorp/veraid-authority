@@ -3,7 +3,7 @@ import type { Connection } from 'mongoose';
 import type { Logger } from 'pino';
 import { fromUnixTime, setMilliseconds, subMinutes } from 'date-fns';
 
-import type { Result } from '../../../utilities/result.js';
+import type { Result } from '../utilities/result.js';
 
 import { JwtVerificationProblem } from './JwtVerificationProblem.js';
 import { fetchAndCacheJwks } from './jwksRetrieval.js';

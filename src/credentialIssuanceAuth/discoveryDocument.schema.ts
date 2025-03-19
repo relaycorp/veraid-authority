@@ -1,4 +1,4 @@
-import { compileSchema } from '../../../utilities/ajv.js';
+import { compileSchema } from '../utilities/ajv.js';
 
 const DISCOVERY_DOCUMENT_SCHEMA = {
   type: 'object',

@@ -3,10 +3,10 @@ import { type JWTPayload, SignJWT, exportJWK, generateKeyPair } from 'jose';
 import { setMilliseconds, subSeconds } from 'date-fns';
 import type { Connection } from 'mongoose';
 
-import { makeMockLogging, partialPinoLog } from '../../../testUtils/logging.js';
-import { requireSuccessfulResult, requireFailureResult } from '../../../testUtils/result.js';
-import { mockSpy } from '../../../testUtils/jest.js';
-import { setUpTestDbConnection } from '../../../testUtils/db.js';
+import { makeMockLogging, partialPinoLog } from '../testUtils/logging.js';
+import { requireSuccessfulResult, requireFailureResult } from '../testUtils/result.js';
+import { mockSpy } from '../testUtils/jest.js';
+import { setUpTestDbConnection } from '../testUtils/db.js';
 
 import { JwtVerificationProblem } from './JwtVerificationProblem.js';
 import type { JwksDocumentSchema } from './jwksDocument.schema.js';
