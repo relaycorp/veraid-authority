@@ -78,17 +78,10 @@ export default function registerRoutes(
       }
 
       const providerIssuerUrl = new URL(request.body.auth.providerIssuerUrl);
-      const updatedAuth = {
-        ...request.body.auth,
-        providerIssuerUrl,
-      };
+      const updatedAuth = { ...request.body.auth, providerIssuerUrl };
+      const signatureSpec = { ...request.body, auth: updatedAuth };
 
-      const signatureSpec = {
-        ...request.body,
-        auth: updatedAuth,
-      };
-
-      const result = await createSignatureSpec(memberId, signatureSpec, {
+      const result = await createSignatureSpec(memberId, orgName, signatureSpec, {
         logger: request.log,
         dbConnection: this.mongoose,
       });

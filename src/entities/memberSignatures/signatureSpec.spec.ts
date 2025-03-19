@@ -3,7 +3,7 @@ import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from '../../testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
-import { MEMBER_ID, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
+import { MEMBER_ID, ORG_NAME, TEST_SERVICE_OID } from '../../testUtils/stubs.js';
 import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
 
@@ -17,6 +17,21 @@ const JWT_SUBJECT_VALUE = 'alice@example.com';
 const SIGNATURE_SPEC_ID = '111111111111111111111111';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 const AUTH_TYPE = 'oidc-discovery';
+
+const STUB_SIGNATURE_SPEC_DATA: Omit<SignatureSpec, 'creationDate'> = {
+  orgName: ORG_NAME,
+  member: new mongoose.Types.ObjectId(MEMBER_ID),
+
+  auth: {
+    providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+    jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+    jwtSubjectValue: JWT_SUBJECT_VALUE,
+  },
+
+  serviceOid: TEST_SERVICE_OID,
+  ttlSeconds: 3600,
+  plaintext: Buffer.from(PLAINTEXT, 'base64'),
+};
 
 describe('Member signature specs', () => {
   const getConnection = setUpTestDbConnection();
@@ -40,6 +55,7 @@ describe('Member signature specs', () => {
     test('Should create signature spec with default TTL', async () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -66,6 +82,7 @@ describe('Member signature specs', () => {
 
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -92,6 +109,7 @@ describe('Member signature specs', () => {
     test('Should store all required fields correctly', async () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -111,6 +129,7 @@ describe('Member signature specs', () => {
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
       expect(dbResult!.member._id.toString()).toStrictEqual(MEMBER_ID);
+      expect(dbResult!.orgName).toStrictEqual(ORG_NAME);
       expect(dbResult!.auth.providerIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
       expect(dbResult!.auth.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
       expect(dbResult!.auth.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
@@ -123,6 +142,7 @@ describe('Member signature specs', () => {
     test('Should log creation', async () => {
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -150,6 +170,7 @@ describe('Member signature specs', () => {
 
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -174,6 +195,7 @@ describe('Member signature specs', () => {
 
       const signatureSpec = await createSignatureSpec(
         MEMBER_ID,
+        ORG_NAME,
         {
           auth: {
             type: AUTH_TYPE,
@@ -196,19 +218,7 @@ describe('Member signature specs', () => {
 
   describe('getSignatureSpec', () => {
     test('Existing id should return the corresponding data', async () => {
-      const signatureSpec = await signatureSpecModel.create({
-        member: MEMBER_ID,
-
-        auth: {
-          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
-        },
-
-        serviceOid: TEST_SERVICE_OID,
-        ttlSeconds: 3600,
-        plaintext: Buffer.from(PLAINTEXT, 'base64'),
-      });
+      const signatureSpec = await signatureSpecModel.create(STUB_SIGNATURE_SPEC_DATA);
 
       const result = await getSignatureSpec(
         MEMBER_ID,
@@ -232,41 +242,18 @@ describe('Member signature specs', () => {
     });
 
     test('Non existing id should return non existing error', async () => {
-      await signatureSpecModel.create({
-        member: MEMBER_ID,
+      await signatureSpecModel.create(STUB_SIGNATURE_SPEC_DATA);
+      const invalidId = new mongoose.Types.ObjectId().toString();
 
-        auth: {
-          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
-        },
-
-        serviceOid: TEST_SERVICE_OID,
-        ttlSeconds: 3600,
-        plaintext: Buffer.from(PLAINTEXT, 'base64'),
-      });
-
-      const result = await getSignatureSpec(MEMBER_ID, SIGNATURE_SPEC_ID, serviceOptions);
+      const result = await getSignatureSpec(MEMBER_ID, invalidId, serviceOptions);
 
       requireFailureResult(result);
       expect(result.context).toBe(SignatureSpecProblem.NOT_FOUND);
     });
 
     test('Non existing member id should return non existing error', async () => {
+      const signatureSpec = await signatureSpecModel.create(STUB_SIGNATURE_SPEC_DATA);
       const invalidMemberId = '222222222222222222222222';
-      const signatureSpec = await signatureSpecModel.create({
-        member: MEMBER_ID,
-
-        auth: {
-          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-          jwtSubjectValue: JWT_SUBJECT_VALUE,
-        },
-
-        serviceOid: TEST_SERVICE_OID,
-        ttlSeconds: 3600,
-        plaintext: Buffer.from(PLAINTEXT, 'base64'),
-      });
 
       const result = await getSignatureSpec(
         invalidMemberId,
@@ -280,22 +267,8 @@ describe('Member signature specs', () => {
   });
 
   describe('deleteSignatureSpec', () => {
-    const signatureSpecData: Partial<SignatureSpec> = {
-      member: new mongoose.Types.ObjectId(MEMBER_ID),
-
-      auth: {
-        providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
-        jwtSubjectClaim: JWT_SUBJECT_CLAIM,
-        jwtSubjectValue: JWT_SUBJECT_VALUE,
-      },
-
-      serviceOid: TEST_SERVICE_OID,
-      ttlSeconds: 3600,
-      plaintext: Buffer.from(PLAINTEXT, 'base64'),
-    };
-
     test('Existing id should remove signature spec', async () => {
-      const signatureSpec = await signatureSpecModel.create(signatureSpecData);
+      const signatureSpec = await signatureSpecModel.create(STUB_SIGNATURE_SPEC_DATA);
 
       const result = await deleteSignatureSpec(signatureSpec._id.toString(), serviceOptions);
 
@@ -310,7 +283,7 @@ describe('Member signature specs', () => {
     });
 
     test('Non existing id should not remove any signature spec', async () => {
-      const signatureSpec = await signatureSpecModel.create(signatureSpecData);
+      const signatureSpec = await signatureSpecModel.create(STUB_SIGNATURE_SPEC_DATA);
 
       const result = await deleteSignatureSpec(SIGNATURE_SPEC_ID, serviceOptions);
 

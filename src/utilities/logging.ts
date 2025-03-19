@@ -1,8 +1,11 @@
 import { getPinoOptions, type LoggingTarget } from '@relaycorp/pino-cloud';
 import env from 'env-var';
-import pino, { type Level, type Logger } from 'pino';
+import pino, { type Level, type Logger as PinoLogger } from 'pino';
+import type { FastifyBaseLogger } from 'fastify';
 
 const DEFAULT_APP_NAME = 'veraid-authority';
+
+export type Logger = FastifyBaseLogger | PinoLogger;
 
 export function makeLogger(): Logger {
   const logTarget = env.get('LOG_TARGET').asString();

@@ -15,6 +15,9 @@ import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
   },
 })
 export class SignatureSpec {
+  @prop({ required: true })
+  public orgName!: string;
+
   @prop({ required: true, ref: () => Member })
   public member!: Ref<Member>;
 

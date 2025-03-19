@@ -1,7 +1,8 @@
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import { addSeconds, secondsInDay } from 'date-fns';
 import type { Connection } from 'mongoose';
-import type { Logger } from 'pino';
+
+import type { Logger } from '../utilities/logging.js';
 
 import { CachedJwks } from './CachedJwks.model.js';
 import { validateDiscoveryDocument } from './discoveryDocument.schema.js';

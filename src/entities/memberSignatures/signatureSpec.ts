@@ -12,6 +12,7 @@ const MAX_TTL_SECONDS = 3600;
 
 export async function createSignatureSpec(
   memberId: string,
+  orgName: string,
   signatureSpecData: SignatureSpecSchema,
   options: ServiceOptions,
 ): Promise<Result<SignatureSpecCreationResult, SignatureSpecProblem>> {
@@ -35,7 +36,7 @@ export async function createSignatureSpec(
   const signatureSpec = await signatureSpecModel.create({
     ...signatureSpecData,
     member: memberId,
-
+    orgName,
     plaintext: Buffer.from(signatureSpecData.plaintext, 'base64'),
   });
 

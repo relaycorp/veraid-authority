@@ -1,8 +1,8 @@
 import { jwtVerify, createLocalJWKSet, type JWTPayload, type JSONWebKeySet } from 'jose';
 import type { Connection } from 'mongoose';
-import type { Logger } from 'pino';
 import { fromUnixTime, setMilliseconds, subMinutes } from 'date-fns';
 
+import type { Logger } from '../utilities/logging.js';
 import type { Result } from '../utilities/result.js';
 
 import { JwtVerificationProblem } from './JwtVerificationProblem.js';
