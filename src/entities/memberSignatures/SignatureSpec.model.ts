@@ -1,4 +1,6 @@
-import { prop, modelOptions } from '@typegoose/typegoose';
+import { prop, modelOptions, Ref } from '@typegoose/typegoose';
+
+import { Member } from '../members/Member.model.js';
 
 import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
 
@@ -13,8 +15,8 @@ import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
   },
 })
 export class SignatureSpec {
-  @prop({ required: true })
-  public memberId!: string;
+  @prop({ required: true, ref: () => Member })
+  public member!: Ref<Member>;
 
   @prop({ required: true })
   public auth!: OidcDiscoveryAuth;

@@ -1,4 +1,4 @@
-import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
+import { getModelForClass, mongoose, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
 
 import { setUpTestDbConnection } from '../../testUtils/db.js';
@@ -110,7 +110,7 @@ describe('Member signature specs', () => {
       requireSuccessfulResult(signatureSpec);
       const dbResult = await signatureSpecModel.findById(signatureSpec.result.id);
       expect(dbResult).not.toBeNull();
-      expect(dbResult!.memberId).toStrictEqual(MEMBER_ID);
+      expect(dbResult!.member._id.toString()).toStrictEqual(MEMBER_ID);
       expect(dbResult!.auth.providerIssuerUrl).toStrictEqual(OPENID_PROVIDER_ISSUER_URL);
       expect(dbResult!.auth.jwtSubjectClaim).toStrictEqual(JWT_SUBJECT_CLAIM);
       expect(dbResult!.auth.jwtSubjectValue).toStrictEqual(JWT_SUBJECT_VALUE);
@@ -197,7 +197,7 @@ describe('Member signature specs', () => {
   describe('getSignatureSpec', () => {
     test('Existing id should return the corresponding data', async () => {
       const signatureSpec = await signatureSpecModel.create({
-        memberId: MEMBER_ID,
+        member: MEMBER_ID,
 
         auth: {
           providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -233,7 +233,7 @@ describe('Member signature specs', () => {
 
     test('Non existing id should return non existing error', async () => {
       await signatureSpecModel.create({
-        memberId: MEMBER_ID,
+        member: MEMBER_ID,
 
         auth: {
           providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -255,7 +255,7 @@ describe('Member signature specs', () => {
     test('Non existing member id should return non existing error', async () => {
       const invalidMemberId = '222222222222222222222222';
       const signatureSpec = await signatureSpecModel.create({
-        memberId: MEMBER_ID,
+        member: MEMBER_ID,
 
         auth: {
           providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
@@ -281,7 +281,7 @@ describe('Member signature specs', () => {
 
   describe('deleteSignatureSpec', () => {
     const signatureSpecData: Partial<SignatureSpec> = {
-      memberId: MEMBER_ID,
+      member: new mongoose.Types.ObjectId(MEMBER_ID),
 
       auth: {
         providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,

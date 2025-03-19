@@ -34,7 +34,7 @@ export async function createSignatureSpec(
   });
   const signatureSpec = await signatureSpecModel.create({
     ...signatureSpecData,
-    memberId,
+    member: memberId,
 
     plaintext: Buffer.from(signatureSpecData.plaintext, 'base64'),
   });
@@ -60,7 +60,7 @@ export async function getSignatureSpec(
 
   const signatureSpec = await signatureSpecModel.findById(signatureSpecId);
 
-  if (signatureSpec === null || signatureSpec.memberId !== memberId) {
+  if (signatureSpec === null || signatureSpec.member._id.toString() !== memberId) {
     return {
       didSucceed: false,
       context: SignatureSpecProblem.NOT_FOUND,
