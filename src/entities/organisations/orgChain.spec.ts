@@ -11,8 +11,8 @@ import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { mockKms } from '../../testUtils/kms/mockKms.js';
 import { mockSpy } from '../../testUtils/jest.js';
-import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
+import { VERAID_DNSSEC_CHAIN } from '../../testUtils/veraid.js';
 
 import { Org } from './Org.model.js';
 import { makeOrgChain, ORG_CERTIFICATE_EXPIRY_DAYS } from './orgChain.js';
@@ -49,10 +49,9 @@ describe('orgChain', () => {
   });
 
   describe('makeOrgChain', () => {
-    const mockDnssecChain = new VeraidDnssecChain(ORG_NAME, [stringToArrayBuffer(ORG_NAME)]);
     const mockDnssecChainRetrieve = mockSpy(jest.spyOn(VeraidDnssecChain, 'retrieve'));
     beforeEach(() => {
-      mockDnssecChainRetrieve.mockResolvedValue(mockDnssecChain);
+      mockDnssecChainRetrieve.mockResolvedValue(VERAID_DNSSEC_CHAIN);
     });
 
     beforeEach(async () => {

@@ -1,10 +1,6 @@
 import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
-import {
-  type Certificate,
-  selfIssueOrganisationCertificate,
-  VeraidDnssecChain,
-} from '@relaycorp/veraid';
+import { type Certificate, selfIssueOrganisationCertificate } from '@relaycorp/veraid';
 import type { Connection, HydratedDocument } from 'mongoose';
 import { addDays, addSeconds, setMilliseconds } from 'date-fns';
 
@@ -26,12 +22,12 @@ import { Member, Role } from '../members/Member.model.js';
 import { generateKeyPair } from '../../testUtils/webcrypto.js';
 import { mockKms } from '../../testUtils/kms/mockKms.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
-import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 import type { MemberBundleRequest } from '../../servers/awala/awala.schema.js';
 import type { OrgChain } from '../organisations/orgChain.js';
 import { OrgChainCreationProblem } from '../organisations/OrgChainCreationProblem.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import type { Result } from '../../utilities/result.js';
+import { VERAID_DNSSEC_CHAIN } from '../../testUtils/veraid.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
@@ -172,7 +168,6 @@ describe('createMemberBundleRequest', () => {
 });
 
 describe('generateMemberBundle', () => {
-  const mockDnssecChain = new VeraidDnssecChain(ORG_NAME, [stringToArrayBuffer(ORG_NAME)]);
   let orgModel: ReturnModelType<typeof Org>;
   let orgPrivateKeyRef: Buffer;
   let orgPublicKeyDer: Buffer;
@@ -213,7 +208,7 @@ describe('generateMemberBundle', () => {
       didSucceed: true,
 
       result: {
-        dnssecChain: mockDnssecChain,
+        dnssecChain: VERAID_DNSSEC_CHAIN,
         certificate: orgCertificate,
         privateKey: orgKeyPair.privateKey,
       },
