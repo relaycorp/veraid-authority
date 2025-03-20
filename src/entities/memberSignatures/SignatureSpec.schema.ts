@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 import { SERVICE_OID_REGEX } from '../../utilities/schemaValidation.js';
 
@@ -25,7 +25,7 @@ export const SIGNATURE_SPEC_SCHEMA = {
   },
 
   required: ['auth', 'serviceOid', 'plaintext'],
-} as const;
+} as const satisfies JSONSchema;
 
 export type SignatureSpecSchema = FromSchema<
   typeof SIGNATURE_SPEC_SCHEMA,

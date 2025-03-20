@@ -1,3 +1,5 @@
+import type { JSONSchema } from 'json-schema-to-ts';
+
 import { compileSchema } from '../utilities/ajv.js';
 
 const DISCOVERY_DOCUMENT_SCHEMA = {
@@ -9,6 +11,6 @@ const DISCOVERY_DOCUMENT_SCHEMA = {
   },
 
   required: ['jwks_uri'],
-} as const;
+} as const satisfies JSONSchema;
 
 export const validateDiscoveryDocument = compileSchema(DISCOVERY_DOCUMENT_SCHEMA);

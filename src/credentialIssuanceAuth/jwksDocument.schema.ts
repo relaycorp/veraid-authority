@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 import { compileSchema } from '../utilities/ajv.js';
 
@@ -18,7 +18,7 @@ const JWKS_DOCUMENT_SCHEMA = {
   },
 
   required: ['keys'],
-} as const;
+} as const satisfies JSONSchema;
 
 export type JwksDocumentSchema = FromSchema<typeof JWKS_DOCUMENT_SCHEMA>;
 

@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 export const MEMBER_SCHEMA = {
   type: 'object',
@@ -14,12 +14,12 @@ export const MEMBER_SCHEMA = {
   },
 
   required: ['role'],
-} as const;
+} as const satisfies JSONSchema;
 
 export const PATCH_MEMBER_SCHEMA = {
   ...MEMBER_SCHEMA,
   required: [],
-} as const;
+} as const satisfies JSONSchema;
 
 export const memberSchemaRoles = MEMBER_SCHEMA.properties.role.enum;
 export type MemberSchemaRole = (typeof memberSchemaRoles)[number];
