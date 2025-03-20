@@ -10,19 +10,23 @@ import { stringToArrayBuffer } from '../../testUtils/buffer.js';
 
 import { SignatureBundleIssuanceProblem } from './SignatureBundleIssuanceProblem.js';
 
-const SIGNATURE_SPEC_ID = '111111111111111111111111';
-const JWT = 'j.w.t.';
-const SIGNATURE_BUNDLE_PATH = `/credentials/signatureBundles/${SIGNATURE_SPEC_ID}`;
-
 const mockIssueSignatureBundle = mockSpy(
   jest.fn<() => Promise<Result<SignatureBundle, SignatureBundleIssuanceProblem>>>(),
 );
-
 jest.unstable_mockModule('./signatureBundleIssuance.js', () => ({
   issueSignatureBundle: mockIssueSignatureBundle,
 }));
 
 const { makeTestApiServer } = await import('../../testUtils/apiServer.js');
+
+const SIGNATURE_SPEC_ID = '111111111111111111111111';
+const JWT = 'j.w.t.';
+const SIGNATURE_BUNDLE_PATH = `/credentials/signatureBundles/${SIGNATURE_SPEC_ID}`;
+
+const MOCK_SIGNATURE_BUNDLE_SERIALISED = stringToArrayBuffer('bundle');
+const MOCK_SIGNATURE_BUNDLE = {
+  serialise: jest.fn().mockReturnValue(MOCK_SIGNATURE_BUNDLE_SERIALISED),
+} as unknown as SignatureBundle;
 
 describe('signature bundle issuance route', () => {
   const getTestServerFixture = makeTestApiServer();
@@ -69,6 +73,12 @@ describe('signature bundle issuance route', () => {
 
     const response = await serverInstance.inject(injectionOptions);
 
+    expect(mockIssueSignatureBundle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jwtSerialised: JWT,
+      }),
+      expect.anything(),
+    );
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.UNAUTHORIZED);
     expect(response.json()).toHaveProperty('type', SignatureBundleIssuanceProblem.INVALID_JWT);
   });
@@ -145,20 +155,33 @@ describe('signature bundle issuance route', () => {
     );
   });
 
-  test('should return signature bundle', async () => {
-    const signatureBundleSerialised = stringToArrayBuffer('bundle');
-    const signatureBundle = {
-      serialise: jest.fn().mockReturnValue(signatureBundleSerialised),
-    } as unknown as SignatureBundle;
+  test('should use current URL as audience in JWT verification', async () => {
     mockIssueSignatureBundle.mockResolvedValueOnce({
       didSucceed: true,
-      result: signatureBundle,
+      result: MOCK_SIGNATURE_BUNDLE,
+    });
+
+    await serverInstance.inject(injectionOptions);
+
+    const expectedAudience = `http://localhost:80${SIGNATURE_BUNDLE_PATH}`;
+    expect(mockIssueSignatureBundle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requiredJwtAudience: expectedAudience,
+      }),
+      expect.anything(),
+    );
+  });
+
+  test('should return signature bundle', async () => {
+    mockIssueSignatureBundle.mockResolvedValueOnce({
+      didSucceed: true,
+      result: MOCK_SIGNATURE_BUNDLE,
     });
 
     const response = await serverInstance.inject(injectionOptions);
 
     expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
     expect(response.headers['content-type']).toBe('application/vnd.veraid.signature-bundle');
-    expect(response.rawPayload.equals(Buffer.from(signatureBundleSerialised))).toBeTrue();
+    expect(response.rawPayload.equals(Buffer.from(MOCK_SIGNATURE_BUNDLE_SERIALISED))).toBeTrue();
   });
 });

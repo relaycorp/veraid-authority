@@ -50,11 +50,12 @@ export default function registerRoutes(
       }
 
       const { specId } = request.params;
+      const requiredJwtAudience = `${request.protocol}://${request.hostname}${request.url}`;
       const result = await issueSignatureBundle(
         {
           signatureSpecId: specId,
           jwtSerialised: jwt,
-          requiredJwtAudience: request.hostname,
+          requiredJwtAudience,
         },
         {
           logger: request.log,
