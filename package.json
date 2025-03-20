@@ -43,7 +43,7 @@
   "devDependencies": {
     "@jest/globals": "^29.5.0",
     "@relaycorp/dnssec": "^1.12.0",
-    "@relaycorp/eslint-config": "^1.1.114",
+    "@relaycorp/eslint-config": "^2.0.77",
     "@relaycorp/shared-config": "^1.9.1",
     "@relaycorp/veraid-authority": "^1.10.0",
     "@shelf/jest-mongodb": "^5.1.0",
