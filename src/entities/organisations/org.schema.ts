@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 const ORG_READ_SCHEMA = {
   type: 'object',
@@ -9,7 +9,7 @@ const ORG_READ_SCHEMA = {
   },
 
   required: ['name', 'publicKey'],
-} as const;
+} as const satisfies JSONSchema;
 export const ORG_CREATION_SCHEMA = {
   type: 'object',
 
@@ -18,11 +18,11 @@ export const ORG_CREATION_SCHEMA = {
   },
 
   required: ['name'],
-} as const;
+} as const satisfies JSONSchema;
 export const ORG_PATCH_SCHEMA = {
   ...ORG_CREATION_SCHEMA,
   required: [],
-} as const;
+} as const satisfies JSONSchema;
 
 export type OrgReadSchema = FromSchema<typeof ORG_READ_SCHEMA>;
 export type OrgCreationSchema = FromSchema<typeof ORG_CREATION_SCHEMA>;

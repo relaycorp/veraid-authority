@@ -1,88 +1,22 @@
 import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
-import {
-  issueMemberCertificate,
-  retrieveVeraidDnssecChain,
-  selfIssueOrganisationCertificate,
-  serialiseMemberIdBundle,
-} from '@relaycorp/veraid';
-import type { BaseLogger } from 'pino';
+import { issueMemberCertificate, MemberIdBundle } from '@relaycorp/veraid';
 
 import type { ServiceOptions } from '../../utilities/serviceTypes.js';
 import { Member } from '../members/Member.model.js';
-import { Kms } from '../../utilities/kms/Kms.js';
-import { Org } from '../organisations/Org.model.js';
 import { derDeserialisePublicKey } from '../../utilities/webcrypto.js';
 import type { Result } from '../../utilities/result.js';
 import type { MemberBundleRequest } from '../../servers/awala/awala.schema.js';
+import { makeOrgChain } from '../organisations/orgChain.js';
+import { OrgChainCreationProblem } from '../organisations/OrgChainCreationProblem.js';
 
 import { MemberPublicKey } from './MemberPublicKey.model.js';
 import { MemberBundleRequestModel } from './MemberBundleRequest.model.js';
 
-interface BundleCreationInput {
-  orgPrivateKeyRefBuffer: Buffer;
-  orgPublicKeyBuffer: Buffer;
-  memberPublicKey: Buffer;
-  orgName: string;
-  memberName?: string;
-  memberPublicKeyId: string;
-  certificateExpiryDays: number;
-}
-
-async function generateBundle(
-  {
-    orgPrivateKeyRefBuffer,
-    orgPublicKeyBuffer,
-    memberPublicKey,
-    orgName,
-    memberName,
-    memberPublicKeyId,
-    certificateExpiryDays,
-  }: BundleCreationInput,
-  logger: BaseLogger,
-): Promise<ArrayBuffer | undefined> {
-  let dnssecChain;
-  try {
-    dnssecChain = await retrieveVeraidDnssecChain(orgName);
-  } catch (err) {
-    logger.warn(
-      {
-        memberPublicKeyId,
-        err,
-      },
-      'Failed to retrieve DNSSEC chain',
-    );
-    return undefined;
-  }
-
-  const kms = await Kms.init();
-  const orgPrivateKey = await kms.retrievePrivateKeyByRef(orgPrivateKeyRefBuffer);
-  const orgPublicKey = await derDeserialisePublicKey(orgPublicKeyBuffer);
-  const orgKeyPair: CryptoKeyPair = {
-    privateKey: orgPrivateKey,
-    publicKey: orgPublicKey,
-  };
-
-  const memberCryptoPublicKey = await derDeserialisePublicKey(memberPublicKey);
-
-  const expiryDate = addDays(new Date(), certificateExpiryDays);
-  const orgCertificate = await selfIssueOrganisationCertificate(orgName, orgKeyPair, expiryDate);
-
-  const memberCertificate = await issueMemberCertificate(
-    memberName,
-    memberCryptoPublicKey,
-    orgCertificate,
-    orgPrivateKey,
-    expiryDate,
-  );
-
-  return serialiseMemberIdBundle(memberCertificate, orgCertificate, dnssecChain);
-}
-
-export const CERTIFICATE_EXPIRY_DAYS = 90;
+export const MEMBER_CERTIFICATE_EXPIRY_DAYS = 90;
 
 export interface BundleCreationFailure {
-  chainRetrievalFailed: boolean;
+  didChainRetrievalFail: boolean;
 }
 
 export async function createMemberBundleRequest(
@@ -136,16 +70,12 @@ export async function createMemberBundleRequest(
 export async function generateMemberBundle(
   publicKeyId: string,
   options: ServiceOptions,
-): Promise<Result<ArrayBuffer, BundleCreationFailure>> {
+): Promise<Result<MemberIdBundle, BundleCreationFailure>> {
   const memberPublicKeyModel = getModelForClass(MemberPublicKey, {
     existingConnection: options.dbConnection,
   });
 
   const memberModel = getModelForClass(Member, {
-    existingConnection: options.dbConnection,
-  });
-
-  const orgModel = getModelForClass(Org, {
     existingConnection: options.dbConnection,
   });
 
@@ -161,7 +91,7 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        chainRetrievalFailed: false,
+        didChainRetrievalFail: false,
       },
     };
   }
@@ -177,52 +107,39 @@ export async function generateMemberBundle(
       didSucceed: false,
 
       context: {
-        chainRetrievalFailed: false,
+        didChainRetrievalFail: false,
       },
     };
   }
 
-  const org = await orgModel.findOne({ name: member.orgName });
-  if (!org) {
-    options.logger.info(
-      {
-        orgName: member.orgName,
-      },
-      'Org not found',
-    );
+  const orgChainResult = await makeOrgChain(member.orgName, options);
+  if (!orgChainResult.didSucceed) {
+    const didChainRetrievalFail =
+      orgChainResult.context === OrgChainCreationProblem.DNSSEC_CHAIN_RETRIEVAL_FAILED;
     return {
       didSucceed: false,
-
-      context: {
-        chainRetrievalFailed: false,
-      },
+      context: { didChainRetrievalFail },
     };
   }
 
-  const memberBundle = await generateBundle(
-    {
-      orgPrivateKeyRefBuffer: org.privateKeyRef,
-      orgPublicKeyBuffer: org.publicKey,
-      memberPublicKey: memberPublicKey.publicKey,
-      orgName: org.name,
-      memberName: member.name ?? undefined,
-      memberPublicKeyId: publicKeyId,
-      certificateExpiryDays: CERTIFICATE_EXPIRY_DAYS,
-    },
-    options.logger,
+  const {
+    dnssecChain,
+    certificate: orgCertificate,
+    privateKey: orgPrivateKey,
+  } = orgChainResult.result;
+  const memberCryptoPublicKey = await derDeserialisePublicKey(memberPublicKey.publicKey);
+
+  const expiryDate = addDays(new Date(), MEMBER_CERTIFICATE_EXPIRY_DAYS);
+  const memberCertificate = await issueMemberCertificate(
+    member.name ?? undefined,
+    memberCryptoPublicKey,
+    orgCertificate,
+    orgPrivateKey,
+    expiryDate,
   );
 
-  if (!memberBundle) {
-    return {
-      didSucceed: false,
-
-      context: {
-        chainRetrievalFailed: true,
-      },
-    };
-  }
   return {
     didSucceed: true,
-    result: memberBundle,
+    result: new MemberIdBundle(dnssecChain, orgCertificate, memberCertificate),
   };
 }

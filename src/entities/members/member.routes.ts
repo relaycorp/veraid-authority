@@ -1,19 +1,16 @@
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { HTTP_STATUS_CODES, type StatusByProblem } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 import { requireUserToBeAdmin } from '../../servers/api/orgAuthPlugin.js';
 import memberPublicKeyRoutes from '../memberKeys/memberPublicKey.routes.js';
 import memberKeyImportToken from '../memberKeyImports/memberKeyImportToken.routes.js';
-// eslint-disable-next-line max-len
-import memberWorkloadIdentityRoutes from '../memberWorkloadIdentities/memberWorkloadIdentity.routes.js';
+import signatureSpecRoutes from '../memberSignatures/signatureSpec.routes.js';
 
 import { MemberProblem } from './MemberProblem.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from './member.schema.js';
 
-const RESPONSE_CODE_BY_PROBLEM: {
-  [key in MemberProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
-} = {
+const RESPONSE_CODE_BY_PROBLEM: StatusByProblem<MemberProblem> = {
   [MemberProblem.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
   [MemberProblem.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
   [MemberProblem.MEMBER_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
@@ -51,7 +48,7 @@ interface MemberUrls {
   self: string;
   publicKeys: string;
   publicKeyImportTokens: string;
-  workloadIdentities: string;
+  signatureSpecs: string;
 }
 
 function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }): MemberUrls {
@@ -59,7 +56,7 @@ function makeUrls({ orgName, memberId }: { orgName: string; memberId: string }):
     self: `/orgs/${orgName}/members/${memberId}`,
     publicKeys: `/orgs/${orgName}/members/${memberId}/public-keys`,
     publicKeyImportTokens: `/orgs/${orgName}/members/${memberId}/public-key-import-tokens`,
-    workloadIdentities: `/orgs/${orgName}/members/${memberId}/workload-identities`,
+    signatureSpecs: `/orgs/${orgName}/members/${memberId}/signature-specs`,
   };
 }
 
@@ -199,8 +196,8 @@ export default async function registerRoutes(
     ...opts,
     prefix: '/:memberId/public-key-import-tokens',
   });
-  await fastify.register(memberWorkloadIdentityRoutes, {
+  await fastify.register(signatureSpecRoutes, {
     ...opts,
-    prefix: '/:memberId/workload-identities',
+    prefix: '/:memberId/signature-specs',
   });
 }

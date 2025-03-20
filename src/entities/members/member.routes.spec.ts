@@ -80,7 +80,7 @@ describe('member routes', () => {
           self: memberPath,
           publicKeys: `${memberPath}/public-keys`,
           publicKeyImportTokens: `${memberPath}/public-key-import-tokens`,
-          workloadIdentities: `${memberPath}/workload-identities`,
+          signatureSpecs: `${memberPath}/signature-specs`,
         });
       },
     );

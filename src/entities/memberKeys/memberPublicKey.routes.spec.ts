@@ -39,7 +39,7 @@ jest.unstable_mockModule('./memberPublicKey.js', () => ({
 
 const CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
-  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
+  jest.fn<() => Promise<Result<{ serialise: () => ArrayBuffer }, BundleCreationFailure>>>(),
 );
 jest.unstable_mockModule('./memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
@@ -203,7 +203,7 @@ describe('member public keys routes', () => {
     beforeEach(() => {
       mockGenerateMemberBundle.mockResolvedValue({
         didSucceed: true,
-        result: bufferToArrayBuffer(bundleSerialised),
+        result: { serialise: () => bufferToArrayBuffer(bundleSerialised) },
       });
     });
 
@@ -229,7 +229,7 @@ describe('member public keys routes', () => {
     test('HTTP Not Found should be returned if DB records do not exist', async () => {
       mockGenerateMemberBundle.mockResolvedValue({
         didSucceed: false,
-        context: { chainRetrievalFailed: false },
+        context: { didChainRetrievalFail: false },
       });
 
       const response = await serverInstance.inject(injectOptions);
@@ -240,7 +240,7 @@ describe('member public keys routes', () => {
     test('HTTP Service Unavailable should be returned if bundle generation fails', async () => {
       mockGenerateMemberBundle.mockResolvedValue({
         didSucceed: false,
-        context: { chainRetrievalFailed: true },
+        context: { didChainRetrievalFail: true },
       });
 
       const response = await serverInstance.inject(injectOptions);

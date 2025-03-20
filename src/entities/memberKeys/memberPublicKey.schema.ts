@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 import { SERVICE_OID_REGEX } from '../../utilities/schemaValidation.js';
 
@@ -11,6 +11,6 @@ export const MEMBER_PUBLIC_KEY_SCHEMA = {
   },
 
   required: ['serviceOid', 'publicKey'],
-} as const;
+} as const satisfies JSONSchema;
 
 export type MemberPublicKeySchema = FromSchema<typeof MEMBER_PUBLIC_KEY_SCHEMA>;
