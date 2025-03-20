@@ -1,6 +1,6 @@
 import type { FastifyReply, RouteOptions } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { HTTP_STATUS_CODES, type StatusByProblem } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 
@@ -10,9 +10,7 @@ import { SIGNATURE_SPEC_SCHEMA } from './SignatureSpec.schema.js';
 
 const HTTP_OR_HTTPS_URL_REGEX = /^https?:/u;
 
-const RESPONSE_CODE_BY_PROBLEM: {
-  [key in SignatureSpecProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
-} = {
+const RESPONSE_CODE_BY_PROBLEM: StatusByProblem<SignatureSpecProblem> = {
   [SignatureSpecProblem.NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
 
   [SignatureSpecProblem.MALFORMED_ISSUER_URL]: HTTP_STATUS_CODES.BAD_REQUEST,

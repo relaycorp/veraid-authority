@@ -1,4 +1,4 @@
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { HTTP_STATUS_CODES, type StatusByProblem } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 import { requireUserToBeAdmin } from '../../servers/api/orgAuthPlugin.js';
@@ -10,9 +10,7 @@ import { MemberProblem } from './MemberProblem.js';
 import { createMember, deleteMember, getMember, updateMember } from './member.js';
 import { MEMBER_SCHEMA, PATCH_MEMBER_SCHEMA } from './member.schema.js';
 
-const RESPONSE_CODE_BY_PROBLEM: {
-  [key in MemberProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
-} = {
+const RESPONSE_CODE_BY_PROBLEM: StatusByProblem<MemberProblem> = {
   [MemberProblem.MALFORMED_MEMBER_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
   [MemberProblem.EXISTING_MEMBER_NAME]: HTTP_STATUS_CODES.CONFLICT,
   [MemberProblem.MEMBER_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
