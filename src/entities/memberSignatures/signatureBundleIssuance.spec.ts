@@ -2,8 +2,15 @@ import { jest } from '@jest/globals';
 import type { JWTPayload } from 'jose';
 import type { Connection, HydratedDocument } from 'mongoose';
 import { getModelForClass, mongoose } from '@typegoose/typegoose';
-import { addDays, addMinutes, getUnixTime } from 'date-fns';
-import { selfIssueOrganisationCertificate } from '@relaycorp/veraid';
+import {
+  addDays,
+  addMinutes,
+  getUnixTime,
+  setMilliseconds,
+  addSeconds,
+  subSeconds,
+} from 'date-fns';
+import { selfIssueOrganisationCertificate, VeraidError } from '@relaycorp/veraid';
 
 import { makeMockLogging } from '../../testUtils/logging.js';
 import { requireFailureResult, requireSuccessfulResult } from '../../testUtils/result.js';
@@ -39,9 +46,10 @@ jest.unstable_mockModule('../organisations/orgChain.js', () => ({
 const { issueSignatureBundle } = await import('./signatureBundleIssuance.js');
 
 const JWT_SERIALISED = 'jwt-serialised';
+const JWT_EXPIRY = addMinutes(setMilliseconds(new Date(), 0), 1);
 const JWT: JWTPayload = {
   [OIDC_CLAIM_NAME]: OIDC_CLAIM_VALUE,
-  exp: getUnixTime(addMinutes(new Date(), 1)),
+  exp: getUnixTime(JWT_EXPIRY),
 };
 
 const ORG_KEY_PAIR = await generateKeyPair();
@@ -413,7 +421,7 @@ describe('issueSignatureBundle', () => {
       expect(wasSignedByMember).toBeFalse();
     });
 
-    test('should sign plaintext in spec and encapsulate it in the bundle', async () => {
+    test('should sign plaintext in spec and encapsulate it in bundle', async () => {
       const spec = await stubSignatureSpec();
 
       const result = await issueSignatureBundle(
@@ -453,6 +461,168 @@ describe('issueSignatureBundle', () => {
       await expect(
         signatureBundle.verify(undefined, spec.serviceOid, new Date(), TRUST_ANCHORS),
       ).toResolve();
+    });
+  });
+
+  describe('Validity period', () => {
+    test('should be valid at time of issuance', async () => {
+      const spec = await stubSignatureSpec();
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(undefined, spec.serviceOid, new Date(), TRUST_ANCHORS),
+      ).toResolve();
+    });
+
+    test('should not be valid before issuance', async () => {
+      const spec = await stubSignatureSpec();
+      const startDate = setMilliseconds(new Date(), 0);
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(undefined, spec.serviceOid, subSeconds(startDate, 1), TRUST_ANCHORS),
+      ).rejects.toThrowWithMessage(VeraidError, /does not overlap with required period/u);
+    });
+
+    test('should be valid until JWT expiry', async () => {
+      const spec = await stubSignatureSpec();
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(undefined, spec.serviceOid, JWT_EXPIRY, TRUST_ANCHORS),
+      ).toResolve();
+    });
+
+    test('should not be valid after JWT expiry', async () => {
+      const spec = await stubSignatureSpec();
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(
+          undefined,
+          spec.serviceOid,
+          addSeconds(JWT_EXPIRY, 1),
+          TRUST_ANCHORS,
+        ),
+      ).rejects.toThrowWithMessage(VeraidError, /does not overlap with required period/u);
+    });
+
+    test("should be valid until spec TTL if JWT doesn't expire", async () => {
+      const jwtWithoutExp: JWTPayload = { ...JWT, exp: undefined };
+      mockVerifyJwt.mockResolvedValue({ didSucceed: true, result: jwtWithoutExp });
+      const spec = await stubSignatureSpec();
+      const startTime = setMilliseconds(new Date(), 0);
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      const justBeforeExpiry = addSeconds(startTime, spec.ttlSeconds - 1);
+      await expect(
+        signatureBundle.verify(undefined, spec.serviceOid, justBeforeExpiry, TRUST_ANCHORS),
+      ).toResolve();
+    });
+
+    test("should not be valid after spec TTL if JWT doesn't expire", async () => {
+      const jwtWithoutExp: JWTPayload = { ...JWT, exp: undefined };
+      mockVerifyJwt.mockResolvedValue({ didSucceed: true, result: jwtWithoutExp });
+      const spec = await stubSignatureSpec();
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const expectedExpiry = addSeconds(new Date(), spec.ttlSeconds);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(
+          undefined,
+          spec.serviceOid,
+          addSeconds(expectedExpiry, 1),
+          TRUST_ANCHORS,
+        ),
+      ).rejects.toThrowWithMessage(VeraidError, /does not overlap with required period/u);
+    });
+
+    test('should not be valid after spec TTL even if JWT expires later', async () => {
+      const spec = await stubSignatureSpec();
+      const laterExpiry = getUnixTime(addSeconds(new Date(), spec.ttlSeconds + 5));
+      const jwtWithLaterExp: JWTPayload = { ...JWT, exp: laterExpiry };
+      mockVerifyJwt.mockResolvedValue({ didSucceed: true, result: jwtWithLaterExp });
+      const specExpiry = addSeconds(new Date(), spec.ttlSeconds);
+
+      const result = await issueSignatureBundle(
+        {
+          jwtSerialised: JWT_SERIALISED,
+          requiredJwtAudience: OAUTH2_TOKEN_AUDIENCE,
+          signatureSpecId: spec._id.toString(),
+        },
+        { dbConnection: connection, logger: mockLogging.logger },
+      );
+
+      requireSuccessfulResult(result);
+      const signatureBundle = result.result;
+      await expect(
+        signatureBundle.verify(
+          undefined,
+          spec.serviceOid,
+          addSeconds(specExpiry, 1),
+          TRUST_ANCHORS,
+        ),
+      ).rejects.toThrowWithMessage(VeraidError, /does not overlap with required period/u);
     });
   });
 });

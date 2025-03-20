@@ -1,6 +1,6 @@
 import { SignatureBundle, OrganisationSigner } from '@relaycorp/veraid';
 import { getModelForClass } from '@typegoose/typegoose';
-import { addSeconds, fromUnixTime, min } from 'date-fns';
+import { addSeconds, fromUnixTime, min, setMilliseconds } from 'date-fns';
 import type { HydratedDocument } from 'mongoose';
 import type { JWTPayload } from 'jose';
 
@@ -33,7 +33,8 @@ async function generateSignatureBundle(
     attributedMemberName ?? undefined,
   );
 
-  const expiry = addSeconds(new Date(), signatureSpec.ttlSeconds);
+  const now = setMilliseconds(new Date(), 0);
+  const expiry = addSeconds(now, signatureSpec.ttlSeconds);
   const finalExpiry = jwt.exp === undefined ? expiry : min([fromUnixTime(jwt.exp), expiry]);
 
   return SignatureBundle.sign(
