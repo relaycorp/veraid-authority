@@ -91,6 +91,14 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `DELETE /orgs/{orgName}/members/{memberId}/signature-specs/{signatureSpecId}`: Delete signature spec.
   - Auth: Org member.
   - Output: Nothing (204 No Content).
+- `GET /credentials/signatureBundles/{specId}`: Get signature bundle.
+  - Auth: JWT Bearer token with the endpoint URL as audience.
+  - Input: None (specId in path, JWT in Authorization header).
+  - Output: VeraId Signature Bundle with content type 'application/vnd.veraid.signature-bundle'.
+  - Errors:
+    - 401 Unauthorized: If JWT is invalid or missing.
+    - 404 Not Found: If signature spec or its organisation not found.
+    - 503 Service Unavailable: If JWKS retrieval or DNSSEC chain retrieval fails; client may retry later.
 - `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
   - HTTP response: `202 Accepted` (no content) if the input was valid and the request was successfully processed, or `400 Bad Request` if the input was invalid.
