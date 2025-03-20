@@ -88,6 +88,7 @@ describe('issueSignatureBundle', () => {
 
   async function stubSignatureSpec(
     name: string | null = MEMBER_NAME,
+    ttlSeconds = 3600,
   ): Promise<HydratedDocument<SignatureSpec>> {
     const memberModel = getModelForClass(Member, {
       existingConnection: connection,
@@ -113,7 +114,7 @@ describe('issueSignatureBundle', () => {
       },
 
       serviceOid: TEST_SERVICE_OID,
-      ttlSeconds: 3600,
+      ttlSeconds,
       plaintext: Buffer.from('plaintext'),
     });
   }
@@ -550,7 +551,7 @@ describe('issueSignatureBundle', () => {
     test("should be valid until spec TTL if JWT doesn't expire", async () => {
       const jwtWithoutExp: JWTPayload = { ...JWT, exp: undefined };
       mockVerifyJwt.mockResolvedValue({ didSucceed: true, result: jwtWithoutExp });
-      const spec = await stubSignatureSpec();
+      const spec = await stubSignatureSpec(null, 10);
       const startTime = setMilliseconds(new Date(), 0);
 
       const result = await issueSignatureBundle(
