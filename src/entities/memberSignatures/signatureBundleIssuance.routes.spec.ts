@@ -172,6 +172,22 @@ describe('signature bundle issuance route', () => {
     );
   });
 
+  test('should issue bundle for specified signature spec', async () => {
+    mockIssueSignatureBundle.mockResolvedValueOnce({
+      didSucceed: true,
+      result: MOCK_SIGNATURE_BUNDLE,
+    });
+
+    await serverInstance.inject(injectionOptions);
+
+    expect(mockIssueSignatureBundle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signatureSpecId: SIGNATURE_SPEC_ID,
+      }),
+      expect.anything(),
+    );
+  });
+
   test('should return signature bundle', async () => {
     mockIssueSignatureBundle.mockResolvedValueOnce({
       didSucceed: true,
