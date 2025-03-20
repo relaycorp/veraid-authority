@@ -1,4 +1,4 @@
-import type { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 import { compileSchema } from '../../utilities/ajv.js';
 import { BASE_64_REGEX } from '../../utilities/schemaValidation.js';
@@ -14,7 +14,7 @@ const MEMBER_BUNDLE_REQUEST_SCHEMA = {
   },
 
   required: ['publicKeyId', 'memberBundleStartDate', 'signature', 'peerId'],
-} as const;
+} as const satisfies JSONSchema;
 
 const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
   type: 'object',
@@ -25,7 +25,7 @@ const MEMBER_KEY_IMPORT_REQUEST_SCHEMA = {
   },
 
   required: ['publicKeyImportToken', 'publicKey'],
-} as const;
+} as const satisfies JSONSchema;
 
 export type MemberBundleRequest = FromSchema<typeof MEMBER_BUNDLE_REQUEST_SCHEMA>;
 export const isMemberBundleRequest = compileSchema(MEMBER_BUNDLE_REQUEST_SCHEMA);

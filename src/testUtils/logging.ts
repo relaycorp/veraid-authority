@@ -8,6 +8,18 @@ interface MockLogging {
   readonly logs: MockLogSet;
 }
 
+function serialiseLogAttribute(attribute: unknown): unknown {
+  let value = attribute;
+  if (attribute instanceof URL) {
+    value = attribute.toString();
+  } else if (attribute instanceof Date) {
+    value = attribute.toISOString();
+  } else {
+    value = attribute;
+  }
+  return value;
+}
+
 export type { MockLogSet };
 
 export function makeMockLogging(): MockLogging {
@@ -31,9 +43,12 @@ export function partialPinoLog(
   extraAttributes: LogDescriptor = {},
 ): any {
   const levelNumber = pino.levels.values[level];
+  const attributesSerialised = Object.fromEntries(
+    Object.entries(extraAttributes).map(([key, value]) => [key, serialiseLogAttribute(value)]),
+  );
   return expect.objectContaining<LogDescriptor>({
     level: levelNumber,
     msg: message,
-    ...extraAttributes,
+    ...attributesSerialised,
   });
 }

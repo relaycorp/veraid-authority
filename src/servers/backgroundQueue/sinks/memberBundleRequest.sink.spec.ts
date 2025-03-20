@@ -30,13 +30,13 @@ import { VeraidContentType } from '../../../utilities/veraid.js';
 import { EmitterChannel } from '../../../utilities/eventing/EmitterChannel.js';
 import type { BundleCreationFailure } from '../../../entities/memberKeys/memberBundle.js';
 
-const CERTIFICATE_EXPIRY_DAYS = 90;
+const MEMBER_CERTIFICATE_EXPIRY_DAYS = 90;
 const mockGenerateMemberBundle = mockSpy(
-  jest.fn<() => Promise<Result<ArrayBuffer, BundleCreationFailure>>>(),
+  jest.fn<() => Promise<Result<{ serialise: () => ArrayBuffer }, BundleCreationFailure>>>(),
 );
 jest.unstable_mockModule('../../../entities/memberKeys/memberBundle.js', () => ({
   generateMemberBundle: mockGenerateMemberBundle,
-  CERTIFICATE_EXPIRY_DAYS,
+  MEMBER_CERTIFICATE_EXPIRY_DAYS,
 }));
 
 const { setUpTestQueueServer } = await import('../../../testUtils/queueServer.js');
@@ -69,7 +69,7 @@ describe('memberBundleIssuance', () => {
     beforeEach(() => {
       mockGenerateMemberBundle.mockResolvedValueOnce({
         didSucceed: true,
-        result: memberBundle,
+        result: { serialise: () => memberBundle },
       });
     });
 
@@ -172,11 +172,11 @@ describe('memberBundleIssuance', () => {
       });
 
       test('Expiry date should be that of the bundle in ISO format', async () => {
-        const expiryDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
+        const expiryDate = addDays(new Date(), MEMBER_CERTIFICATE_EXPIRY_DAYS);
 
         await postEvent(triggerEvent, server);
 
-        const postEventDate = addDays(new Date(), CERTIFICATE_EXPIRY_DAYS);
+        const postEventDate = addDays(new Date(), MEMBER_CERTIFICATE_EXPIRY_DAYS);
         expect(getEvents(EmitterChannel.AWALA_OUTGOING_MESSAGES)).toContainEqual(
           expect.objectContaining({
             expiry: expect.toSatisfy((expiry: string) => {
@@ -230,7 +230,7 @@ describe('memberBundleIssuance', () => {
         didSucceed: false,
 
         context: {
-          chainRetrievalFailed: true,
+          didChainRetrievalFail: true,
         },
       });
     });
@@ -265,7 +265,7 @@ describe('memberBundleIssuance', () => {
         didSucceed: false,
 
         context: {
-          chainRetrievalFailed: false,
+          didChainRetrievalFail: false,
         },
       });
     });

@@ -3,7 +3,7 @@ import { getModelForClass } from '@typegoose/typegoose';
 import { addDays } from 'date-fns';
 
 import {
-  CERTIFICATE_EXPIRY_DAYS,
+  MEMBER_CERTIFICATE_EXPIRY_DAYS,
   generateMemberBundle,
 } from '../../../entities/memberKeys/memberBundle.js';
 // eslint-disable-next-line max-len
@@ -29,7 +29,7 @@ export default async function memberBundleIssuance(
   }
 
   const memberBundle = await generateMemberBundle(publicKeyId, options);
-  if (!memberBundle.didSucceed && memberBundle.context.chainRetrievalFailed) {
+  if (!memberBundle.didSucceed && memberBundle.context.didChainRetrievalFail) {
     return;
   }
 
@@ -40,9 +40,9 @@ export default async function memberBundleIssuance(
     const message = makeOutgoingServiceMessageEvent({
       peerId: event.subject,
       contentType: VeraidContentType.MEMBER_BUNDLE,
-      content: Buffer.from(memberBundle.result),
+      content: Buffer.from(memberBundle.result.serialise()),
       creationDate: now,
-      expiryDate: addDays(now, CERTIFICATE_EXPIRY_DAYS),
+      expiryDate: addDays(now, MEMBER_CERTIFICATE_EXPIRY_DAYS),
     });
 
     const emitter = await Emitter.init(EmitterChannel.AWALA_OUTGOING_MESSAGES);

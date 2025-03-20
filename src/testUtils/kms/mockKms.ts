@@ -9,7 +9,7 @@ interface KeyPairRef {
   publicKey: CryptoKey;
 }
 
-export class MockKms extends Kms {
+class MockKms extends Kms {
   public readonly generatedKeyPairRefs: KeyPairRef[] = [];
 
   public readonly destroyedPrivateKeyRefs: Buffer[] = [];

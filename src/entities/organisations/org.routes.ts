@@ -1,4 +1,4 @@
-import { HTTP_STATUS_CODES } from '../../utilities/http.js';
+import { HTTP_STATUS_CODES, type StatusByProblem } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
 import type { RouteOptions } from '../../utilities/fastify/RouteOptions.js';
 import orgAuthPlugin from '../../servers/api/orgAuthPlugin.js';
@@ -8,9 +8,7 @@ import { OrgProblem } from './OrgProblem.js';
 import { createOrg, deleteOrg, getOrg, updateOrg } from './org.js';
 import { ORG_CREATION_SCHEMA, ORG_PATCH_SCHEMA, type OrgCreationSchema } from './org.schema.js';
 
-const RESPONSE_CODE_BY_PROBLEM: {
-  [key in OrgProblem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
-} = {
+const RESPONSE_CODE_BY_PROBLEM: StatusByProblem<OrgProblem> = {
   [OrgProblem.EXISTING_ORG_NAME]: HTTP_STATUS_CODES.CONFLICT,
   [OrgProblem.MALFORMED_ORG_NAME]: HTTP_STATUS_CODES.BAD_REQUEST,
   [OrgProblem.ORG_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,

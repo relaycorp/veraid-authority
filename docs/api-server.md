@@ -75,22 +75,30 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input:
     - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
   - Output: A single-use UUID4.
-- `POST /orgs/{orgName}/members/{memberId}/workload-identities`: Create workload identity.
+- `POST /orgs/{orgName}/members/{memberId}/signature-specs`: Create signature spec.
   - Auth: Org member.
   - Input:
-    - `openidProviderIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
+    - `providerIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
     - `jwtSubjectField`: The field in the JWT that contains the subject.
     - `jwtSubjectValue`: The value of the subject field.
-    - `veraidServiceOid`: The OID for the service where the signature will be valid.
-    - `veraidSignatureTtlSeconds`: Time-to-live for the signature in seconds (default: 3600).
-    - `veraidSignaturePlaintext`: The plaintext to be signed.
-  - Output: URL to the new workload identity.
-- `GET /orgs/{orgName}/members/{memberId}/workload-identities/{workloadIdentityId}`: Get workload identity.
+    - `serviceOid`: The OID for the service where the signature will be valid.
+    - `ttlSeconds`: Time-to-live for the signature in seconds (default: 3600).
+    - `plaintext`: The plaintext to be signed.
+  - Output: URL to the new signature spec.
+- `GET /orgs/{orgName}/members/{memberId}/signature-specs/{signatureSpecId}`: Get signature spec.
   - Auth: Org member.
-  - Output: The workload identity details.
-- `DELETE /orgs/{orgName}/members/{memberId}/workload-identities/{workloadIdentityId}`: Delete workload identity.
+  - Output: The signature spec details.
+- `DELETE /orgs/{orgName}/members/{memberId}/signature-specs/{signatureSpecId}`: Delete signature spec.
   - Auth: Org member.
   - Output: Nothing (204 No Content).
+- `GET /credentials/signatureBundles/{specId}`: Get signature bundle.
+  - Auth: JWT Bearer token with the endpoint URL as audience.
+  - Input: None (specId in path, JWT in Authorization header).
+  - Output: VeraId Signature Bundle with content type 'application/vnd.veraid.signature-bundle'.
+  - Errors:
+    - 401 Unauthorized: If JWT is invalid or missing.
+    - 404 Not Found: If signature spec or its organisation not found.
+    - 503 Service Unavailable: If JWKS retrieval or DNSSEC chain retrieval fails; client may retry later.
 - `POST /awala`: [Awala endpoint middleware](https://github.com/relaycorp/relayverse/issues/28) backend.
   - Auth: Awala Endpoint Middleware.
   - HTTP response: `202 Accepted` (no content) if the input was valid and the request was successfully processed, or `400 Bad Request` if the input was invalid.

@@ -12,3 +12,7 @@ export const HTTP_STATUS_CODES = {
   FAILED_DEPENDENCY: 424,
   SERVICE_UNAVAILABLE: 503,
 } as const;
+
+export type StatusByProblem<Problem extends keyof any> = {
+  [key in Problem]: (typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES];
+};
