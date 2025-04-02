@@ -4,13 +4,13 @@ nav_order: 4
 ---
 # Awala support
 
-[Awala](https://awala.network) is a computer network where compatible apps can use the Internet when it's available, or switch to a fallback medium when it's unavailable. **VeraId Authority comes with built-in Awala support**, so that VeraId members can get their bundles with and without the Internet.
+[Awala](https://awala.app/en/network/) is a computer network where compatible apps can use the Internet when it's available, or switch to a fallback medium when it's unavailable. **VeraId Authority comes with built-in Awala support**, so that VeraId members can get their bundles with and without the Internet.
 
-This app offloads all the Awala-related cryptography and networking to the [Awala Endpoint Middleware](https://docs.relaycorp.tech/awala-endpoint-internet/).
+VeraId Authority offloads all the Awala-related cryptography and networking to the [Awala Internet Endpoint](https://docs.relaycorp.tech/awala-endpoint-internet/), which requires the deployment of an additional [backend server](./install.md#deploying-the-awala-backend). Note that this backend exposes an endpoint that processes [incoming service messages from the Awala Internet Endpoint](https://docs.relaycorp.tech/awala-endpoint-internet/integration#incoming-service-messages).
 
 ## Onboarding Awala users
 
-The organisation admin must onboard every Awala user by generating a _member key import token_, and then sharing that token with the respective user. It's up to the [Awala service provider](https://awala.network/service-providers/) to define the transport to use to share the token.
+The organisation admin must onboard every Awala user by generating a _member key import token_, and then sharing that token with the respective user. It's up to the [Awala service provider](https://awala.app/en/network/software-vendors/) to define the transport to use to share the token.
 
 This token can only be used once, and it simply allows the user to import their public key and subsequently receive member bundles. Said public key remains tied to the VeraId service specified by the organisation admin when the token was generated.
 
@@ -36,8 +36,11 @@ Your app MUST send a member bundle request to renew the member's existing bundle
 - `publicKeyId`: The id of the public key previously provided by the Authority server.
 - `memberBundleStartDate`: The date by which the bundle should be issued and delivered.
 - `signature`: The digital signature for the request, with the input being the other fields concatenated as follows: `publicKeyId || memberBundleStartDate`.
+- `peerId`: The Awala peer id of the sender.
 
 This service message MUST use the content type `application/vnd.veraid-authority.member-bundle-request`.
+
+A successful request will schedule the issuance and delivery of a member id bundle. Any public key must have a maximum of 1 request at any time, so if we get a duplicate, we should replace the old request with the new one.
 
 ### Member bundle
 
