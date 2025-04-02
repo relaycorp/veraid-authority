@@ -30,7 +30,7 @@ The Docker container must use the image above and specify the following argument
 
 ## Deploying the Awala backend
 
-The Docker container must use the image above and specify the following arguments:
+To enable [Awala](https://awala.app/en/network/) support via the [Awala Internet Endpoint](https://docs.relaycorp.tech/awala-endpoint-internet/), you must also deploy a Docker container that uses the image above and specifies the following arguments:
 
 - Command arguments: `awala`. Do NOT specify a command.
 - Environment variables: The [common](#common-environment-variables) variables and the [CloudEvents](#cloudevents-environment-variables) variables (both `CE_CHANNEL_AWALA_OUTGOING_MESSAGES` and `CE_CHANNEL_BACKGROUND_QUEUE`).
