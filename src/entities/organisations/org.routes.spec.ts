@@ -1,12 +1,15 @@
 /* eslint-disable unicorn/text-encoding-identifier-case */
 import type { InjectOptions } from 'fastify';
 import { jest } from '@jest/globals';
+import { generateTxtRdata } from '@relaycorp/veraid';
 
 import { NON_ASCII_ORG_NAME, ORG_NAME } from '../../testUtils/stubs.js';
 import type { Result, SuccessfulResult } from '../../utilities/result.js';
 import { mockSpy } from '../../testUtils/jest.js';
 import { HTTP_STATUS_CODES } from '../../utilities/http.js';
 import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedInstance.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
+import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 
 import { OrgProblem } from './OrgProblem.js';
 import type { OrgCreationSchema, OrgPatchSchema, OrgReadSchema } from './org.schema.js';
@@ -24,9 +27,11 @@ jest.unstable_mockModule('./org.js', () => ({
 
 const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/apiServer.js');
 
-describe('org routes', () => {
-  const publicKey = 'the public key';
+const { publicKey: PUBLIC_KEY } = await generateKeyPair();
+const PUBLIC_KEY_SERIALISED = await derSerialisePublicKey(PUBLIC_KEY);
+const PUBLIC_KEY_BASE64 = PUBLIC_KEY_SERIALISED.toString('base64');
 
+describe('org routes', () => {
   const getTestServerFixture = makeTestApiServer();
   let serverInstance: FastifyTypedInstance;
   beforeEach(() => {
@@ -73,7 +78,7 @@ describe('org routes', () => {
     test('Response should include public key', async () => {
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: true,
-        result: { name: ORG_NAME, publicKey },
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64 },
       });
       const payload: OrgCreationSchema = { name: ORG_NAME };
 
@@ -81,7 +86,7 @@ describe('org routes', () => {
         ...injectionOptions,
         payload,
       });
-      expect(response.json()).toHaveProperty('publicKey', publicKey);
+      expect(response.json()).toHaveProperty('publicKey', PUBLIC_KEY_BASE64);
     });
 
     test('Duplicated name error should resolve into conflict status', async () => {
@@ -224,9 +229,10 @@ describe('org routes', () => {
       ['ASCII', ORG_NAME],
       ['Non ASCII', NON_ASCII_ORG_NAME],
     ])('%s name should return an org', async (_type, name: string) => {
+      const txtRecordRdata = await generateTxtRdata(PUBLIC_KEY, 3600);
       const getOrgSuccessResponse: SuccessfulResult<OrgReadSchema> = {
         didSucceed: true,
-        result: { name, publicKey },
+        result: { name, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata },
       };
 
       mockGetOrg.mockResolvedValueOnce(getOrgSuccessResponse);

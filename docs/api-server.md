@@ -32,11 +32,13 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Output:
     - Org name.
     - Org public key.
+    - TXT record RDATA with TTL override of 1 hour.
 - `GET /orgs/{orgName}`: Get org.
   - Auth: Org admin.
   - Output:
     - URLs to the org's endpoint and direct descendants.
     - Org public key.
+    - TXT record RDATA with TTL override of 1 hour.
 - `PATCH /orgs/{orgName}`: Modify org.
   - Auth: Org admin.
   - Input: Same as `POST /orgs`, but org name can't be changed.

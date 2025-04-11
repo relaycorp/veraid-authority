@@ -6,9 +6,10 @@ const ORG_READ_SCHEMA = {
   properties: {
     name: { type: 'string' },
     publicKey: { type: 'string' },
+    txtRecordRdata: { type: 'string' },
   },
 
-  required: ['name', 'publicKey'],
+  required: ['name', 'publicKey', 'txtRecordRdata'],
 } as const satisfies JSONSchema;
 export const ORG_CREATION_SCHEMA = {
   type: 'object',

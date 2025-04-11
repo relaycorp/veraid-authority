@@ -2,6 +2,7 @@
 import { jest } from '@jest/globals';
 import { getModelForClass, type ReturnModelType } from '@typegoose/typegoose';
 import type { Connection } from 'mongoose';
+import { generateTxtRdata } from '@relaycorp/veraid';
 
 import { setUpTestDbConnection } from '../../testUtils/db.js';
 import { makeMockLogging, partialPinoLog } from '../../testUtils/logging.js';
@@ -14,6 +15,7 @@ import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';
 import type { Result } from '../../utilities/result.js';
 import type { MemberProblem } from '../members/MemberProblem.js';
+import { generateKeyPair } from '../../testUtils/webcrypto.js';
 
 import { OrgProblem } from './OrgProblem.js';
 import type { OrgCreationSchema } from './org.schema.js';
@@ -162,6 +164,16 @@ describe('org', () => {
         const expectedPublicKey = await derSerialisePublicKey(generatedPublicKey);
         expect(Buffer.from(result.result.publicKey, 'base64')).toMatchObject(expectedPublicKey);
       });
+
+      test('TXT record should be output with TTL override of 1 hour', async () => {
+        const result = await createOrg(orgData, serviceOptions);
+
+        requireSuccessfulResult(result);
+        const { kms } = getMockKms();
+        const [{ publicKey }] = kms.generatedKeyPairRefs;
+        const expectedRdata = await generateTxtRdata(publicKey, 3600);
+        expect(result.result.txtRecordRdata).toBe(expectedRdata);
+      });
     });
   });
 
@@ -240,10 +252,16 @@ describe('org', () => {
   });
 
   describe('getOrg', () => {
-    const publicKey = Buffer.from('the public key');
+    let publicKey: CryptoKey;
+    let publicKeySerialised: Buffer;
+    beforeAll(async () => {
+      const { publicKey: generatedPublicKey } = await generateKeyPair();
+      publicKey = generatedPublicKey;
+      publicKeySerialised = await derSerialisePublicKey(publicKey);
+    });
 
     test('Org name should be output if org exists', async () => {
-      await orgModel.create({ name: ORG_NAME, publicKey });
+      await orgModel.create({ name: ORG_NAME, publicKey: publicKeySerialised });
 
       const result = await getOrg(ORG_NAME, serviceOptions);
 
@@ -252,12 +270,22 @@ describe('org', () => {
     });
 
     test('Public key should be output if org exists', async () => {
-      await orgModel.create({ name: ORG_NAME, publicKey });
+      await orgModel.create({ name: ORG_NAME, publicKey: publicKeySerialised });
 
       const result = await getOrg(ORG_NAME, serviceOptions);
 
       requireSuccessfulResult(result);
-      expect(result.result.publicKey).toBe(publicKey.toString('base64'));
+      expect(result.result.publicKey).toBe(publicKeySerialised.toString('base64'));
+    });
+
+    test('TXT record should be output with TTL override of 1 hour if org exists', async () => {
+      await orgModel.create({ name: ORG_NAME, publicKey: publicKeySerialised });
+
+      const result = await getOrg(ORG_NAME, serviceOptions);
+
+      requireSuccessfulResult(result);
+      const expectedRdata = await generateTxtRdata(publicKey, 3600);
+      expect(result.result.txtRecordRdata).toBe(expectedRdata);
     });
 
     test('Invalid name should return non existing error', async () => {
