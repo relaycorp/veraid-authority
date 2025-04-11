@@ -18,7 +18,7 @@ const SIGNATURE_SPEC_ID = '111111111111111111111111';
 const PLAINTEXT = Buffer.from('test plaintext').toString('base64');
 const AUTH_TYPE = 'oidc-discovery';
 
-const STUB_SIGNATURE_SPEC_DATA: Omit<SignatureSpec, 'creationDate'> = {
+const STUB_SIGNATURE_SPEC_DATA: Omit<SignatureSpec, '_id' | 'creationDate'> = {
   orgName: ORG_NAME,
   member: new mongoose.Types.ObjectId(MEMBER_ID),
 

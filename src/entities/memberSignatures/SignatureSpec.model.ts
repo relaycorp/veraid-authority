@@ -1,6 +1,7 @@
 import { prop, modelOptions, Ref } from '@typegoose/typegoose';
 
 import { Member } from '../members/Member.model.js';
+import { BaseUuid4Model } from '../../utilities/BaseUuid4Model.js';
 
 import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
 
@@ -14,7 +15,7 @@ import { OidcDiscoveryAuth } from './OidcDiscoveryAuth.model.js';
     },
   },
 })
-export class SignatureSpec {
+export class SignatureSpec extends BaseUuid4Model {
   @prop({ required: true })
   public orgName!: string;
 

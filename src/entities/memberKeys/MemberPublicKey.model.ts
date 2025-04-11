@@ -1,5 +1,7 @@
 import { prop, modelOptions } from '@typegoose/typegoose';
 
+import { BaseUuid4Model } from '../../utilities/BaseUuid4Model.js';
+
 @modelOptions({
   schemaOptions: {
     collection: 'member_public_keys',
@@ -10,7 +12,7 @@ import { prop, modelOptions } from '@typegoose/typegoose';
     },
   },
 })
-export class MemberPublicKey {
+export class MemberPublicKey extends BaseUuid4Model {
   @prop({ required: true })
   public memberId!: string;
 
