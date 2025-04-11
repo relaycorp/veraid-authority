@@ -14,9 +14,9 @@ import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { OrgProblem } from './OrgProblem.js';
 import type { OrgCreationSchema, OrgPatchSchema, OrgReadSchema } from './org.schema.js';
 
-const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblem>>>());
+const mockCreateOrg = mockSpy(jest.fn<() => Promise<Result<OrgReadSchema, OrgProblem>>>());
 const mockUpdateOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblem>>>());
-const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgCreationSchema, OrgProblem>>>());
+const mockGetOrg = mockSpy(jest.fn<() => Promise<Result<OrgReadSchema, OrgProblem>>>());
 const mockDeleteOrg = mockSpy(jest.fn<() => Promise<Result<undefined, OrgProblem>>>());
 jest.unstable_mockModule('./org.js', () => ({
   createOrg: mockCreateOrg,
@@ -30,6 +30,8 @@ const { makeTestApiServer, testOrgRouteAuth } = await import('../../testUtils/ap
 const { publicKey: PUBLIC_KEY } = await generateKeyPair();
 const PUBLIC_KEY_SERIALISED = await derSerialisePublicKey(PUBLIC_KEY);
 const PUBLIC_KEY_BASE64 = PUBLIC_KEY_SERIALISED.toString('base64');
+
+const TXT_RECORD_RDATA = await generateTxtRdata(PUBLIC_KEY, 3600);
 
 describe('org routes', () => {
   const getTestServerFixture = makeTestApiServer();
@@ -49,7 +51,7 @@ describe('org routes', () => {
       const payload: OrgCreationSchema = { name: ORG_NAME };
       testOrgRouteAuth('ORG_BULK', { ...injectionOptions, payload }, getTestServerFixture, {
         spy: mockCreateOrg,
-        result: { name: ORG_NAME },
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
       });
     });
 
@@ -60,7 +62,7 @@ describe('org routes', () => {
       const payload: OrgCreationSchema = { name };
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: true,
-        result: { name },
+        result: { name, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
       });
 
       const response = await serverInstance.inject({
@@ -69,7 +71,7 @@ describe('org routes', () => {
       });
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
       expect(response.headers['content-type']).toStartWith('application/json');
-      expect(response.json()).toStrictEqual({
+      expect(response.json()).toMatchObject({
         self: `/orgs/${name}`,
         members: `/orgs/${name}/members`,
       });
@@ -78,7 +80,7 @@ describe('org routes', () => {
     test('Response should include public key', async () => {
       mockCreateOrg.mockResolvedValueOnce({
         didSucceed: true,
-        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64 },
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
       });
       const payload: OrgCreationSchema = { name: ORG_NAME };
 
@@ -87,6 +89,20 @@ describe('org routes', () => {
         payload,
       });
       expect(response.json()).toHaveProperty('publicKey', PUBLIC_KEY_BASE64);
+    });
+
+    test('Response should include TXT record rdata', async () => {
+      mockCreateOrg.mockResolvedValueOnce({
+        didSucceed: true,
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
+      });
+      const payload: OrgCreationSchema = { name: ORG_NAME };
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+      expect(response.json()).toHaveProperty('txtRecordRdata', TXT_RECORD_RDATA);
     });
 
     test('Duplicated name error should resolve into conflict status', async () => {
@@ -129,7 +145,7 @@ describe('org routes', () => {
     };
     const getOrgSuccessResponse = {
       didSucceed: true,
-      result: { name: ORG_NAME },
+      result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
     } as const;
 
     describe('Auth', () => {
@@ -221,7 +237,15 @@ describe('org routes', () => {
         'ORG',
         { ...injectionOptions, url: `/orgs/${ORG_NAME}` },
         getTestServerFixture,
-        { spy: mockGetOrg, result: { name: ORG_NAME } },
+        {
+          spy: mockGetOrg,
+
+          result: {
+            name: ORG_NAME,
+            publicKey: PUBLIC_KEY_BASE64,
+            txtRecordRdata: TXT_RECORD_RDATA,
+          },
+        },
       );
     });
 
@@ -280,7 +304,12 @@ describe('org routes', () => {
       beforeEach(() => {
         mockGetOrg.mockResolvedValueOnce({
           didSucceed: true,
-          result: { name: ORG_NAME },
+
+          result: {
+            name: ORG_NAME,
+            publicKey: PUBLIC_KEY_BASE64,
+            txtRecordRdata: TXT_RECORD_RDATA,
+          },
         });
       });
 
@@ -295,7 +324,7 @@ describe('org routes', () => {
     test('Valid name should be accepted', async () => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: true,
-        result: { name: ORG_NAME },
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
       });
       mockDeleteOrg.mockResolvedValueOnce({
         didSucceed: true,
@@ -335,7 +364,7 @@ describe('org routes', () => {
     ])('%s should should be refused', async (_type, reason) => {
       mockGetOrg.mockResolvedValueOnce({
         didSucceed: true,
-        result: { name: ORG_NAME },
+        result: { name: ORG_NAME, publicKey: PUBLIC_KEY_BASE64, txtRecordRdata: TXT_RECORD_RDATA },
       });
       mockDeleteOrg.mockResolvedValueOnce({
         didSucceed: false,

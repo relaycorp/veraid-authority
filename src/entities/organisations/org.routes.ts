@@ -34,6 +34,7 @@ function makeCreationResponse(org: OrgCreationSchema): object {
     self: `/orgs/${org.name}`,
     members: `/orgs/${org.name}/members`,
     publicKey: org.publicKey,
+    txtRecordRdata: org.txtRecordRdata,
   };
 }
 
