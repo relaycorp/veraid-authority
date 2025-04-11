@@ -1,17 +1,20 @@
 import { type DocumentType, getModelForClass } from '@typegoose/typegoose';
 import isValidDomain from 'is-valid-domain';
 import type { AnyKeys } from 'mongoose';
+import { generateTxtRdata } from '@relaycorp/veraid';
 
 import type { Result } from '../../utilities/result.js';
 import { MONGODB_DUPLICATE_INDEX_CODE, type ServiceOptions } from '../../utilities/serviceTypes.js';
 import { Kms } from '../../utilities/kms/Kms.js';
-import { derSerialisePublicKey } from '../../utilities/webcrypto.js';
+import { derDeserialisePublicKey, derSerialisePublicKey } from '../../utilities/webcrypto.js';
 import { Member, Role } from '../members/Member.model.js';
 import { deleteMember } from '../members/member.js';
 
 import { OrgProblem } from './OrgProblem.js';
 import type { OrgCreationSchema, OrgReadSchema, OrgPatchSchema } from './org.schema.js';
 import { Org } from './Org.model.js';
+
+const DEFAULT_TTL_OVERRIDE = 3600;
 
 function isValidUtf8Domain(orgName: string) {
   return isValidDomain(orgName, { allowUnicode: true });
@@ -95,9 +98,15 @@ export async function createOrg(
   }
 
   options.logger.info({ orgName: orgData.name }, 'Org created');
+  const txtRecordRdata = await generateTxtRdata(publicKey, DEFAULT_TTL_OVERRIDE);
   return {
     didSucceed: true,
-    result: { name: orgData.name, publicKey: publicKeySerialised.toString('base64') },
+
+    result: {
+      name: orgData.name,
+      publicKey: publicKeySerialised.toString('base64'),
+      txtRecordRdata,
+    },
   };
 }
 
@@ -151,9 +160,11 @@ export async function getOrg(
     };
   }
 
+  const publicKey = await derDeserialisePublicKey(org.publicKey);
+  const txtRecordRdata = await generateTxtRdata(publicKey, DEFAULT_TTL_OVERRIDE);
   return {
     didSucceed: true,
-    result: { name: org.name, publicKey: org.publicKey.toString('base64') },
+    result: { name: org.name, publicKey: org.publicKey.toString('base64'), txtRecordRdata },
   };
 }
 
