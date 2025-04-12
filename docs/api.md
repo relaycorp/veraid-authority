@@ -2,9 +2,9 @@
 permalink: /api
 nav_order: 2
 ---
-# API server
+# Organisation Management API
 
-This server exposes a RESTful API to manage VeraId organisations and the endpoint needed by the Awala integration (if enabled).
+The API server contains the RESTful API to manage VeraId organisations under the prefix `/orgs`.
 
 ## Authentication and authorisation
 
@@ -18,11 +18,11 @@ The API employs the following roles:
 
 Authorisation grant logs use the level `DEBUG` to minimise PII transmission and storage for legal/privacy reasons, whilst denial logs use the level `INFO` for auditing purposes.
 
-## HTTP Endpoints
-
-It will support the following API endpoints, which are to be consumed by the VeraId CA Console (a CLI used by organisation admins) and VeraId signature producers (used by organisation members):
+## Endpoints
 
 Unless otherwise specified, all inputs and outputs will be JSON serialised.
+
+### Organisations
 
 - `POST /orgs`: Create org.
   - Auth: Admin.
@@ -44,6 +44,9 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input: Same as `POST /orgs`, but org name can't be changed.
 - `DELETE /orgs/{orgName}`: Delete org.
   - Auth: Org admin.
+
+### Members
+
 - `POST /orgs/{orgName}/members`: Create member.
   - Auth: Org admin.
   - Input:
@@ -59,6 +62,9 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input: Same as in `POST /orgs/{orgName}/members`.
 - `DELETE /orgs/{orgName}/members/{memberId}`: Delete member.
   - Auth: Org admin.
+
+### Public Keys
+
 - `POST /orgs/{orgName}/members/{memberId}/public-keys`: Register public key for member.
   - Auth: Org member.
   - Input:
@@ -77,6 +83,9 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Input:
     - The OID for the service where the respective bundles will be valid (e.g., `1.2.3.4.5`).
   - Output: A single-use UUID4.
+
+### Signature Specs
+
 - `POST /orgs/{orgName}/members/{memberId}/signature-specs`: Create signature spec.
   - Auth: Org member.
   - Input:
@@ -93,11 +102,5 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
 - `DELETE /orgs/{orgName}/members/{memberId}/signature-specs/{signatureSpecId}`: Delete signature spec.
   - Auth: Org member.
   - Output: Nothing (204 No Content).
-- `GET /credentials/signatureBundles/{specId}`: Get signature bundle.
-  - Auth: JWT Bearer token with the endpoint URL as audience.
-  - Input: None (specId in path, JWT in Authorization header).
-  - Output: VeraId Signature Bundle with content type 'application/vnd.veraid.signature-bundle'.
-  - Errors:
-    - 401 Unauthorized: If JWT is invalid or missing.
-    - 404 Not Found: If signature spec or its organisation not found.
-    - 503 Service Unavailable: If JWKS retrieval or DNSSEC chain retrieval fails; client may retry later.
+
+See also the [Credentials Exchange API](./credentials.md).
