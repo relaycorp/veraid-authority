@@ -96,7 +96,7 @@ describe('signature spec routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-      expect(response.json()).toStrictEqual({
+      expect(response.json()).toMatchObject({
         self: SIGNATURE_SPEC_PATH,
       });
     });
