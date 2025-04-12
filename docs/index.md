@@ -1,22 +1,23 @@
 # VeraId Authority
 
-VeraId Authority is a cloud-native app that allows organisations to manage their [VeraId](https://veraid.net) members and the issuance of their respective Member Bundles (which they'd subsequently use to produce VeraId signatures).
+VeraId Authority is a cloud-native, multi-tenant app that allows organisations to manage their [VeraId](https://veraid.net) members and the issuance of their respective Member Id Bundles.
 
-It offers [built-in Awala support](./awala.md) so that members can get their bundles with or without the Internet.
+It offers [built-in Awala support](./awala.md) so that members can get their bundles without the Internet.
 
 ## Architecture
 
-This is a multi-tenant app that comprises the following web servers:
+The API server is the primary component of the app, offering the following RESTful APIs:
 
-- [API server](./api-server.md): This is a RESTful API to manage VeraId organisations and exposes an endpoint needed by the Awala integration (if enabled).
-- [Background queue](./queue-server.md). This is a [CloudEvents](https://cloudevents.io) server that processes events in the background.
+- [Organisation Management API](./api.md), to manage VeraId organisations and their members.
+- [Credentials Exchange API](./credentials.md), to exchange external credentials (e.g. JWTs) for VeraId credentials (e.g. organisation signatures).
 
 The app also uses the following backing services:
 
 - [**MongoDB**](https://www.mongodb.com) 6 or newer.
 - A **Key Management Service (KMS)** supported by [`@relaycorp/webcrypto-kms`](https://www.npmjs.com/package/@relaycorp/webcrypto-kms). Every organisation gets its own key pair. Operators are highly encouraged to use hardware security modules in production.
 - Any **authorisation server** supporting JSON Web Key Sets (JWKS), such as Auth0.
-- Any [Knative Eventing broker](https://knative.dev/docs/eventing/brokers/), such as RabbitMQ or Google PubSub.
+
+When [Awala](https://awala.app/en/network/) support is required, the [background queue](./queue-server.md) and [Awala backend](./awala.md) servers must be deployed too.
 
 To better understand where this server sits in the overall protocol, please refer to the [architecture of VeraId itself](https://veraid.net/architecture).
 
