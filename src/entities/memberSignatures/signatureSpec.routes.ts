@@ -1,4 +1,4 @@
-import type { FastifyReply, RouteOptions } from 'fastify';
+import type { FastifyReply, FastifyRequest, RouteOptions } from 'fastify';
 
 import { HTTP_STATUS_CODES, type StatusByProblem } from '../../utilities/http.js';
 import type { PluginDone } from '../../utilities/fastify/PluginDone.js';
@@ -42,11 +42,20 @@ const SIGNATURE_SPEC_PARAMS = {
 } as const;
 
 interface SignatureSpecUrls {
+  exchangeUrl: string;
   self: string;
 }
 
-function makeUrls(orgName: string, memberId: string, signatureSpecId: string): SignatureSpecUrls {
+function makeUrls(
+  orgName: string,
+  memberId: string,
+  signatureSpecId: string,
+  request: FastifyRequest,
+): SignatureSpecUrls {
+  const serverRootUrl = new URL(`${request.protocol}://${request.hostname}`);
+  const exchangeUrl = new URL(`/credentials/signatureBundles/${signatureSpecId}`, serverRootUrl);
   return {
+    exchangeUrl: exchangeUrl.toString(),
     self: `/orgs/${orgName}/members/${memberId}/signature-specs/${signatureSpecId}`,
   };
 }
@@ -90,7 +99,8 @@ export default function registerRoutes(
         return;
       }
 
-      await reply.code(HTTP_STATUS_CODES.OK).send(makeUrls(orgName, memberId, result.result.id));
+      const urls = makeUrls(orgName, memberId, result.result.id, request);
+      await reply.code(HTTP_STATUS_CODES.OK).send(urls);
     },
   });
 
