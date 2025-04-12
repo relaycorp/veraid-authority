@@ -96,8 +96,39 @@ describe('signature spec routes', () => {
       });
 
       expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
-      expect(response.json()).toStrictEqual({
+      expect(response.json()).toMatchObject({
         self: SIGNATURE_SPEC_PATH,
+      });
+    });
+
+    test('Exchange URL should be returned if successful', async () => {
+      const payload: SignatureSpecSchema = {
+        auth: {
+          type: AUTH_TYPE,
+          providerIssuerUrl: OPENID_PROVIDER_ISSUER_URL,
+          jwtSubjectClaim: JWT_SUBJECT_CLAIM,
+          jwtSubjectValue: JWT_SUBJECT_VALUE,
+        },
+
+        serviceOid: TEST_SERVICE_OID,
+        plaintext: PLAINTEXT,
+      };
+      mockCreateSignatureSpec.mockResolvedValueOnce({
+        didSucceed: true,
+
+        result: {
+          id: SIGNATURE_SPEC_ID,
+        },
+      });
+
+      const response = await serverInstance.inject({
+        ...injectionOptions,
+        payload,
+      });
+
+      expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+      expect(response.json()).toMatchObject({
+        exchangeUrl: `http://localhost/credentials/signatureBundles/${SIGNATURE_SPEC_ID}`,
       });
     });
 
