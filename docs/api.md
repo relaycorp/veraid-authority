@@ -90,8 +90,8 @@ Unless otherwise specified, all inputs and outputs will be JSON serialised.
   - Auth: Org member.
   - Input:
     - `providerIssuerUrl`: URL to the OpenID provider's issuer URL (e.g., `https://accounts.google.com`).
-    - `jwtSubjectField`: The field in the JWT that contains the subject.
-    - `jwtSubjectValue`: The value of the subject field.
+    - `jwtSubjectClaim`: The name of the JWT claim that contains the subject.
+    - `jwtSubjectValue`: The required value of the subject claim.
     - `serviceOid`: The OID for the service where the signature will be valid.
     - `ttlSeconds`: Time-to-live for the signature in seconds (default: 3600).
     - `plaintext`: The plaintext to be signed.

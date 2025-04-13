@@ -46,7 +46,7 @@ To enable a GCP service account to obtain VeraId organisation signatures, you co
      "auth": {
        "type": "oidc-discovery",
        "providerIssuerUrl": "https://accounts.google.com",
-       "jwtSubjectField": "email",
+       "jwtSubjectClaim": "email",
        "jwtSubjectValue": "app@acme.iam.gserviceaccount.com"
      },
      "serviceOid": "1.3.6.1.4.1.58708.1.1",
