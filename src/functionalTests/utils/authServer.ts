@@ -19,10 +19,10 @@ export async function authenticate(scope: AuthScope): Promise<AuthorizationHeade
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     grant_type: 'client_credentials',
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
-    client_id: 'client',
+    client_id: scope,
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     client_secret: 's3cr3t',
-    scope,
+    scope: 'default',
   };
   const response = await post(AUTH_ENDPOINT_URL, {
     headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
