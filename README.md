@@ -41,12 +41,12 @@ To make authenticated requests to the API server, you need to get an access toke
 POST http://localhost:8083/default/token
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=client_credentials&client_id=admin@veraid.example&client_secret=s3cr3t&scope=super-admin
+grant_type=client_credentials&client_id=super-admin&client_secret=s3cr3t&scope=default
 ```
 
 You can then make authenticated requests to the API server by setting the `Authorization` header to `Bearer <access_token>`.
 
-Alternatively, use `client_id=member@example.com` and `scope=user` to get an access token for a regular user.
+Alternatively, use `client_id=user` to get an access token for a regular user.
 
 ## Contributions
 
