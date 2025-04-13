@@ -200,4 +200,25 @@ describe('signature bundle issuance route', () => {
     expect(response.headers['content-type']).toBe('application/vnd.veraid.signature-bundle');
     expect(response.rawPayload.equals(Buffer.from(MOCK_SIGNATURE_BUNDLE_SERIALISED))).toBeTrue();
   });
+
+  test('should return base64 encoded signature bundle when requested', async () => {
+    mockIssueSignatureBundle.mockResolvedValueOnce({
+      didSucceed: true,
+      result: MOCK_SIGNATURE_BUNDLE,
+    });
+
+    const response = await serverInstance.inject({
+      ...injectionOptions,
+
+      headers: {
+        ...injectionOptions.headers,
+        accept: 'application/vnd.veraid.signature-bundle+base64',
+      },
+    });
+
+    const expectedBase64 = Buffer.from(MOCK_SIGNATURE_BUNDLE_SERIALISED).toString('base64');
+    expect(response).toHaveProperty('statusCode', HTTP_STATUS_CODES.OK);
+    expect(response.headers['content-type']).toBe('application/vnd.veraid.signature-bundle+base64');
+    expect(response.body).toBe(expectedBase64);
+  });
 });

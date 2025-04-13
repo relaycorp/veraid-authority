@@ -22,6 +22,8 @@ The endpoint `GET /credentials/signatureBundles/{specId}` will issue a VeraId or
 
 If successful, the response will be a VeraId Signature Bundle with content type `application/vnd.veraid.signature-bundle`. The expiry time of the signature bundle will be the lower of the signature spec's `ttlSeconds` and the JWT's `exp` claim.
 
+To receive the signature bundle as base64-encoded text instead of binary, set the `Accept` header to `application/vnd.veraid.signature-bundle+base64`. The response will use this content type and return the bundle encoded as base64 text.
+
 Alternatively, the client would return one of the following errors:
 
 - 401 Unauthorized: If client authentication failed.

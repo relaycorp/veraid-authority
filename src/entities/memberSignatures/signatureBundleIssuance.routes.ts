@@ -7,6 +7,11 @@ import type { FastifyTypedInstance } from '../../utilities/fastify/FastifyTypedI
 import { SignatureBundleIssuanceProblem } from './SignatureBundleIssuanceProblem.js';
 import { issueSignatureBundle } from './signatureBundleIssuance.js';
 
+const CONTENT_TYPES = {
+  BINARY: 'application/vnd.veraid.signature-bundle',
+  BASE64: 'application/vnd.veraid.signature-bundle+base64',
+} as const;
+
 const RESPONSE_CODE_BY_PROBLEM: StatusByProblem<SignatureBundleIssuanceProblem> = {
   [SignatureBundleIssuanceProblem.SIGNATURE_SPEC_NOT_FOUND]: HTTP_STATUS_CODES.NOT_FOUND,
   [SignatureBundleIssuanceProblem.INVALID_JWT]: HTTP_STATUS_CODES.UNAUTHORIZED,
@@ -64,11 +69,20 @@ export default function registerRoutes(
       );
 
       if (result.didSucceed) {
+        const contentType =
+          request.headers.accept === CONTENT_TYPES.BASE64
+            ? CONTENT_TYPES.BASE64
+            : CONTENT_TYPES.BINARY;
         const signatureBundleSerialised = Buffer.from(result.result.serialise());
+        const responsePayload =
+          contentType === CONTENT_TYPES.BASE64
+            ? signatureBundleSerialised.toString('base64')
+            : signatureBundleSerialised;
+
         return reply
           .code(HTTP_STATUS_CODES.OK)
-          .header('Content-Type', 'application/vnd.veraid.signature-bundle')
-          .send(signatureBundleSerialised);
+          .header('Content-Type', contentType)
+          .send(responsePayload);
       }
 
       return reply.code(RESPONSE_CODE_BY_PROBLEM[result.context]).send({ type: result.context });
