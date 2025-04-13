@@ -137,7 +137,7 @@ services:
 
   # MongoDB
   mongodb:
-    image: mongo:6.0.4
+    image: mongo:8.0.6
     ports:
       - "127.0.0.1:27017:27017"
     environment:
