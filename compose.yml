@@ -112,6 +112,14 @@ services:
                   "requestParam": "client_id",
                   "match": "user",
                   "claims": {"email": "member@example.com"}
+                },
+                {
+                  "requestParam": "client_id",
+                  "match": "workload",
+                  "claims": {
+                    "email": "machine@cloud-provider.example",
+                    "aud": "$${audience}"
+                  }
                 }
               ]
             }
