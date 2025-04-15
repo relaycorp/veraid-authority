@@ -118,7 +118,8 @@ services:
                   "match": "workload",
                   "claims": {
                     "email": "machine@cloud-provider.example",
-                    "aud": "$${audience}"
+                    "aud": "$${audience}",
+                    "iss": "http://mock-authz-server:8080/default"
                   }
                 }
               ]

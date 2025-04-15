@@ -9,10 +9,6 @@ import { post } from './http.js';
 const AUTH_SERVER_URL = 'http://127.0.0.1:8083';
 const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
 
-// `Host` request header must match the host that Authority will use to access the OAuth2 server.
-// This ensures that the `iss` claim in the JWT will match the expected issues.
-const HOST_HEADER = 'mock-authz-server:8080';
-
 export enum AuthScope {
   SUPER_ADMIN = 'super-admin',
   USER = 'user',
@@ -34,10 +30,7 @@ export async function authenticate(
     ...extraBodyFields,
   };
   const response = await post(AUTH_ENDPOINT_URL, {
-    headers: new Headers([
-      ['Content-Type', 'application/x-www-form-urlencoded'],
-      ['Host', HOST_HEADER],
-    ]),
+    headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
 
     body: stringify(body),
   });
