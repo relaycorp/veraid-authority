@@ -31,7 +31,6 @@ export async function authenticate(
   };
   const response = await post(AUTH_ENDPOINT_URL, {
     headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
-
     body: stringify(body),
   });
   expect(response.status).toBe(HTTP_STATUS_CODES.OK);
