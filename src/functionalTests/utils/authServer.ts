@@ -12,9 +12,13 @@ const AUTH_ENDPOINT_URL = `${AUTH_SERVER_URL}/default/token`;
 export enum AuthScope {
   SUPER_ADMIN = 'super-admin',
   USER = 'user',
+  WORKLOAD = 'workload',
 }
 
-export async function authenticate(scope: AuthScope): Promise<AuthorizationHeader> {
+export async function authenticate(
+  scope: AuthScope,
+  extraBodyFields: { [key: string]: string } = {},
+): Promise<AuthorizationHeader> {
   const body = {
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     grant_type: 'client_credentials',
@@ -23,6 +27,7 @@ export async function authenticate(scope: AuthScope): Promise<AuthorizationHeade
     // eslint-disable-next-line @typescript-eslint/naming-convention,camelcase
     client_secret: 's3cr3t',
     scope: 'default',
+    ...extraBodyFields,
   };
   const response = await post(AUTH_ENDPOINT_URL, {
     headers: new Headers([['Content-Type', 'application/x-www-form-urlencoded']]),
