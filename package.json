@@ -22,7 +22,7 @@
     "@peculiar/webcrypto": "^1.5.0",
     "@relaycorp/cloudevents-transport": "^1.3.12",
     "@relaycorp/pino-cloud": "^1.0.28",
-    "@relaycorp/veraid": "github:relaycorp/veraid-js#saltless-tmp",
+    "@relaycorp/veraid": "^3.2.8",
     "@relaycorp/webcrypto-kms": "^1.5.12",
     "@typegoose/typegoose": "^11.8.1",
     "ajv": "^8.12.0",
